@@ -39,6 +39,7 @@ class XPathPathNode extends AbstractXPath
     public function parse($string)
     {
         $factory = new Factory();
+        $expressionParserHelper = new Expression\ExpressionParserHelper;
 
         if (strpos($string, '[') === false) {
             $this->setNode($string);
@@ -46,7 +47,7 @@ class XPathPathNode extends AbstractXPath
             return;
         }
 
-        $pieces = $factory->parseByLevel($string, '[', ']');
+        $pieces = $expressionParserHelper->parseFirstLevelSubExpressions($string, '[', ']');
         $this->setNode(array_shift($pieces));
 
         foreach ($pieces as $piece) {

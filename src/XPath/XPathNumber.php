@@ -14,7 +14,6 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMNode;
 use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathNumber;
 
 /**
  * Represents a number in an xPath.
@@ -31,24 +30,18 @@ class XPathNumber extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function __toString()
-    {
-        return $this->toString();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function parse($xPath)
     {
         $xPath = (string) $xPath;
 
         // Check if it is a number
-        if (!preg_match('#^-?\d+(?:\.\d+)?$#', $xPath) && $xPath != 'NaN') {
-            throw new NotXPathNumber();
+        if (!preg_match('#^(?:-?\d+(?:\.\d+)?|NaN)$#', $xPath)) {
+            return false;
         }
 
         $this->number = $xPath;
+
+        return true;
     }
 
     /**
@@ -98,5 +91,11 @@ class XPathNumber extends AbstractXPath
     public function getNumber()
     {
         return $this->number;
+    }
+
+
+    public function toString()
+    {
+        return (string) $this->getNumber();
     }
 }

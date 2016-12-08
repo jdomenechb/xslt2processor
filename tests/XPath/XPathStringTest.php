@@ -18,11 +18,11 @@ use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test for the XPathNumber class.
+ * Test for the XPathString class.
  *
  * @author jdomenechb
  */
-class XPathNumberTest extends TestCase
+class XPathStringTest extends TestCase
 {
     /**
      * Test that the class throws an exception when an invalid xPath has been given.
@@ -34,7 +34,7 @@ class XPathNumberTest extends TestCase
     public function testInvalid($xPath)
     {
         $this->expectException(NotValidXPathElement::class);
-        $obj = new XPathNumber($xPath);
+        $obj = new XPathString($xPath);
     }
 
     /**
@@ -133,17 +133,13 @@ class XPathNumberTest extends TestCase
     public function invalidValuesProvider()
     {
         return [
-            ['a'],
-            ['1-'],
-            ['46.'],
-            ['.98'],
-            ['-'],
-            ['.'],
-            [' 0'],
-            ['1 '],
-            ['12 68'],
-            ['jvgku456hbkb'],
-            ['NaN '],
+            ["'abcde"],
+            ["abcde'"],
+            ["abcde"],
+            ['98'],
+            ["'98 times of year ' '"],
+            ['(/*)'],
+            ['/*'],
         ];
     }
 }

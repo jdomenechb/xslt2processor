@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
+
 /**
  * Abstract class for implementing an XPath element.
  *
@@ -23,9 +25,10 @@ abstract class AbstractXPath implements ExpressionInterface
      *
      * @param mixed $xPath
      */
-    public function __construct($xPath)
+    public function __construct($xPath = null)
     {
-        if (!$this->parse($xPath)) {
+        // If the xPath has been given, parse the xPath
+        if (!is_null($xPath) && !$this->parse($xPath)) {
             throw new NotValidXPathElement($xPath, get_called_class());
         }
     }
@@ -35,8 +38,8 @@ abstract class AbstractXPath implements ExpressionInterface
      *
      * @return string
      */
-    public function toString()
+    public function __toString()
     {
-        return (string) $this->getNumber();
+        return $this->toString();
     }
 }

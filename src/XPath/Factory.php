@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
+
 class Factory
 {
     public function create($expression)
@@ -27,8 +29,10 @@ class Factory
         }
 
         // Parse number
-        if (preg_match('#^[0-9]+(\.[0-9]+)?$#', $expression)) {
-            return new XPathNumber($expression);
+        $tmp = new XPathNumber();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
         }
 
         // Parse var
@@ -160,65 +164,7 @@ class Factory
 
         return $history;
     }
-
-    public function parseByLevel($expression, $start, $end)
-    {
-        $level = 0;
-        $matches = [];
-
-        $offset = 0;
-        $offsetPiece = 0;
-        $stringToLower = strtolower($expression);
-        $stringLength = strlen($expression);
-        $lengthSOperator = strlen($start);
-        $lengthEOperator = strlen($end);
-
-        while ($offset < $stringLength) {
-            // Position of the start
-            $lParPos = strpos($stringToLower, $start, $offset);
-
-            if ($lParPos === false) {
-                $lParPos = $stringLength;
-            }
-
-            // Position of the right parenthesis
-            $rParPos = strpos($stringToLower, $end, $offset);
-
-            if ($rParPos === false) {
-                $rParPos = $stringLength;
-            }
-
-            // Calculate min
-            $min = min($lParPos, $rParPos);
-
-            if ($min === $stringLength) {
-                $offset = $stringLength;
-            } elseif ($min == $lParPos) {
-                ++$level;
-
-                if ($level === 1) {
-                    $matches[] = trim(substr($expression, $offsetPiece, $lParPos - $offsetPiece));
-                    $offsetPiece = $min + $lengthSOperator;
-                }
-
-                $offset = $min + $lengthSOperator;
-            } elseif ($min == $rParPos) {
-                --$level;
-
-                if ($level === 0) {
-                    $matches[] = trim(substr($expression, $offsetPiece, $rParPos - $offsetPiece));
-                    $offsetPiece = $min + $lengthEOperator;
-                }
-
-                $offset = $min + $lengthEOperator;
-            }
-        }
-
-        $matches[] = trim(substr($expression, $offsetPiece, $stringLength - $offsetPiece));
-
-        return $matches;
-    }
-
+    
     public function parseByOperator($operator, $string)
     {
         $level = 0;
@@ -316,43 +262,11 @@ class Factory
         return $matches;
     }
 
-    public function parseByOperatorOLD($operator, $string)
-    {
-        $buffer = '';
-        $level = 0;
-        $matches = [];
-
-        $lengthOperator = strlen($operator);
-        $operator = strtolower($operator);
-        $stringToLower = strtolower($string);
-        $stringLength = strlen($string);
-
-        for ($i = 0; $i < $stringLength; ++$i) {
-            if ($level == 0 && substr($stringToLower, $i, $lengthOperator) == $operator) {
-                $matches[] = trim($buffer);
-                $buffer = '';
-                $i += $lengthOperator;
-            }
-
-            if ($string[$i] == '(') {
-                ++$level;
-            }
-
-            if ($string[$i] == ')') {
-                --$level;
-            }
-
-            $buffer .= $string[$i];
-        }
-
-        $matches[] = trim($buffer);
-
-        return $matches;
-    }
-
     public function createFromAttributeValue($attributeValue)
     {
-        $levels = $this->parseByLevel($attributeValue, '{', '}');
+        $expressionParserHelper = new ExpressionParserHelper();
+        $levels = $expressionParserHelper->parseFirstLevelSubExpressions($attributeValue, '{', '}');
+
         $xPath = new XPathAttributeValueTemplate($levels);
 
         return $xPath;
