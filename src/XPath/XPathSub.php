@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathSub implements ExpressionInterface
+class XPathSub extends AbstractXPath
 {
     /**
      * @var ExpressionInterface
@@ -20,6 +20,7 @@ class XPathSub implements ExpressionInterface
 
     /**
      * XPathSub constructor.
+     *
      * @param mixed $string
      */
     public function __construct($string)

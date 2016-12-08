@@ -20,7 +20,7 @@ use Jdomenechb\XSLT2Processor\XSLT\CustomFunction;
 use Jdomenechb\XSLT2Processor\XSLT\SystemProperties;
 use RuntimeException;
 
-class XPathFunction implements ExpressionInterface
+class XPathFunction extends AbstractXPath
 {
     /**
      * @var string

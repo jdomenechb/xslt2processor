@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathAttributeValueTemplate implements ExpressionInterface
+class XPathAttributeValueTemplate extends AbstractXPath
 {
     protected $parts;
 

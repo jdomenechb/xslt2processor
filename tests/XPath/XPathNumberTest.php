@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
+use DOMDocument;
+use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathNumber;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use PHPUnit\Framework\TestCase;
@@ -23,8 +25,10 @@ use PHPUnit\Framework\TestCase;
 class XPathNumberTest extends TestCase
 {
     /**
-     * Test if the xPath given is a valid number
+     * Test that the class throws an exception when an invalid number has been given.
+     *
      * @dataProvider invalidValuesProvider
+     *
      * @param mixed $xPath
      */
     public function testInvalid($xPath)
@@ -34,8 +38,10 @@ class XPathNumberTest extends TestCase
     }
 
     /**
-     * Test if the representation of the given xPath remains the same
+     * Test if the representation of the given xPath remains the same.
+     *
      * @dataProvider basicValuesProvider
+     *
      * @param mixed $xPath
      */
     public function testToString($xPath)
@@ -45,10 +51,22 @@ class XPathNumberTest extends TestCase
     }
 
     /**
-     * Test if the representation of the given xPath remains the same
+     * Test if the representation of the given xPath remains the same when casting.
+     *
+     * @dataProvider basicValuesProvider
+     *
      * @param mixed $xPath
      */
-    public function testUselessDefaultNamespacePrefix()
+    public function testToStringCast($xPath)
+    {
+        $obj = new XPathNumber($xPath);
+        $this->assertSame((string) $xPath, (string) $obj);
+    }
+
+    /**
+     * Test that the method setDefaultNamespacePrefix is useless in this context.
+     */
+    public function testUselessSetDefaultNamespacePrefix()
     {
         $obj = new XPathNumber(2);
         $obj2 = new XPathNumber(2);
@@ -56,6 +74,44 @@ class XPathNumberTest extends TestCase
         $this->assertEquals($obj, $obj2);
     }
 
+    /**
+     * Test that the method setVariableValues is useless in this context.
+     */
+    public function testUselessSetVariableValues()
+    {
+        $obj = new XPathNumber(2);
+        $obj2 = new XPathNumber(2);
+        $obj2->setVariableValues(['something' => 'somethingElse']);
+        $this->assertEquals($obj, $obj2);
+    }
+
+    /**
+     * Tests the evaluation of a number returns the xPath given.
+     *
+     * @dataProvider basicValuesProvider
+     *
+     * @param mixed $xPath
+     */
+    public function testEvaluate($xPath)
+    {
+        $document = new DOMDocument();
+        $domXPath = new DOMXPath($document);
+
+        $obj = new XPathNumber($xPath);
+        $this->assertEquals($xPath, $obj->evaluate($document, $domXPath), '', 0.0000001);
+    }
+
+    /**
+     * Test that the class accepts NaN and can evaluate to a NaN.
+     */
+    public function testNan()
+    {
+        $document = new DOMDocument();
+        $domXPath = new DOMXPath($document);
+
+        $obj = new XPathNumber('NaN');
+        $this->assertNan($obj->evaluate($document, $domXPath));
+    }
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
@@ -64,14 +120,12 @@ class XPathNumberTest extends TestCase
         return [
             [0],
             [1],
-            ['0'],
-            ['1'],
             [-7],
             [14],
             [-14],
             [78.1847],
             [-45.7352],
-            [9865674.978677566],
+            [9865674.9786776658],
             [-9865674.978677566],
         ];
     }
@@ -85,7 +139,11 @@ class XPathNumberTest extends TestCase
             ['.98'],
             ['-'],
             ['.'],
+            [' 0'],
+            ['1 '],
+            ['12 68'],
             ['jvgku456hbkb'],
+            ['NaN '],
         ];
     }
 }

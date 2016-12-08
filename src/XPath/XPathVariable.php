@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathVariable implements ExpressionInterface
+class XPathVariable extends AbstractXPath
 {
     /**
      * @var string

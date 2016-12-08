@@ -11,23 +11,39 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathString implements ExpressionInterface
+use DOMNode;
+use DOMXPath;
+use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathString;
+
+/**
+ * Represents an xPath string.
+ * @author jdomenechb
+ */
+class XPathString extends AbstractXPath
 {
+    /**
+     *
+     * @var string
+     */
     protected $string;
 
     /**
      * {@inheritdoc}
+     *
+     * The given xPath must be enclosed in simple quotes to be considered an string.
      */
-    public function __construct($string)
+    public function parse($xPath)
     {
-        $this->parse($string);
+        if (substr($xPath, 0, 1) !== "'" || substr($xPath, -1) !== "'") {
+            throw new NotXPathString;
+        }
+
+        $this->setString(substr($xPath, 1, -1));
     }
 
-    public function parse($string)
-    {
-        $this->setString(substr($string, 1, -1));
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function toString()
     {
         return "'" . $this->getString() . "'";
@@ -35,7 +51,6 @@ class XPathString implements ExpressionInterface
 
     public function setDefaultNamespacePrefix($prefix)
     {
-        return;
     }
 
     /**
@@ -56,11 +71,11 @@ class XPathString implements ExpressionInterface
 
     public function setVariableValues(array $values)
     {
-        return;
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate(DOMNode $context, DOMXPath $xPathReference)
     {
         return $this->getString();
     }
+
 }

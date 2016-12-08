@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathPathNode implements ExpressionInterface
+class XPathPathNode extends AbstractXPath
 {
     /**
      * @var string

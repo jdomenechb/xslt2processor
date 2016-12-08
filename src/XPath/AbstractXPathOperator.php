@@ -13,7 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathOperator;
 
-abstract class AbstractXPathOperator implements ExpressionInterface
+abstract class AbstractXPathOperator extends AbstractXPath
 {
     /**
      * @var ExpressionInterface

@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-abstract class AbstractXPathLogic implements ExpressionInterface
+abstract class AbstractXPathLogic extends AbstractXPath
 {
     /**
      * @var array
