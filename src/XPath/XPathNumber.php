@@ -18,24 +18,29 @@ class XPathNumber implements ExpressionInterface
     /**
      * {@inheritdoc}
      */
-    public function __construct($string)
+    public function __construct($xPath)
     {
-        $this->parse($string);
+        $this->parse($xPath);
     }
 
-    public function parse($string)
+    public function parse($xPath)
     {
-        $this->setNumber($string);
+        // Check is it is a number
+        if (!preg_match('#^-?\d+(.\d+)?$#', $xPath) && $xPath != 'NaN') {
+            throw new Exception\NotXPathNumber;
+        }
+
+        $this->setNumber($xPath);
     }
 
     public function toString()
     {
-        return $this->getNumber();
+        return (string) $this->getNumber();
     }
 
     public function setDefaultNamespacePrefix($prefix)
     {
-        // Nothing to do here
+        return;
     }
 
     /**
@@ -56,7 +61,7 @@ class XPathNumber implements ExpressionInterface
 
     public function setVariableValues(array $values)
     {
-        // Nothing
+        return;
     }
 
     public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)

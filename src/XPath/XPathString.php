@@ -35,7 +35,7 @@ class XPathString implements ExpressionInterface
 
     public function setDefaultNamespacePrefix($prefix)
     {
-        // Nothing to do here
+        return;
     }
 
     /**
@@ -56,7 +56,7 @@ class XPathString implements ExpressionInterface
 
     public function setVariableValues(array $values)
     {
-        // Nothing
+        return;
     }
 
     public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
