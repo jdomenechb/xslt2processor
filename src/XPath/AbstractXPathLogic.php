@@ -1,0 +1,89 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: jdomeneb
+ * Date: 23/09/2016
+ * Time: 12:59
+ */
+
+namespace Jdomenechb\XSLT2Processor\XPath;
+
+
+abstract class AbstractXPathLogic implements ExpressionInterface
+{
+    /**
+     * @var array
+     */
+    protected $expressions;
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct($pieces)
+    {
+        $this->parse($pieces);
+    }
+
+
+    public function parse($pieces)
+    {
+        if (!is_array($pieces)) {
+            $pieces = [$pieces];
+        }
+
+        $pieces = array_map(
+            function ($value) {
+                if ($value instanceof ExpressionInterface) {
+                    return $value;
+                }
+
+                $factory = new Factory();
+                return $factory->create($value);
+            },
+            $pieces
+        );
+
+        $this->setExpressions($pieces);
+    }
+
+    public function toString()
+    {
+        $pieces = array_map(function ($value) { return $value->toString(); }, $this->getExpressions());
+
+        return implode(' ' . $this->getOperator() . ' ', $pieces);
+    }
+
+    /**
+     * @param array $expressions
+     */
+    public function setExpressions($expressions)
+    {
+        $this->expressions = $expressions;
+    }
+
+    /**
+     * @return array
+     */
+    public function getExpressions()
+    {
+        return $this->expressions;
+    }
+
+    public function setDefaultNamespacePrefix($prefix)
+    {
+        array_map(
+            function(ExpressionInterface $value) use ($prefix) { $value->setDefaultNamespacePrefix($prefix);},
+            $this->getExpressions()
+        );
+    }
+
+    public function setVariableValues(array $values)
+    {
+        array_map(
+            function(ExpressionInterface $value) use ($values) { $value->setVariableValues($values);},
+            $this->getExpressions()
+        );
+    }
+
+    abstract protected function getOperator();
+}
