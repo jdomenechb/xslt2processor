@@ -1,15 +1,15 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 24/09/2016
- * Time: 16:00
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
-
-
-use Doctrine\ORM\Query\Expr;
 
 class XPathAttributeValueTemplate implements ExpressionInterface
 {

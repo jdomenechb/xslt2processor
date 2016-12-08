@@ -1,21 +1,18 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 10:02
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-
 class XPathOr extends AbstractXPathLogic
 {
-    protected function getOperator()
-    {
-        return 'or';
-    }
-
     public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
     {
         foreach ($this->getExpressions() as $expression) {
@@ -25,5 +22,10 @@ class XPathOr extends AbstractXPathLogic
         }
 
         return false;
+    }
+
+    protected function getOperator()
+    {
+        return 'or';
     }
 }

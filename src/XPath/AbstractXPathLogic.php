@@ -1,13 +1,15 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 12:59
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
-
 
 abstract class AbstractXPathLogic implements ExpressionInterface
 {
@@ -17,13 +19,12 @@ abstract class AbstractXPathLogic implements ExpressionInterface
     protected $expressions;
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __construct($pieces)
     {
         $this->parse($pieces);
     }
-
 
     public function parse($pieces)
     {
@@ -38,6 +39,7 @@ abstract class AbstractXPathLogic implements ExpressionInterface
                 }
 
                 $factory = new Factory();
+
                 return $factory->create($value);
             },
             $pieces
@@ -48,7 +50,9 @@ abstract class AbstractXPathLogic implements ExpressionInterface
 
     public function toString()
     {
-        $pieces = array_map(function ($value) { return $value->toString(); }, $this->getExpressions());
+        $pieces = array_map(function ($value) {
+            return $value->toString();
+        }, $this->getExpressions());
 
         return implode(' ' . $this->getOperator() . ' ', $pieces);
     }
@@ -72,7 +76,9 @@ abstract class AbstractXPathLogic implements ExpressionInterface
     public function setDefaultNamespacePrefix($prefix)
     {
         array_map(
-            function(ExpressionInterface $value) use ($prefix) { $value->setDefaultNamespacePrefix($prefix);},
+            function (ExpressionInterface $value) use ($prefix) {
+                $value->setDefaultNamespacePrefix($prefix);
+            },
             $this->getExpressions()
         );
     }
@@ -80,7 +86,9 @@ abstract class AbstractXPathLogic implements ExpressionInterface
     public function setVariableValues(array $values)
     {
         array_map(
-            function(ExpressionInterface $value) use ($values) { $value->setVariableValues($values);},
+            function (ExpressionInterface $value) use ($values) {
+                $value->setVariableValues($values);
+            },
             $this->getExpressions()
         );
     }

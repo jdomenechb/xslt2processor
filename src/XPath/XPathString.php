@@ -1,17 +1,27 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 11:27
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-
 class XPathString implements ExpressionInterface
 {
     protected $string;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($string)
+    {
+        $this->parse($string);
+    }
 
     public function parse($string)
     {
@@ -26,14 +36,6 @@ class XPathString implements ExpressionInterface
     public function setDefaultNamespacePrefix($prefix)
     {
         // Nothing to do here
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function __construct($string)
-    {
-        $this->parse($string);
     }
 
     /**
@@ -61,6 +63,4 @@ class XPathString implements ExpressionInterface
     {
         return $this->getString();
     }
-
-
 }

@@ -1,7 +1,7 @@
 <?php
 
 $header = <<<'HEADER'
-This file is part of the Wenalyzer package.
+This file is part of the XSLT2Processor package.
 
 (c) Jordi Domènech Bonilla
 
@@ -32,12 +32,8 @@ $config = PhpCsFixer\Config::create()
 
     ->setFinder(
         PhpCsFixer\Finder::create()
-            ->in('app/')
-            ->in('disabled_plugins/')
-            ->in('plugins/')
             ->in('src/')
             ->in('tests/')
-            ->in('web/')
     )
 
     ->setUsingCache(false)

@@ -1,9 +1,12 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 22/09/2016
- * Time: 18:38
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
@@ -87,7 +90,6 @@ class Processor
     protected $logXPath = true;
 
     /**
-     *
      * @var bool
      */
     protected $debug = true;
@@ -100,25 +102,22 @@ class Processor
     protected $cdataSectionElements = [];
 
     /**
-     *
      * @var array
      */
     protected $decimalFormats = [];
 
     /**
-     *
      * @var array
      */
     protected $keys = [];
 
     /**
-     *
      * @var array
      */
     protected $templateParams = [];
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __construct($xslt, $xml)
     {
@@ -156,7 +155,7 @@ class Processor
         $this->xslApplyTemplates($node, $this->xml->documentElement, $this->newXml);
 
         if ($this->method == 'xml') {
-            return ($this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML());
+            return $this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML();
         }
 
         return $this->newXml->saveHTML();
@@ -224,12 +223,12 @@ class Processor
         if ($this->debug) {
             echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
             echo "<b>$node->nodeName</b><br>";
-            echo "Before";
-            echo '<pre>' . htmlspecialchars($this->method == 'xml'? $this->newXml->saveXML(): $this->newXml->saveHTML()) . '</pre>';
+            echo 'Before';
+            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
 
         // Copy the node to the new document
-        $doc = $newContext->ownerDocument? : $newContext;
+        $doc = $newContext->ownerDocument ?: $newContext;
         $newNode = $doc->importNode($node);
 
         $nodesToDelete = [];
@@ -263,8 +262,8 @@ class Processor
         $this->processChildNodes($node, $context, $newNode);
 
         if ($this->debug) {
-            echo "After";
-            echo '<pre>' . htmlspecialchars($this->method == 'xml'? $this->newXml->saveXML(): $this->newXml->saveHTML()) . '</pre>';
+            echo 'After';
+            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
             echo '</div>';
         }
     }
@@ -276,15 +275,15 @@ class Processor
         if ($this->debug) {
             echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
             echo "<b>$methodName</b><br>";
-            echo "Before";
-            echo '<pre>' . htmlspecialchars($this->method == 'xml'? $this->newXml->saveXML(): $this->newXml->saveHTML()) . '</pre>';
+            echo 'Before';
+            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
 
         if (method_exists($this, $methodName)) {
             $this->$methodName($node, $context, $newContext);
             if ($this->debug) {
-                echo "After";
-                echo '<pre>' . htmlspecialchars($this->method == 'xml'? $this->newXml->saveXML(): $this->newXml->saveHTML()) . '</pre>';
+                echo 'After';
+                echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
                 echo '</div>';
             }
         } else {
@@ -296,16 +295,16 @@ class Processor
     {
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
-                case "omit-xml-declaration":
+                case 'omit-xml-declaration':
                     $this->removeXmlDeclaration = $attribute->nodeValue == 'yes';
                     break;
 
-                case "indent":
+                case 'indent':
                     $this->newXml->formatOutput = $attribute->nodeValue == 'yes';
                     $this->newXml->preserveWhiteSpace = $attribute->nodeValue != 'yes';
                     break;
 
-                case "method":
+                case 'method':
                     $this->method = $attribute->nodeValue;
                     break;
 
@@ -361,7 +360,6 @@ class Processor
 
     protected function processTemplate(Template $template, DOMNode $context, DOMNode $newContext, $params = [])
     {
-
         $currentParams = $this->templateParams;
         $this->templateParams = $params;
 
@@ -427,6 +425,7 @@ class Processor
             || $result instanceof DOMNodeList && $result->length
         ) {
             $this->processChildNodes($node, $context, $newContext);
+
             return true;
         }
 
@@ -461,7 +460,7 @@ class Processor
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues($this->variables);
 
-       return $xPathParsed->evaluate($context, $xPath);
+        return $xPathParsed->evaluate($context, $xPath);
     }
 
     protected function xslValueOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -523,7 +522,6 @@ class Processor
             $wNode->nodeValue .= $results;
         }
     }
-
 
     protected function getWritableNode($newContext)
     {
@@ -669,7 +667,7 @@ class Processor
             }
 
             throw new RuntimeException('Variable cannot hold single node results... for now');
-        } else if ($tmpContext->childNodes->length > 1) {
+        } elseif ($tmpContext->childNodes->length > 1) {
             return $tmpContext->childNodes;
         }
     }
@@ -745,7 +743,7 @@ class Processor
         foreach ($node->childNodes as $childNode) {
             if ($childNode instanceof DOMElement && $childNode->nodeName == 'xsl:matching-substring') {
                 $matchingNode = $childNode;
-            } else if ($childNode instanceof DOMElement && $childNode->nodeName == 'xsl:non-matching-substring') {
+            } elseif ($childNode instanceof DOMElement && $childNode->nodeName == 'xsl:non-matching-substring') {
                 $nonMatchingNode = $childNode;
             }
         }
@@ -781,7 +779,6 @@ class Processor
                     $text = substr($text, strlen($nonMatchingText) + strlen($matchingText));
                 }
             }
-
         }
     }
 
@@ -801,7 +798,7 @@ class Processor
 
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
-                case 'name' :
+                case 'name':
                     $name = $attribute->nodeValue;
                     break;
 
@@ -833,7 +830,7 @@ class Processor
     {
         $value = $this->evaluateBody($node, $context, $newContext);
         /* @var $doc DOMDocument */
-        $doc = $newContext->ownerDocument? : $newContext;
+        $doc = $newContext->ownerDocument ?: $newContext;
 
         $comment = $doc->createComment($value);
         $doc->appendChild($comment);

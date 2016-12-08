@@ -1,14 +1,16 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 11:03
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use JMS\Serializer\Exception\RuntimeException;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathOperator;
 
 abstract class AbstractXPathOperator implements ExpressionInterface
@@ -29,7 +31,7 @@ abstract class AbstractXPathOperator implements ExpressionInterface
     protected $operator;
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __construct($string = null)
     {
@@ -45,7 +47,7 @@ abstract class AbstractXPathOperator implements ExpressionInterface
 
         foreach ($operators as $operator) {
             if (!in_array($operator, ['|', '+'])) {
-                $opWithSpaces =  ' ' . $operator . ' ';
+                $opWithSpaces = ' ' . $operator . ' ';
             } else {
                 $opWithSpaces = $operator;
             }
@@ -128,7 +130,9 @@ abstract class AbstractXPathOperator implements ExpressionInterface
     public function getOperator()
     {
         return $this->operator;
-    }/**
+    }
+
+    /**
      * @param string $operator
      */
     public function setOperator($operator)
@@ -145,6 +149,7 @@ abstract class AbstractXPathOperator implements ExpressionInterface
     public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
     {
         $func = static::getOperators()[$this->operator];
+
         return $func(
             $this->getLeftPart()->evaluate($context, $xPathReference),
             $this->getRightPart()->evaluate($context, $xPathReference)

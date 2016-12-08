@@ -1,15 +1,15 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 2:31
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
-
-
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathOperator;
 
 class Factory
 {
@@ -193,7 +193,7 @@ class Factory
 
             if ($min === $stringLength) {
                 $offset = $stringLength;
-            } else if ($min == $lParPos) {
+            } elseif ($min == $lParPos) {
                 ++$level;
 
                 if ($level === 1) {
@@ -202,8 +202,7 @@ class Factory
                 }
 
                 $offset = $min + $lengthSOperator;
-
-            } else if ($min == $rParPos) {
+            } elseif ($min == $rParPos) {
                 --$level;
 
                 if ($level === 0) {
@@ -278,31 +277,31 @@ class Factory
 
             if ($min === $stringLength) {
                 $offset = $stringLength;
-            } else if ($min == $lParPos) {
+            } elseif ($min == $lParPos) {
                 if ($sBLevel === 0) {
                     ++$level;
                 }
 
                 $offset = $min + 1;
-            } else if ($min == $rParPos) {
+            } elseif ($min == $rParPos) {
                 if ($sBLevel === 0) {
                     --$level;
                 }
 
                 $offset = $min + 1;
-            } else if ($min == $lSBPos) {
+            } elseif ($min == $lSBPos) {
                 if ($level === 0) {
                     ++$sBLevel;
                 }
 
                 $offset = $min + 1;
-            } else if ($min == $rSBPos) {
+            } elseif ($min == $rSBPos) {
                 if ($level === 0) {
                     --$sBLevel;
                 }
 
                 $offset = $min + 1;
-            } else if ($min === $opPos) {
+            } elseif ($min === $opPos) {
                 if ($level == 0 && $sBLevel === 0) {
                     $matches[] = trim(substr($string, $offsetPiece, $opPos - $offsetPiece));
                     $offsetPiece = $min + $lengthOperator;
@@ -328,7 +327,7 @@ class Factory
         $stringToLower = strtolower($string);
         $stringLength = strlen($string);
 
-        for ($i = 0; $i < $stringLength; $i++) {
+        for ($i = 0; $i < $stringLength; ++$i) {
             if ($level == 0 && substr($stringToLower, $i, $lengthOperator) == $operator) {
                 $matches[] = trim($buffer);
                 $buffer = '';
@@ -336,11 +335,11 @@ class Factory
             }
 
             if ($string[$i] == '(') {
-                $level++;
+                ++$level;
             }
 
             if ($string[$i] == ')') {
-                $level--;
+                --$level;
             }
 
             $buffer .= $string[$i];
@@ -350,7 +349,6 @@ class Factory
 
         return $matches;
     }
-
 
     public function createFromAttributeValue($attributeValue)
     {

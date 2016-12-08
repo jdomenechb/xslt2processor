@@ -1,13 +1,15 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 12:32
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
-
 
 class XPathVariable implements ExpressionInterface
 {
@@ -21,6 +23,14 @@ class XPathVariable implements ExpressionInterface
      */
     protected $value;
 
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($string)
+    {
+        $this->parse($string);
+    }
+
     public function parse($string)
     {
         $this->setName(substr($string, 1));
@@ -33,14 +43,14 @@ class XPathVariable implements ExpressionInterface
         }
 
         if (is_bool($this->getValue())) {
-            return $this->getValue()? 'true()': 'false()';
+            return $this->getValue() ? 'true()' : 'false()';
         }
 
         if (is_string($this->getValue())) {
             return "'" . $this->getValue() . "'";
         }
 
-        if (is_integer($this->getValue()) || is_float($this->getValue())) {
+        if (is_int($this->getValue()) || is_float($this->getValue())) {
             return $this->getValue();
         }
 
@@ -48,8 +58,8 @@ class XPathVariable implements ExpressionInterface
             return '$' . $this->getName();
         }
 
-        var_dump($this->getValue());die;
-
+        var_dump($this->getValue());
+        die;
     }
 
     public function setDefaultNamespacePrefix($prefix)
@@ -62,14 +72,6 @@ class XPathVariable implements ExpressionInterface
         if (isset($values[$this->getName()])) {
             $this->setValue($values[$this->getName()]);
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function __construct($string)
-    {
-        $this->parse($string);
     }
 
     /**
@@ -108,6 +110,4 @@ class XPathVariable implements ExpressionInterface
     {
         return $this->getValue();
     }
-
-
 }

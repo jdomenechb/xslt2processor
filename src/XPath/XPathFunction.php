@@ -1,9 +1,12 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: jdomeneb
- * Date: 23/09/2016
- * Time: 9:24
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
@@ -35,7 +38,7 @@ class XPathFunction implements ExpressionInterface
     protected static $customFunctions = [];
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __construct($string)
     {
@@ -54,7 +57,9 @@ class XPathFunction implements ExpressionInterface
         $parametersRaw = substr($string, $fParPos + 1, -1);
         $parameters = $factory->parseByOperator(',', $parametersRaw);
 
-        $parameters = array_map(function($value) use ($factory) { return $factory->create($value); }, $parameters);
+        $parameters = array_map(function ($value) use ($factory) {
+            return $factory->create($value);
+        }, $parameters);
         $this->setParameters($parameters);
     }
 
@@ -78,7 +83,9 @@ class XPathFunction implements ExpressionInterface
     {
         $toReturn = $this->getName() . '(';
         $parameters = array_map(
-            function(ExpressionInterface $value) { return $value->toString(); },
+            function (ExpressionInterface $value) {
+                return $value->toString();
+            },
             $this->getParameters()
         );
 
@@ -91,7 +98,9 @@ class XPathFunction implements ExpressionInterface
     public function setDefaultNamespacePrefix($prefix)
     {
         array_map(
-            function(ExpressionInterface $value) use ($prefix) { return $value->setDefaultNamespacePrefix($prefix); },
+            function (ExpressionInterface $value) use ($prefix) {
+                return $value->setDefaultNamespacePrefix($prefix);
+            },
             $this->getParameters()
         );
     }
@@ -99,7 +108,9 @@ class XPathFunction implements ExpressionInterface
     public function setVariableValues(array $values)
     {
         array_map(
-            function(ExpressionInterface $value) use ($values) { return $value->setVariableValues($values); },
+            function (ExpressionInterface $value) use ($values) {
+                return $value->setVariableValues($values);
+            },
             $this->getParameters()
         );
     }
@@ -136,6 +147,7 @@ class XPathFunction implements ExpressionInterface
                 $value = $this->internalString($value);
                 $value = trim($value);
                 $value = preg_replace('# +#', ' ', $value);
+
                 return $value;
 
             case 'string-length':
@@ -241,51 +253,23 @@ class XPathFunction implements ExpressionInterface
                 }
 
                 throw new RuntimeException('No position could be found for the node');
-
             case 'local-name':
                 return $context->localName;
 
             case 'system-property':
                 $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
                 $property = $this->internalString($property);
+
                 return SystemProperties::getProperty($property);
 
             case 'count':
                 $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
-                
+
                 return $property->length;
 
             default:
                 throw new RuntimeException('Function "' . $this->getName() . '" not implemented');
         }
-    }
-
-    protected function internalString($value)
-    {
-        if ($value instanceof DOMNodeList)
-        {
-            if ($value->length == 0) {
-                return '';
-            }
-
-            return $value->item(0)->nodeValue;
-        }
-
-        return (string) $value;
-    }
-
-    protected function internalBoolean($value)
-    {
-        if ($value instanceof DOMNodeList)
-        {
-            if ($value->length == 0) {
-                return false;
-            }
-
-            return true;
-        }
-
-        return (boolean) $value;
     }
 
     /**
@@ -307,5 +291,31 @@ class XPathFunction implements ExpressionInterface
     public static function setCustomFunction(CustomFunction $function)
     {
         self::$customFunctions[$function->getName()] = $function;
+    }
+
+    protected function internalString($value)
+    {
+        if ($value instanceof DOMNodeList) {
+            if ($value->length == 0) {
+                return '';
+            }
+
+            return $value->item(0)->nodeValue;
+        }
+
+        return (string) $value;
+    }
+
+    protected function internalBoolean($value)
+    {
+        if ($value instanceof DOMNodeList) {
+            if ($value->length == 0) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return (bool) $value;
     }
 }

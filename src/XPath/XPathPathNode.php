@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 class XPathPathNode implements ExpressionInterface
@@ -10,19 +19,17 @@ class XPathPathNode implements ExpressionInterface
     protected $node;
 
     /**
-     *
      * @var int
      */
     protected $position;
 
     /**
-     *
      * @var ExpressionInterface
      */
     protected $selector;
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function __construct($string)
     {
@@ -35,6 +42,7 @@ class XPathPathNode implements ExpressionInterface
 
         if (strpos($string, '[') === false) {
             $this->setNode($string);
+
             return;
         }
 
@@ -54,8 +62,8 @@ class XPathPathNode implements ExpressionInterface
     public function toString()
     {
         return $this->getNode()
-            . ($this->getSelector() !== null? '[' . $this->getSelector()->toString() . ']' : '')
-            . ($this->getPosition() !== null? '[' . $this->getPosition() . ']' : '');
+            . ($this->getSelector() !== null ? '[' . $this->getSelector()->toString() . ']' : '')
+            . ($this->getPosition() !== null ? '[' . $this->getPosition() . ']' : '');
     }
 
     public function setDefaultNamespacePrefix($prefix)
@@ -71,7 +79,7 @@ class XPathPathNode implements ExpressionInterface
         $parts = explode(':', $this->getNode());
 
         if (count($parts) == 1) {
-            $toSet =  $prefix . ':' . $parts[0];
+            $toSet = $prefix . ':' . $parts[0];
         } else {
             $toSet = $this->getNode();
         }
@@ -126,5 +134,4 @@ class XPathPathNode implements ExpressionInterface
     {
         $this->selector = $selector;
     }
-
 }
