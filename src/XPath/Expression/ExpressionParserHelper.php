@@ -85,4 +85,59 @@ class ExpressionParserHelper
 
         return $matches;
     }
+
+    /**
+     * Given an expression, a start delimiter and an end delimiter, the method returns an string with all the level
+     * numbers of the subexpression delimited by the start and end string.
+     * @param string $expression
+     * @param string $start
+     * @param string $end
+     * @return string The level string. For example, if a subexpression is not available in the main expression, the
+     * method will return '0'. In the case of an expression like
+     * 'expr1 or (expr2 and (expression1 and (expression2)) or (expresssion))', being the parenthesis the delimiters,
+     * the returned string would be '012321210'.
+     */
+    public function subExpressionLevelAnalysis($expression, $start, $end)
+    {
+        $history = '0';
+        $level = 0;
+        $offset = 0;
+
+        $expressionLength = strlen($expression);
+
+        while ($offset < $expressionLength) {
+            // Detect positions of the delimiters
+            $sPos = strpos($expression, $start, $offset);
+
+            if ($sPos === false) {
+                $sPos = $expressionLength;
+            }
+
+            $ePos = strpos($expression, $end, $offset);
+
+            if ($ePos === false) {
+                $ePos = $expressionLength;
+            }
+
+            // Decide depending which comes next
+            $min = min($sPos, $ePos);
+
+            if ($min === $expressionLength) {
+                break;
+            } elseif ($min === $sPos) {
+                ++$level;
+
+                if ($level > 9) {
+                    throw new \RuntimeException('Only expressions up to 10 levels are supported');
+                }
+            } elseif ($min === $ePos) {
+                --$level;
+            }
+
+            $history .= $level;
+            $offset = $min + 1;
+        }
+
+        return $history;
+    }
 }

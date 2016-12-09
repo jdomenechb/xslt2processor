@@ -16,7 +16,7 @@ use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathString;
 
 /**
- * Represents an xPath string.
+ * Represents a xPath string.
  * @author jdomenechb
  */
 class XPathString extends AbstractXPath
@@ -34,11 +34,22 @@ class XPathString extends AbstractXPath
      */
     public function parse($xPath)
     {
-        if (substr($xPath, 0, 1) !== "'" || substr($xPath, -1) !== "'") {
-            throw new NotXPathString;
+        $eph = new Expression\ExpressionParserHelper();
+
+        if (
+            // Starts with single quote
+            substr($xPath, 0, 1) === "'"
+            // Ends with single quote
+            && substr($xPath, -1) === "'"
+            // Does not contain other quotes inside
+            && strpos(substr($eph->subExpressionLevelAnalysis($xPath, "'", "'"), 1, -1), '0') === false
+        ) {
+            return false;
         }
 
-        $this->setString(substr($xPath, 1, -1));
+        $this->string = substr($xPath, 1, -1);
+
+        return true;
     }
 
     /**
@@ -49,8 +60,28 @@ class XPathString extends AbstractXPath
         return "'" . $this->getString() . "'";
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setDefaultNamespacePrefix($prefix)
     {
+        // The method does nothing in this context
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setVariableValues(array $values)
+    {
+        // The method does nothing in this context
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function evaluate(DOMNode $context, DOMXPath $xPathReference)
+    {
+        return (string) $this->getString();
     }
 
     /**
@@ -60,22 +91,4 @@ class XPathString extends AbstractXPath
     {
         return $this->string;
     }
-
-    /**
-     * @param mixed $string
-     */
-    public function setString($string)
-    {
-        $this->string = $string;
-    }
-
-    public function setVariableValues(array $values)
-    {
-    }
-
-    public function evaluate(DOMNode $context, DOMXPath $xPathReference)
-    {
-        return $this->getString();
-    }
-
 }

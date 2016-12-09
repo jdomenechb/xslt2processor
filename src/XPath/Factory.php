@@ -17,15 +17,14 @@ class Factory
 {
     public function create($expression)
     {
+        $expressionParserHelper = new ExpressionParserHelper;
         $expression = trim($expression);
 
         // Parse string
-        if (
-            substr($expression, 0, 1) === "'"
-            && substr($expression, -1) === "'"
-            && strpos(substr(static::analyzeLevels($expression, "'", "'"), 1, -1), '0') === false
-        ) {
-            return new XPathString($expression);
+        $tmp = new XPathString();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
         }
 
         // Parse number
@@ -42,7 +41,7 @@ class Factory
 
         // Analyze parentheses
         if (substr($expression, -1) === ')') {
-            $history = static::analyzeLevels($expression, '(', ')');
+            $history = $expressionParserHelper->subExpressionLevelAnalysis($expression, '(', ')');
 
             // Is a function?
             if (
@@ -127,44 +126,6 @@ class Factory
         return new XPathPathNode($expression);
     }
 
-    public function analyzeLevels($expression, $start, $end)
-    {
-        $history = '0';
-        $level = 0;
-        $offset = 0;
-
-        $expressionLength = strlen($expression);
-
-        while ($offset < $expressionLength) {
-            $sPos = strpos($expression, $start, $offset);
-
-            if ($sPos === false) {
-                $sPos = $expressionLength;
-            }
-
-            $ePos = strpos($expression, $end, $offset);
-
-            if ($ePos === false) {
-                $ePos = $expressionLength;
-            }
-
-            $min = min($sPos, $ePos);
-
-            if ($min === $expressionLength) {
-                break;
-            } elseif ($min === $sPos) {
-                ++$level;
-            } elseif ($min === $ePos) {
-                --$level;
-            }
-
-            $history .= $level;
-            $offset = $min + 1;
-        }
-
-        return $history;
-    }
-    
     public function parseByOperator($operator, $string)
     {
         $level = 0;
