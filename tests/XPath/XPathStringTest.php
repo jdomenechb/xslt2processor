@@ -15,6 +15,7 @@ use DOMDocument;
 use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
+use Jdomenechb\XSLT2Processor\XPath\XPathString;
 use PHPUnit\Framework\TestCase;
 
 /**

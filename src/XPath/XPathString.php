@@ -38,11 +38,11 @@ class XPathString extends AbstractXPath
 
         if (
             // Starts with single quote
-            substr($xPath, 0, 1) === "'"
+            substr($xPath, 0, 1) !== "'"
             // Ends with single quote
-            && substr($xPath, -1) === "'"
+            || substr($xPath, -1) !== "'"
             // Does not contain other quotes inside
-            && strpos(substr($eph->subExpressionLevelAnalysis($xPath, "'", "'"), 1, -1), '0') === false
+            || strpos(substr($eph->subExpressionLevelAnalysis($xPath, "'", "'"), 1, -1), '0') !== false
         ) {
             return false;
         }
