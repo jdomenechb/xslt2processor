@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\Expression;
 
+use RuntimeException;
+
 /**
  * Helper class with methods to analyze and parse expressions
  *
@@ -128,13 +130,66 @@ class ExpressionParserHelper
                 ++$level;
 
                 if ($level > 9) {
-                    throw new \RuntimeException('Only expressions up to 10 levels are supported');
+                    throw new RuntimeException('Only expressions up to 10 levels are supported');
                 }
             } elseif ($min === $ePos) {
                 --$level;
             }
 
             $history .= $level;
+            $offset = $min + 1;
+        }
+
+        return $history;
+    }
+
+    /**
+     * Given an expresison, a delimiter of the literal and the escaped literal, the method returns an string with all
+     * the level of the literals delimited by the given symbol.
+     * @param string $expression
+     * @param string $delimiter
+     * @param string $escaped
+     * @return string
+     * @throws RuntimeException
+     */
+    public function literalLevelAnalysis($expression, $delimiter, $escapedLiteral)
+    {
+        $history = '0';
+        $level = 0;
+        $offset = 0;
+
+        $expressionLength = strlen($expression);
+
+        while ($offset < $expressionLength) {
+            // Detect positions of the delimiter
+            $dPos = strpos($expression, $delimiter, $offset);
+
+            if ($dPos === false) {
+                $dPos = $expressionLength;
+            }
+
+            // Detect position of the escaped symbol
+            $ePos = strpos($expression, $escapedLiteral, $offset);
+
+            if ($ePos === false) {
+                $ePos = $expressionLength;
+            }
+
+            // Decide depending which comes next
+            $min = min($dPos, $ePos);
+
+            if ($min === $expressionLength) {
+                break;
+            } elseif ($min === $dPos && $dPos !== $ePos) {
+                if ($level > 0) {
+                    --$level;
+                } else {
+                    ++$level;
+                }
+
+                $history .= $level;
+            }
+
             $offset = $min + 1;
         }
 
