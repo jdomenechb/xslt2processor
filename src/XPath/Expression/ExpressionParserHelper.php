@@ -158,18 +158,18 @@ class ExpressionParserHelper
         $level = 0;
         $offset = 0;
 
-        $expressionLength = strlen($expression);
+        $expressionLength = mb_strlen($expression);
 
         while ($offset < $expressionLength) {
             // Detect positions of the delimiter
-            $dPos = strpos($expression, $delimiter, $offset);
+            $dPos = mb_strpos($expression, $delimiter, $offset);
 
             if ($dPos === false) {
                 $dPos = $expressionLength;
             }
 
             // Detect position of the escaped symbol
-            $ePos = strpos($expression, $escapedLiteral, $offset);
+            $ePos = mb_strpos($expression, $escapedLiteral, $offset);
 
             if ($ePos === false) {
                 $ePos = $expressionLength;
@@ -188,9 +188,12 @@ class ExpressionParserHelper
                 }
 
                 $history .= $level;
+                $offset = $min + 1;
+            } else {
+                $offset = $min + mb_strlen($escapedLiteral);
             }
 
-            $offset = $min + 1;
+
         }
 
         return $history;

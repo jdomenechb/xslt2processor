@@ -38,16 +38,16 @@ class XPathString extends AbstractXPath
 
         if (
             // Starts with single quote
-            substr($xPath, 0, 1) !== "'"
+            mb_substr($xPath, 0, 1) !== "'"
             // Ends with single quote
-            || substr($xPath, -1) !== "'"
+            || mb_substr($xPath, -1) !== "'"
             // Does not contain other quotes inside
-            || strpos(substr($eph->literalLevelAnalysis($xPath, "'", "'"), 1, -1), '0') !== false
+            || strpos(substr($eph->literalLevelAnalysis($xPath, "'", "''"), 1, -1), '0') !== false
         ) {
             return false;
         }
 
-        $this->string = substr($xPath, 1, -1);
+        $this->string = (string) str_replace("''", "'", mb_substr($xPath, 1, -1));
 
         return true;
     }
@@ -57,7 +57,7 @@ class XPathString extends AbstractXPath
      */
     public function toString()
     {
-        return "'" . $this->getString() . "'";
+       return "'" . str_replace("'", "''", $this->getString()) . "'";
     }
 
     /**

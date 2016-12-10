@@ -47,7 +47,7 @@ class XPathStringTest extends TestCase
      */
     public function testToString($xPath)
     {
-        $obj = new XPathNumber($xPath);
+        $obj = new XPathString($xPath);
         $this->assertSame((string) $xPath, $obj->toString());
     }
 
@@ -60,7 +60,7 @@ class XPathStringTest extends TestCase
      */
     public function testToStringCast($xPath)
     {
-        $obj = new XPathNumber($xPath);
+        $obj = new XPathString($xPath);
         $this->assertSame((string) $xPath, (string) $obj);
     }
 
@@ -69,8 +69,8 @@ class XPathStringTest extends TestCase
      */
     public function testUselessSetDefaultNamespacePrefix()
     {
-        $obj = new XPathNumber(2);
-        $obj2 = new XPathNumber(2);
+        $obj = new XPathString("'a'");
+        $obj2 = new XPathString("'a'");
         $obj2->setDefaultNamespacePrefix('something');
         $this->assertEquals($obj, $obj2);
     }
@@ -80,8 +80,8 @@ class XPathStringTest extends TestCase
      */
     public function testUselessSetVariableValues()
     {
-        $obj = new XPathNumber(2);
-        $obj2 = new XPathNumber(2);
+        $obj = new XPathString("'a'");
+        $obj2 = new XPathString("'a'");
         $obj2->setVariableValues(['something' => 'somethingElse']);
         $this->assertEquals($obj, $obj2);
     }
@@ -93,41 +93,25 @@ class XPathStringTest extends TestCase
      *
      * @param mixed $xPath
      */
-    public function testEvaluate($xPath)
+    public function testEvaluate($xPath, $evaluated)
     {
         $document = new DOMDocument();
         $domXPath = new DOMXPath($document);
 
-        $obj = new XPathNumber($xPath);
-        $this->assertEquals($xPath, $obj->evaluate($document, $domXPath), '', 0.0000001);
+        $obj = new XPathString($xPath);
+        $this->assertSame($evaluated, $obj->evaluate($document, $domXPath));
     }
 
-    /**
-     * Test that the class accepts NaN and can evaluate to a NaN.
-     */
-    public function testNan()
-    {
-        $document = new DOMDocument();
-        $domXPath = new DOMXPath($document);
-
-        $obj = new XPathNumber('NaN');
-        $this->assertNan($obj->evaluate($document, $domXPath));
-    }
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
     public function basicValuesProvider()
     {
         return [
-            [0],
-            [1],
-            [-7],
-            [14],
-            [-14],
-            [78.1847],
-            [-45.7352],
-            [9865674.9786776658],
-            [-9865674.978677566],
+            ["'a'", "a"],
+            ["'abcde'", "abcde"],
+            ["'abc def'", "abc def"],
+            ["'abc '' def'", "abc ' def"],
         ];
     }
 
@@ -141,6 +125,7 @@ class XPathStringTest extends TestCase
             ["'98 times of year ' '"],
             ['(/*)'],
             ['/*'],
+            ["'A valid string' != 'Another valid string'"],
         ];
     }
 }
