@@ -47,6 +47,7 @@ class XPathVariable extends AbstractXPath
         }
 
         if (is_string($this->getValue())) {
+            // FIXME: Escape the string
             return "'" . $this->getValue() . "'";
         }
 

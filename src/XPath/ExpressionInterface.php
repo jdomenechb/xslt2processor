@@ -58,4 +58,13 @@ interface ExpressionInterface
      * @returns mixed
      */
     public function evaluate(DOMNode $context, DOMXPath $xPathReference);
+
+    /**
+     * Performs a query evaluation on the xPath
+     *
+     * @param DOMNode  $context
+     * @param DOMXPath $xPathReference
+     * @returns mixed
+     */
+    public function query(DOMNode $context, DOMXPath $xPathReference);
 }

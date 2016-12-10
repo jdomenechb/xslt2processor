@@ -42,4 +42,9 @@ abstract class AbstractXPath implements ExpressionInterface
     {
         return $this->toString();
     }
+
+    public function query(\DOMNode $context, \DOMXPath $xPathReference)
+    {
+        throw new \RuntimeException('Not implemented yet');
+    }
 }

@@ -47,17 +47,40 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
         foreach ($operators as $operator) {
             if (!in_array($operator, ['|', '+'])) {
-                $opWithSpaces = ' ' . $operator . ' ';
+                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator];
             } else {
-                $opWithSpaces = $operator;
+                $opWithSpaces = [$operator];
             }
 
+            // Consider possible minus mispellings
+            if ($operator === '-') {
+                $possibilities = [
+                    ')' . $operator,
+                    $operator . '(',
+                ];
+
+                foreach ($possibilities as $possibility) {
+                    if (mb_stripos($string, $possibility) !== false) {
+                        throw new \RuntimeException('Parse error: Operator "-" must have an space before at least');
+                    }
+                }
+            }
+
+            $keyFound = false;
+
             // First do a fast search
-            if (stripos($string, $opWithSpaces) === false) {
+            foreach ($opWithSpaces as $key => $opWithSpacesSingle) {
+                if (mb_stripos($string, $opWithSpacesSingle) !== false) {
+                    $keyFound = $key;
+                    break;
+                }
+            }
+
+            if ($keyFound === false) {
                 continue;
             }
 
-            $results = $factory->parseByOperator($opWithSpaces, $string);
+            $results = $factory->parseByOperator($opWithSpaces[$keyFound], $string);
 
             if (count($results) == 1) {
                 continue;
@@ -66,7 +89,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
             if (count($results) > 1) {
                 $this->setOperator($operator);
                 $this->setLeftPart($factory->create(array_shift($results)));
-                $this->setRightPart($factory->create(implode($opWithSpaces, $results)));
+                $this->setRightPart($factory->create(implode($opWithSpaces[0], $results)));
 
                 return true;
             }

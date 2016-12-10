@@ -119,16 +119,22 @@ class Processor
     /**
      * {@inheritdoc}
      */
-    public function __construct($xslt, $xml)
+    public function __construct($xslt, \DOMDocument $xml)
     {
         $this->xml = $xml;
 
-        if (is_file($xslt)) {
+        if (is_string($xslt) && is_file($xslt)) {
             $this->stylesheet = new DOMDocument();
             $this->stylesheet->load($xslt);
             $this->filePath = $xslt;
-        } else {
+        } else if ($xslt instanceof \DOMDocument) {
             $this->stylesheet = $xslt;
+
+            if (is_file($xslt->documentURI)) {
+                $this->filePath = $xslt->documentURI;
+            }
+        } else {
+            throw new \RuntimeException('XSLT must be a file path or a DOMDocument');
         }
     }
 
@@ -618,7 +624,7 @@ class Processor
     protected function xslInclude(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
         if (!$this->filePath) {
-            throw new RuntimeException('The XSLT template must be loaded from a file for xsl:import to work');
+            throw new RuntimeException('The XSLT template must be loaded from a file for xsl:include to work');
         }
 
         $basePath = dirname($this->filePath);
