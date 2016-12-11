@@ -49,3 +49,6 @@ Temporary Items
 # Custom
 vendor
 xpath_log.txt
+.vagrant
+
+vm_build.log
