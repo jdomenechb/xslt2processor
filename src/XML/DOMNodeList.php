@@ -13,7 +13,6 @@ use ArrayAccess;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
-use DOMNodeList;
 use DOMNodeList as OriginalDOMNodeList;
 use Iterator;
 use RuntimeException;
@@ -42,7 +41,7 @@ class DOMNodeList implements ArrayAccess, Iterator
      */
     public function __construct($items = [])
     {
-        if ($items instanceof DOMNodeList) {
+        if ($items instanceof OriginalDOMNodeList) {
             $this->fromDOMNodeList($items);
         } elseif ($items instanceof DOMNode) {
             $this->fromArray([$items]);
