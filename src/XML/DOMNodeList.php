@@ -9,24 +9,42 @@
 
 namespace Jdomenechb\XSLT2Processor\XML;
 
+use ArrayAccess;
+use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMNodeList;
 use DOMNodeList as OriginalDOMNodeList;
+use Iterator;
+use RuntimeException;
 
 /**
- * Description of DOMNodeList
- *
+ * Class for offering a set of nodes, replacing \DOMNodeList, capable of importing node lists form multiple formats.
  * @author jdomenechb
  */
-class DOMNodeList implements \ArrayAccess, \Iterator
+class DOMNodeList implements ArrayAccess, Iterator
 {
+    /**
+     * Items holded in the list.
+     * @var array
+     */
     protected $items;
-    private $length;
+
+    /**
+     * Defines if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     * @var bools
+     */
     protected $parent = false;
 
+    /**
+     * Constructor.
+     * @param mixed $items
+     */
     public function __construct($items = [])
     {
-        if ($items instanceof \DOMNodeList) {
+        if ($items instanceof DOMNodeList) {
             $this->fromDOMNodeList($items);
-        } elseif ($items instanceof \DOMNode) {
+        } elseif ($items instanceof DOMNode) {
             $this->fromArray([$items]);
         } elseif ($items instanceof DOMNodeList) {
             $this->fromArray($items->toArray());
@@ -37,6 +55,11 @@ class DOMNodeList implements \ArrayAccess, \Iterator
         }
     }
 
+    /**
+     * Get an item vy index.
+     * @param int $index
+     * @return DOMNode
+     */
     public function item($index)
     {
         return $this->items[$index];
@@ -65,7 +88,7 @@ class DOMNodeList implements \ArrayAccess, \Iterator
 
     public function offsetUnset($offset)
     {
-        throw new \RuntimeException('Not possible to unset a value in a ' . __CLASS__);
+        throw new RuntimeException('Not possible to unset a value in a ' . __CLASS__);
     }
 
     public function toArray()
@@ -117,7 +140,7 @@ class DOMNodeList implements \ArrayAccess, \Iterator
         reset($this->items);
         $first = current($this->items);
 
-        if ($first instanceof \DOMDocument) {
+        if ($first instanceof DOMDocument) {
             $doc = $first;
         } else {
             $doc = $first->ownerDocument;
@@ -134,7 +157,7 @@ class DOMNodeList implements \ArrayAccess, \Iterator
 
     }
 
-    public function recursiveRelativeSort(&$newResults, \DOMNode $node)
+    protected function recursiveRelativeSort(&$newResults, DOMNode $node)
     {
         if (!$this->items) {
             return;
@@ -151,7 +174,7 @@ class DOMNodeList implements \ArrayAccess, \Iterator
 
         // Treat all childs
 
-        if (!$node instanceof \DOMElement) {
+        if (!$node instanceof DOMElement) {
             return;
         }
 
@@ -186,14 +209,37 @@ class DOMNodeList implements \ArrayAccess, \Iterator
         return ($key !== NULL && $key !== FALSE);
     }
 
+    /**
+     * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     * @var bools
+     */
     public function isParent()
     {
         return $this->parent;
     }
 
+    /**
+     * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     * @var bools
+     */
     public function setParent($parent)
     {
         $this->parent = $parent;
+    }
+
+    /**
+     * Add support for var length, like \DOMNodeList
+     * @param string $name
+     * @return int
+     * @throws RuntimeException
+     */
+    public function __get($name)
+    {
+        if ($name !== 'length') {
+            throw new RuntimeException('Property ' . $name . ' not available');
+        }
+
+        return $this->count();
     }
 
 }
