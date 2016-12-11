@@ -72,7 +72,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
         }
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate($context, \DOMXPath $xPathReference)
     {
         $result = '';
 

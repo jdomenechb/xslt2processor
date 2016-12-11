@@ -11,6 +11,9 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use DOMNode;
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 class XPathUnionOperator extends AbstractXPathOperator
 {
     protected static $operators;
@@ -39,5 +42,20 @@ class XPathUnionOperator extends AbstractXPathOperator
         }
 
         return static::$operators;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param DOMNode $context
+     */
+    public function query($context)
+    {
+        $resultsLeft = $this->getLeftPart()->query($context);
+        $resultsRight = $this->getRightPart()->query($context);
+
+        $results = new DOMNodeList();
+        $results->merge($resultsLeft, $resultsRight);
+
+        return $results;
     }
 }

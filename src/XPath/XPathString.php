@@ -79,7 +79,7 @@ class XPathString extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function evaluate(DOMNode $context, DOMXPath $xPathReference)
+    public function evaluate($context, DOMXPath $xPathReference)
     {
         return (string) $this->getString();
     }

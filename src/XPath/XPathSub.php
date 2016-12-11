@@ -19,6 +19,16 @@ class XPathSub extends AbstractXPath
     protected $subExpression;
 
     /**
+     * @var int
+     */
+    protected $position;
+
+    /**
+     * @var string
+     */
+    protected $selector;
+
+    /**
      * XPathSub constructor.
      *
      * @param mixed $string
@@ -30,13 +40,32 @@ class XPathSub extends AbstractXPath
 
     public function parse($string)
     {
+        $eph = new Expression\ExpressionParserHelper();
+
+        $parts = $eph->parseFirstLevelSubExpressions($string, '(', ')');
+        array_shift($parts);
+
         $factory = new Factory();
-        $this->setSubExpression($factory->create(substr($string, 1, -1)));
+        $this->setSubExpression($factory->create($parts[0]));
+
+        if (isset($parts[1]) && $parts[1] != '') {
+            $subParts = $eph->parseFirstLevelSubExpressions($parts[1], '[', ']');
+
+            for ($i = 1; $i < count($subParts); $i += 2) {
+                if (preg_match('#^\d+$#', $subParts[$i])) {
+                    $this->setPosition($subParts[$i]);
+                } else {
+                    $this->setSelector($factory->create($subParts[$i]));
+                }
+            }
+        }
     }
 
     public function toString()
     {
-        return '(' . $this->getSubExpression()->toString() . ')';
+        return '(' . $this->getSubExpression()->toString() . ')'
+            . (!is_null($this->getPosition())? '[' . $this->getPosition() . ']': '')
+            . (!is_null($this->getSelector())? '[' . $this->getSelector()->toString() . ']': '');
     }
 
     public function setDefaultNamespacePrefix($prefix)
@@ -65,8 +94,60 @@ class XPathSub extends AbstractXPath
         $this->subExpression = $subExpression;
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate($context, \DOMXPath $xPathReference)
     {
-        return $this->getSubExpression()->evaluate($context, $xPathReference);
+        $xPath = $this->toString();
+        $result = $this->getSubExpression()->evaluate($context, $xPathReference);
+
+        if (!is_null($this->getSelector())) {
+            $newResult = new \Jdomenechb\XSLT2Processor\XML\DOMNodeList();
+
+            foreach ($result as $resultElement) {
+                if ($this->getSelector()->evaluate($resultElement, $xPathReference)) {
+                    $newResult[] = $resultElement;
+                }
+            }
+
+            $result = $newResult;
+        }
+
+        if (!is_null($this->getPosition()) && isset($result[$this->getPosition() - 1])) {
+            $result = new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($result[$this->getPosition() - 1]);
+        }
+
+        return $result;
     }
+
+    public function getPosition()
+    {
+        return $this->position;
+    }
+
+    public function setPosition($position)
+    {
+        $this->position = $position;
+    }
+
+    public function getSelector()
+    {
+        return $this->selector;
+    }
+
+    public function setSelector($selector)
+    {
+        $this->selector = $selector;
+    }
+
+    public function setNamespaces(array $namespaces)
+    {
+        parent::setNamespaces($namespaces);
+
+        if (!is_null($this->getSelector())) {
+            $this->getSelector()->setNamespaces($namespaces);
+        }
+
+        $this->getSubExpression()->setNamespaces($namespaces);
+    }
+
+
 }

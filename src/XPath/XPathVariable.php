@@ -55,12 +55,13 @@ class XPathVariable extends AbstractXPath
             return $this->getValue();
         }
 
-        if ($this->getValue() instanceof \DOMNodeList) {
+        if ($this->getValue() instanceof \DOMNodeList || $this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
             return '$' . $this->getName();
         }
 
         var_dump($this->getValue());
-        die;
+
+        throw new \RuntimeException('Variable of type not recognised');
     }
 
     public function setDefaultNamespacePrefix($prefix)
@@ -107,8 +108,12 @@ class XPathVariable extends AbstractXPath
         $this->value = $value;
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate($context, \DOMXPath $xPathReference)
     {
+        if ($this->getValue() instanceof \DOMNodeList) {
+            return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($this->getValue());
+        }
+
         return $this->getValue();
     }
 }

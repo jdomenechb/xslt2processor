@@ -46,8 +46,8 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $operators = array_keys(static::getOperators());
 
         foreach ($operators as $operator) {
-            if (!in_array($operator, ['|', '+'])) {
-                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator];
+            if (in_array($operator, ['-', '*'])) {
+                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator, $operator . ' '];
             } else {
                 $opWithSpaces = [$operator];
             }
@@ -169,7 +169,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $this->getRightPart()->setVariableValues($values);
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate($context, \DOMXPath $xPathReference)
     {
         $func = static::getOperators()[$this->operator];
 

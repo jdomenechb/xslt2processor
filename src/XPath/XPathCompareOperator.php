@@ -25,6 +25,12 @@ class XPathCompareOperator extends AbstractXPathOperator
                 '!=' => function ($left, $right) {
                     return $left != $right;
                 },
+                '<=' => function ($left, $right) {
+                    return $left <= $right;
+                },
+                '>=' => function ($left, $right) {
+                    return $left >= $right;
+                },
                 '=' => function ($left, $right) {
                     return $left == $right;
                 },
@@ -33,12 +39,6 @@ class XPathCompareOperator extends AbstractXPathOperator
                 },
                 '<' => function ($left, $right) {
                     return $left < $right;
-                },
-                '<=' => function ($left, $right) {
-                    return $left <= $right;
-                },
-                '>=' => function ($left, $right) {
-                    return $left >= $right;
                 },
             ];
         }

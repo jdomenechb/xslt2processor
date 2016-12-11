@@ -53,18 +53,30 @@ interface ExpressionInterface
     /**
      * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
      *
-     * @param DOMNode  $context
+     * @param DOMNode $context
      * @param DOMXPath $xPathReference
      * @returns mixed
      */
-    public function evaluate(DOMNode $context, DOMXPath $xPathReference);
+    public function evaluate($context, DOMXPath $xPathReference);
 
     /**
      * Performs a query evaluation on the xPath
      *
-     * @param DOMNode  $context
-     * @param DOMXPath $xPathReference
-     * @returns mixed
+     * @param DOMNode $context
+     * @returns \Jdomenechb\XSLT2Processor\XML\DOMNodeList
      */
-    public function query(DOMNode $context, DOMXPath $xPathReference);
+    public function query($context);
+
+    /**
+     * Receives an array of namespaces where the key is the prefix and the value is the namespace URI, so the classes
+     * can be aware of the namespaces in the document.
+     * @param array $namespaces
+     */
+    public function setNamespaces(array $namespaces);
+
+    /**
+     * Returns the set of namespaces that the xPath expressions are aware of.
+     * @return array $namespaces
+     */
+    public function getNamespaces();
 }

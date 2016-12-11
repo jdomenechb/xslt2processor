@@ -20,6 +20,8 @@ use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
  */
 abstract class AbstractXPath implements ExpressionInterface
 {
+    protected $namespaces;
+
     /**
      * Constructor.
      *
@@ -43,8 +45,24 @@ abstract class AbstractXPath implements ExpressionInterface
         return $this->toString();
     }
 
-    public function query(\DOMNode $context, \DOMXPath $xPathReference)
+    public function query($context)
     {
         throw new \RuntimeException('Not implemented yet');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setNamespaces(array $namespaces)
+    {
+        $this->namespaces = $namespaces;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getNamespaces()
+    {
+        return $this->namespaces;
     }
 }

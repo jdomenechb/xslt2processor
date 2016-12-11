@@ -63,7 +63,7 @@ class XPathNumber extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function evaluate(DOMNode $context, DOMXPath $xPathReference)
+    public function evaluate($context, DOMXPath $xPathReference)
     {
         // Integer
         if (preg_match('#^-?\d+$#', $this->getNumber())) {

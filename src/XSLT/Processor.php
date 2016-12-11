@@ -42,12 +42,14 @@ class Processor
     /**
      * @var string
      */
-    protected $defaultNamespace = '';
+    protected $defaultNamespace = 'default';
 
     /**
      * @var array
      */
-    protected $namespaces = [];
+    protected $namespaces = [
+        'default' => null,
+    ];
 
     /**
      * @var false
@@ -92,7 +94,7 @@ class Processor
     /**
      * @var bool
      */
-    protected $debug = true;
+    public static $debug = false;
 
     protected $debugIdentation = -1;
 
@@ -140,9 +142,19 @@ class Processor
 
     public function transformXML()
     {
-        $this->namespaces = [];
+        // Set error handler
+        set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
+            // error was suppressed with the @-operator
+            if (0 === error_reporting()) {
+                return false;
+            }
+
+            throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        });
+
+        $this->namespaces = ['default' => null,];
         $this->newXml = new DOMDocument();
-        $this->defaultNamespace = '';
+        $this->defaultNamespace = 'default';
 
         if ($this->logXPath) {
             file_put_contents('xpath_log.txt', '');
@@ -156,15 +168,17 @@ class Processor
 
         // Execute main template
         $node = $this->stylesheet->createElement('init-template');
-        $node->setAttribute('select', '/*');
+        $node->setAttribute('select', '/');
 
-        $this->xslApplyTemplates($node, $this->xml->documentElement, $this->newXml);
+        $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
+
+        restore_error_handler();
 
         if ($this->method == 'xml') {
             return $this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML();
         }
 
-        return $this->newXml->saveHTML();
+        return $this->newXml->saveHTML($this->newXml->documentElement);
     }
 
     protected function xslStylesheet(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -175,7 +189,6 @@ class Processor
             // Default namespace
             if ($attribute->nodeName == 'xpath-default-namespace') {
                 $this->namespaces['default'] = $attribute->nodeValue;
-                $this->defaultNamespace = 'default';
 
                 continue;
             }
@@ -216,7 +229,8 @@ class Processor
             }
 
             if ($childNode instanceof DOMText) {
-                $newContext->nodeValue .= $childNode->nodeValue;
+                $wNode = $this->getWritableNode($newContext);
+                $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
             }
 
@@ -226,7 +240,7 @@ class Processor
 
     protected function processNormalNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        if ($this->debug) {
+        if (static::$debug) {
             echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
             echo "<b>$node->nodeName</b><br>";
             echo 'Before';
@@ -267,7 +281,7 @@ class Processor
 
         $this->processChildNodes($node, $context, $newNode);
 
-        if ($this->debug) {
+        if (static::$debug) {
             echo 'After';
             echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
             echo '</div>';
@@ -278,16 +292,20 @@ class Processor
     {
         $methodName = 'xsl' . implode('', array_map('ucfirst', explode('-', substr($node->nodeName, 4))));
 
-        if ($this->debug) {
+        if (static::$debug) {
             echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
             echo "<b>$methodName</b><br>";
+            foreach ($node->attributes as $attribute) {
+                echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
+            }
+            echo "<br>";
             echo 'Before';
             echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
 
         if (method_exists($this, $methodName)) {
             $this->$methodName($node, $context, $newContext);
-            if ($this->debug) {
+            if (static::$debug) {
                 echo 'After';
                 echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
                 echo '</div>';
@@ -315,7 +333,7 @@ class Processor
                     break;
 
                 case 'encoding':
-                    // Not implemented: UTF-8 by default
+                    $this->newXml->encoding = $attribute->nodeValue;
                     break;
 
                 case 'cdata-section-elements':
@@ -374,13 +392,13 @@ class Processor
         $this->templateParams = $currentParams;
     }
 
-    protected function xslApplyTemplates(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslApplyTemplates(DOMNode $node, DOMNode $context, DOMNode $newContext, $first = false)
     {
         // Select the candidates to be processed
         $xPath = $node->getAttribute('select');
-        $xPath = $this->uniformXPath($xPath);
+        $parsedXPath = $this->parseXPath($xPath);
 
-        $nodes = $this->xPath->query($xPath, $context);
+        $nodes = $parsedXPath->query($context);
 
         // Select templates that match
         foreach ($nodes as $node) {
@@ -391,23 +409,36 @@ class Processor
                     continue;
                 }
 
-                $xPath = $this->uniformXPath($xPath);
-                $results = $this->xPath->query($xPath, $node->parentNode);
+                $results = $this->parseXPath($xPath)->query(!$node instanceof DOMDocument? $node->parentNode : $node);
 
                 if ($results === false) {
                     continue;
                 }
 
-                if (!$results instanceof DOMNodeList) {
+                if (!$results instanceof DOMNodeList && !$results instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
                     throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
                 }
 
                 foreach ($results as $possible) {
                     if ($possible->isSameNode($node)) {
                         $this->processTemplate($template, $node, $newContext);
-                        break;
+                        return;
                     }
                 }
+            }
+        }
+
+        // No matched templates: if first, select the most prioritary one
+        if (!$first) {
+            return;
+        }
+
+        foreach ($this->templates as $template) {
+            $xPath = $template->getMatch();
+            $xPath = $this->parseXPath($xPath)->toString();
+
+            if ($xPath == '/') {
+                $this->processTemplate($template, $node, $newContext);
             }
         }
     }
@@ -417,18 +448,13 @@ class Processor
         // Evaluate the if
         $toEvaluate = $node->getAttribute('test');
         $xPathParsed = $this->parseXPath($toEvaluate);
-
-        //echo $toEvaluate . "\n<br/>";
-
         $result = $xPathParsed->evaluate($context, $this->xPath);
-
-        //$toEvaluate = $this->uniformXPath($toEvaluate);
-        //$result = $this->xPath->evaluate($toEvaluate, $context);
 
         if (
             $result === true
             || (is_string($result) && $result)
             || $result instanceof DOMNodeList && $result->length
+            || $result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList && $result->count()
         ) {
             $this->processChildNodes($node, $context, $newContext);
 
@@ -449,6 +475,7 @@ class Processor
         $xPathParsed = $factory->create($xPath);
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues(array_merge($this->variables, $this->templateParams));
+        $xPathParsed->setNamespaces($this->namespaces);
 
         $transformed = $xPathParsed->toString();
 
@@ -473,7 +500,6 @@ class Processor
     {
         // Evaluate the value
         $toEvaluateXPath = $node->getAttribute('select');
-
         $toEvaluate = $this->parseXPath($toEvaluateXPath);
         $result = $toEvaluate->evaluate($context, $this->xPath);
 
@@ -481,7 +507,7 @@ class Processor
 
         $wNode = $this->getWritableNode($newContext);
 
-        if ($result instanceof DOMNodeList) {
+        if ($result instanceof \DOMNodeList || $result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
             foreach ($result as $subResult) {
                 $wNode->nodeValue .= $subResult->nodeValue;
             }
@@ -501,7 +527,9 @@ class Processor
             }
         }
 
-        if ($node->getAttribute('disable-output-escaping') != 'yes') {
+        $adoe = $node->getAttribute('disable-output-escaping');
+
+        if ($adoe != 'yes') {
             $text = htmlspecialchars($text);
         }
 
@@ -537,6 +565,7 @@ class Processor
             if (in_array($newContext->nodeName, $this->cdataSectionElements)) {
                 $textNode = $newContext->ownerDocument->createCDATASection('');
             } else {
+                /* @var $textNode \DOMText */
                 $textNode = $newContext->ownerDocument->createTextNode('');
             }
 
@@ -544,13 +573,18 @@ class Processor
         }
 
         if (
-            $newContext->childNodes->length
-            && (
-                $newContext->childNodes->item(0) instanceof DOMCdataSection
-                || $newContext->childNodes->item(0) instanceof DOMText
-            )
+            $newContext->childNodes->item($newContext->childNodes->length - 1) instanceof DOMCdataSection
+            || $newContext->childNodes->item($newContext->childNodes->length - 1) instanceof DOMText
         ) {
-            $writableNode = $newContext->childNodes->item(0);
+            $writableNode = $newContext->childNodes->item($newContext->childNodes->length - 1);
+        } else {
+            if (in_array($newContext->nodeName, $this->cdataSectionElements)) {
+                $textNode = $newContext->ownerDocument->createCDATASection('');
+            } else {
+                $textNode = $newContext->ownerDocument->createTextNode('');
+            }
+
+            $writableNode = $newContext->appendChild($textNode);
         }
 
         return $writableNode;
@@ -589,11 +623,18 @@ class Processor
 
             if ($childNode->nodeName == 'xsl:when') {
                 if ($this->xslIf($childNode, $context, $newContext)) {
+                    if (static::$debug) {
+                        echo 'Option chosen: xsl:when test="' . $childNode->getAttribute('test') . '"<br>';
+                    }
                     break;
                 }
             }
 
             if ($childNode->nodeName == 'xsl:otherwise') {
+                if (static::$debug) {
+                    echo 'Option chosen: xsl:otherwise';
+                }
+
                 $this->processChildNodes($childNode, $context, $newContext);
             }
         }
@@ -845,6 +886,7 @@ class Processor
     protected function xslCallTemplate(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
         $params = [];
+        $name = $node->getAttribute('name');
 
         // Detect possible params
         foreach ($node->childNodes as $childNode) {
@@ -856,16 +898,25 @@ class Processor
                 throw new RuntimeException('Found not recognized "' . $childNode->nodeName . '" inside xsl:call-template');
             }
 
-            $xPath = $childNode->getAttribute('select');
-            $xPath = $this->uniformXPath($xPath);
+            if (static::$debug) {
+                echo 'xsl:with-param ';
 
-            $result = $this->xPath->evaluate($xPath, $context);
+                foreach ($childNode->attributes as $attribute) {
+                    echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
+                }
+
+                echo '<br/>';
+            }
+
+            $xPath = $childNode->getAttribute('select');
+            $xPathParsed = $this->parseXPath($xPath);
+            $result = $xPathParsed->evaluate($context, $this->xPath);
 
             $params[$childNode->getAttribute('name')] = $result;
         }
 
         // Select the candidates to be processed
-        $name = $node->getAttribute('name');
+
         $templates = $this->getTemplatesByName($name);
 
         if (!count($templates)) {

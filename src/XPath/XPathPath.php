@@ -11,6 +11,12 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use DOMElement;
+use DOMNode;
+use DOMNodeList as OriginalDOMNodeList;
+use DOMXPath;
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 class XPathPath extends AbstractXPath
 {
     /**
@@ -28,7 +34,12 @@ class XPathPath extends AbstractXPath
 
     public function parse($string)
     {
-        $parts = explode('/', $string);
+//        if ($string === '/') {
+//            $string = '/*';
+//        }
+
+        $eph = new Expression\ExpressionParserHelper();
+        $parts = $eph->explodeRootLevel('/', $string);
         $factory = new Factory();
 
         foreach ($parts as &$part) {
@@ -64,11 +75,11 @@ class XPathPath extends AbstractXPath
     }
 
     /**
-     * @param \DOMElement $node
+     * @param DOMElement $node
      *
      * @return self
      */
-    public static function createFromRelativeNode(\DOMElement $node)
+    public static function createFromRelativeNode(DOMElement $node)
     {
         $xPath = $node->nodeName;
 
@@ -93,22 +104,61 @@ class XPathPath extends AbstractXPath
         return new $c($xPath);
     }
 
-    public function evaluate(\DOMNode $context, \DOMXPath $xPathReference)
+    public function evaluate($context, DOMXPath $xPathReference)
     {
         $xPath = $this->toString();
-        $value = $xPathReference->evaluate($xPath, $context);
+
+        // Evaluate the path
+        $evaluation = $context;
+
+        foreach ($this->getParts() as $part) {
+            if ($evaluation instanceof DOMNodeList || $evaluation instanceof \DOMNodeList ) {
+                if ($evaluation instanceof \DOMNodeList) {
+                    $evaluation = new DOMNodeList($evaluation);
+                }
+
+                $newEvaluation = new DOMNodeList();
+                $newEvaluation->merge($part->evaluate($evaluation, $xPathReference));
+
+                $evaluation = $newEvaluation;
+            } else {
+                $evaluation = $part->evaluate($evaluation, $xPathReference);
+            }
+        }
+
+        $value = $evaluation;
 
         // Fix for text of no existing node
         if (
-            strrpos($xPath, 'text()', strlen($xPath) - 1 - strlen('text()'))
-            && is_object($value)
-            && $value instanceof \DOMNodeList
+            is_object($value)
+            &&($offset = mb_strlen($xPath) - 1 - mb_strlen('text()')) >= 0
+            && strrpos($xPath, 'text()', strlen($xPath) - 1 - strlen('text()'))
+            && $value instanceof OriginalDOMNodeList
             && $value->length === 0
         ) {
             $value = '';
         }
 
         return $value;
+    }
+
+    public function query($context)
+    {
+        $contextList = new DOMNodeList($context);
+
+        foreach ($this->getParts() as $part) {
+            $result = new DOMNodeList();
+
+            foreach ($contextList as $contextElement) {
+                $newResult = new DOMNodeList($part->query($contextElement));
+                $result->merge($newResult);
+            }
+
+            $contextList = $result;
+        }
+
+        return $contextList;
+
     }
 
     /**
@@ -125,5 +175,14 @@ class XPathPath extends AbstractXPath
     public function setParts($parts)
     {
         $this->parts = $parts;
+    }
+
+    public function setNamespaces(array $namespaces)
+    {
+        parent::setNamespaces($namespaces);
+
+        foreach ($this->getParts() as $part) {
+            $part->setNamespaces($this->getNamespaces());
+        }
     }
 }
