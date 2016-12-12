@@ -178,7 +178,9 @@ class Processor
             return $this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML();
         }
 
-        return $this->newXml->saveHTML($this->newXml->documentElement);
+        //TODO: Doctype
+
+        return $this->newXml->saveHTML();
     }
 
     protected function xslStylesheet(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -528,13 +530,20 @@ class Processor
         }
 
         $adoe = $node->getAttribute('disable-output-escaping');
+        $wNode = $this->getWritableNode($newContext);
 
         if ($adoe != 'yes') {
-            $text = htmlspecialchars($text);
+//            $text = htmlspecialchars($text);
+            $wNode->nodeValue .= $text;
+        } else {
+            if ($wNode instanceof DOMText) {
+                $wNode = $wNode->parentNode->appendChild($newContext->ownerDocument->createCDATASection(''));
+                $wNode->nodeValue .= $text;
+                $wNode->parentNode->appendChild($newContext->ownerDocument->createTextNode(''));
+            } else {
+                $wNode->nodeValue .= $text;
+            }
         }
-
-        $wNode = $this->getWritableNode($newContext);
-        $wNode->nodeValue .= $text;
     }
 
     protected function xslCopyOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -715,6 +724,22 @@ class Processor
 
             throw new RuntimeException('Variable cannot hold single node results... for now');
         } elseif ($tmpContext->childNodes->length > 1) {
+            $allText = true;
+            $result = '';
+
+            foreach ($tmpContext->childNodes as $childNode) {
+                if (!$childNode instanceof \DOMCharacterData) {
+                    $allText = false;
+                    break;
+                }
+
+                $result .= $childNode->nodeValue;
+            }
+
+            if ($allText) {
+                return $result;
+            }
+
             return $tmpContext->childNodes;
         }
     }
