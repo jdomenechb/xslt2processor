@@ -50,5 +50,8 @@ Temporary Items
 vendor
 xpath_log.txt
 .vagrant
-
 vm_build.log
+index.php
+test.php
+test
+composer.lock
