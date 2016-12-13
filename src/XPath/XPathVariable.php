@@ -47,7 +47,6 @@ class XPathVariable extends AbstractXPath
         }
 
         if (is_string($this->getValue())) {
-            // FIXME: Escape the string
             return "'" . $this->getValue() . "'";
         }
 
@@ -115,5 +114,14 @@ class XPathVariable extends AbstractXPath
         }
 
         return $this->getValue();
+    }
+
+    public function query($context)
+    {
+        if ($this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+            return $this->getValue();
+        }
+
+        throw new \RuntimeException('Not implemented yet');
     }
 }
