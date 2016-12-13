@@ -70,7 +70,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
             // First do a fast search
             foreach ($opWithSpaces as $key => $opWithSpacesSingle) {
-                if (mb_stripos($string, $opWithSpacesSingle) !== false) {
+                if (($opPos = mb_stripos($string, $opWithSpacesSingle)) !== false) {
                     $keyFound = $key;
                     break;
                 }
@@ -78,6 +78,15 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
             if ($keyFound === false) {
                 continue;
+            }
+
+            // Consider equal precedence
+            if ($operator === '=' && $opPos > 0) {
+                $preOp = substr($string, $opPos - 1, 1);
+
+                if ($preOp === '<' || $preOp === '>') {
+                    continue;
+                }
             }
 
             $results = $factory->parseByOperator($opWithSpaces[$keyFound], $string);

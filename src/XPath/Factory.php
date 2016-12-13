@@ -91,6 +91,13 @@ class Factory
             }
         }
 
+        // Parse boolean operator
+        $tmp = new XPathBooleanOperator();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
+        }
+
         // Parse comparison operator
         $tmp = new XPathCompareOperator();
 
@@ -124,6 +131,14 @@ class Factory
             return new XPathPath($expression);
         }
 
+        // Parse attribute node
+        $tmp = new XPathAttr();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
+        }
+
+        // Parse normal node
         return new XPathPathNode($expression);
     }
 

@@ -11,7 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-class XPathCompareOperator extends AbstractXPathOperator
+class XPathBooleanOperator extends AbstractXPathOperator
 {
     protected static $operators;
 
@@ -22,17 +22,11 @@ class XPathCompareOperator extends AbstractXPathOperator
     {
         if (!static::$operators) {
             static::$operators = [
-                '<=' => function ($left, $right) {
-                    return $left <= $right;
+                '!=' => function ($left, $right) {
+                    return $left != $right;
                 },
-                '>=' => function ($left, $right) {
-                    return $left >= $right;
-                },
-                '>' => function ($left, $right) {
-                    return $left > $right;
-                },
-                '<' => function ($left, $right) {
-                    return $left < $right;
+                '=' => function ($left, $right) {
+                    return $left == $right;
                 },
             ];
         }
