@@ -443,10 +443,6 @@ class Processor
                     continue;
                 }
 
-                if ($xPath == 'c:teaser|c:article') {
-                    $meh = null;
-                }
-
                 $xPathParsed = $this->parseXPath($xPath);
                 $results = $xPathParsed->query(!$nodeMatched instanceof \DOMDocument? $nodeMatched->parentNode : $nodeMatched);
 
@@ -1020,12 +1016,6 @@ class Processor
 
     protected function insertTemplate(Template $template)
     {
-        $meh = null;
-
-        if ($template->getMatch() == 'c:hits') {
-            $meh = null;
-        }
-
         for ($i = 0; $i < count($this->templates); $i++) {
             $currentTemplate = $this->templates[$i];
 
