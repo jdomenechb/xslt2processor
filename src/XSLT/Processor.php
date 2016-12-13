@@ -976,11 +976,13 @@ class Processor
                 echo '<br/>';
             }
 
-            $xPath = $childNode->getAttribute('select');
-            $xPathParsed = $this->parseXPath($xPath);
-            $result = $xPathParsed->evaluate($context, $this->xPath);
+            if ($childNode->hasAttribute('select')) {
+                $xPath = $childNode->getAttribute('select');
+                $xPathParsed = $this->parseXPath($xPath);
+                $result = $xPathParsed->evaluate($context, $this->xPath);
 
-            $params[$childNode->getAttribute('name')] = $result;
+                $params[$childNode->getAttribute('name')] = $result;
+            }
         }
 
         // Select the candidates to be processed
