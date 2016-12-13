@@ -29,6 +29,12 @@ class Template
     protected $node;
 
     /**
+     * Priority of the template.
+     * @var float
+     */
+    protected $priority;
+
+    /**
      * @return string
      */
     public function getName()
@@ -75,4 +81,24 @@ class Template
     {
         $this->node = $node;
     }
+
+    /**
+     * Returns the priority of the template.
+     * @return float
+     */
+    public function getPriority()
+    {
+        return $this->priority;
+    }
+
+    /**
+     * Set the priotity of the template.
+     * @param float $priority
+     */
+    public function setPriority($priority)
+    {
+        $this->priority = $priority;
+    }
+
+
 }

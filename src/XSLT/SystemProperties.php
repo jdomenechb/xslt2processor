@@ -19,7 +19,7 @@ namespace Jdomenechb\XSLT2Processor\XSLT;
 class SystemProperties
 {
     protected static $properties = [
-        'xsl:vendor' => 'Avow',
+        'xsl:vendor' => 'jdomenechb/xslt2processor',
         'xsl:version' => '0.1',
     ];
 

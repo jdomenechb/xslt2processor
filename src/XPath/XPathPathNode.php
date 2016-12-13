@@ -67,7 +67,7 @@ class XPathPathNode extends AbstractXPath
             if ($piece == '') {
                 continue;
             }
-            
+
             if (is_numeric($piece)) {
                 $this->setPosition($piece);
                 continue;
@@ -157,6 +157,10 @@ class XPathPathNode extends AbstractXPath
     {
         // Direct cases
         if ($this->getNode() == '.') {
+            if (!$context instanceof DOMNodeList) {
+                return new DOMNodeList($context);
+            }
+
             return $context;
         }
 

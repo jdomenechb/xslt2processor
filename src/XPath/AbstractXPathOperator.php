@@ -183,4 +183,12 @@ abstract class AbstractXPathOperator extends AbstractXPath
     {
         throw new \RuntimeException('Not set as abstract because of PHP 5.5: reimplement please');
     }
+
+    public function setNamespaces(array $namespaces)
+    {
+        parent::setNamespaces($namespaces);
+
+        $this->getLeftPart()->setNamespaces($namespaces);
+        $this->getRightPart()->setNamespaces($namespaces);
+    }
 }

@@ -119,6 +119,12 @@ class Processor
     protected $templateParams = [];
 
     /**
+     * Determines if the the template being processed right now is imported/included or not.
+     * @var bool
+     */
+    protected $isImported = false;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct($xslt, \DOMDocument $xml)
@@ -367,7 +373,26 @@ class Processor
             }
         }
 
-        $this->templates[] = $template;
+        // Priority
+        if (!$node->hasAttribute('priority')) {
+            $xPath = $node->getAttribute('match');
+
+            if (in_array($xPath, ['*', '@*']) || preg_match('#^[a-z-]+\(\)$#', $xPath)) {
+                $template->setPriority(-0.5);
+            } elseif (preg_match('#^@?[a-z-]+:\*$#', $xPath)) {
+                $template->setPriority(-0.25);
+            } elseif (strpos($xPath, '/') === false && strpos($xPath, '[') === false) {
+                $template->setPriority(0);
+            } else {
+                $template->setPriority(0.5);
+            }
+        }
+
+        if (!$this->isImported) {
+            $template->setPriority($template->getPriority() + 2);
+        }
+
+        $this->insertTemplate($template);
     }
 
     protected function getTemplatesByMatch($match)
@@ -397,21 +422,33 @@ class Processor
     protected function xslApplyTemplates(DOMNode $node, DOMNode $context, DOMNode $newContext, $first = false)
     {
         // Select the candidates to be processed
-        $xPath = $node->getAttribute('select');
-        $parsedXPath = $this->parseXPath($xPath);
+        $applyTemplatesSelect = $node->getAttribute('select');
+        $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
 
-        $nodes = $parsedXPath->query($context);
+        $nodesMatched = $applyTemplatesSelectParsed->query($context);
+
+        $fbPossibleTemplate = null;
+        $executed = false;
 
         // Select templates that match
-        foreach ($nodes as $node) {
+        foreach ($nodesMatched as $nodeMatched) {
             foreach ($this->templates as $template) {
+                if (!$fbPossibleTemplate) {
+                    $fbPossibleTemplate = $template;
+                }
+
                 $xPath = $template->getMatch();
 
                 if (!$xPath) {
                     continue;
                 }
 
-                $results = $this->parseXPath($xPath)->query(!$node instanceof DOMDocument? $node->parentNode : $node);
+                if ($xPath == 'c:teaser|c:article') {
+                    $meh = null;
+                }
+
+                $xPathParsed = $this->parseXPath($xPath);
+                $results = $xPathParsed->query(!$nodeMatched instanceof \DOMDocument? $nodeMatched->parentNode : $nodeMatched);
 
                 if ($results === false) {
                     continue;
@@ -422,26 +459,30 @@ class Processor
                 }
 
                 foreach ($results as $possible) {
-                    if ($possible->isSameNode($node)) {
-                        $this->processTemplate($template, $node, $newContext);
-                        return;
+                    if ($possible->isSameNode($nodeMatched)) {
+
+                        $this->processTemplate($template, $nodeMatched, $newContext);
+                        $executed = true;
                     }
                 }
             }
         }
 
         // No matched templates: if first, select the most prioritary one
-        if (!$first) {
+        if (!$first || $executed) {
             return;
         }
 
-        foreach ($this->templates as $template) {
-            $xPath = $template->getMatch();
-            $xPath = $this->parseXPath($xPath)->toString();
+        if (!$fbPossibleTemplate) {
+            throw new \RuntimeException('No template match found');
+        }
 
-            if ($xPath == '/') {
-                $this->processTemplate($template, $node, $newContext);
-            }
+        // Apply the template for tha match
+        $xPathProcessed = $this->parseXPath($fbPossibleTemplate->getMatch());
+        $nodes = $xPathProcessed->query($context);
+
+        foreach ($nodes as $contextNode) {
+            $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext);
         }
     }
 
@@ -666,7 +707,10 @@ class Processor
         $importedXslt = new DOMDocument();
         $importedXslt->load($href);
 
+        $wasImported = $this->isImported;
+        $this->isImported = true;
         $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
+        $this->isImported = $wasImported;
 
         $this->filePath = $oldFilePath;
     }
@@ -688,7 +732,10 @@ class Processor
         $importedXslt = new DOMDocument();
         $importedXslt->load($href);
 
+        $wasImported = $this->isImported;
+        $this->isImported = true;
         $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
+        $this->isImported = $wasImported;
 
         $this->filePath = $oldFilePath;
     }
@@ -969,5 +1016,30 @@ class Processor
                 $this->templateParams[$name] = null;
             }
         }
+    }
+
+    protected function insertTemplate(Template $template)
+    {
+        $meh = null;
+
+        if ($template->getMatch() == 'c:hits') {
+            $meh = null;
+        }
+
+        for ($i = 0; $i < count($this->templates); $i++) {
+            $currentTemplate = $this->templates[$i];
+
+            if ($template->getPriority() > $currentTemplate->getPriority()) {
+                $newTemplates = array_slice($this->templates, 0, $i);
+                $newTemplates[] = $template;
+                $newTemplates = array_merge($newTemplates, array_slice($this->templates, $i));
+
+                $this->templates = $newTemplates;
+
+                return;
+            }
+        }
+
+        $this->templates[] = $template;
     }
 }

@@ -67,7 +67,12 @@ class XPathFunction extends AbstractXPath
         // Parse parameters
         $factory = new Factory();
 
-        $parametersRaw = substr($string, $fParPos + 1, -1);
+        $parametersRaw = trim(substr($string, $fParPos + 1, -1));
+
+        if ($parametersRaw === '') {
+            return;
+        }
+
         $parameters = $factory->parseByOperator(',', $parametersRaw);
 
         $parameters = array_map(function ($value) use ($factory) {
@@ -334,6 +339,7 @@ class XPathFunction extends AbstractXPath
                         }
 
                         throw new RuntimeException('No position could be found for the node');
+
                     case 'local-name':
                         if (count($this->getParameters()) > 0) {
                             $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
