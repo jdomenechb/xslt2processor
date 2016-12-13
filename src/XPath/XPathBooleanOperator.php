@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 class XPathBooleanOperator extends AbstractXPathOperator
 {
     protected static $operators;
@@ -23,10 +25,66 @@ class XPathBooleanOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '!=' => function ($left, $right) {
-                    return $left != $right;
+                    if (!$left instanceof DOMNodeList && !$right instanceof DOMNodeList) {
+                        return $left != $right;
+                    }
+
+                    // Logic for one side object
+                    if ($left instanceof DOMNodeList) {
+                        $obj = $left;
+                        $other = $right;
+                    } else {
+                        $obj = $right;
+                        $other = $left;
+                    }
+
+                    foreach ($obj as $objNode) {
+                        if ($other instanceof DOMNodeList) {
+                            foreach ($other as $otherNode) {
+                                if ($objNode->nodeValue != $otherNode->nodeValue) {
+                                    return true;
+                                }
+                            }
+                        } elseif (!is_object($other) && $objNode->nodeValue != $other) {
+                            return true;
+                        } elseif (is_object($other)) {
+                            var_dump($other);
+                            throw new \RuntimeException('Unidentified object');
+                        }
+                    }
+
+                    return false;
                 },
                 '=' => function ($left, $right) {
-                    return $left == $right;
+                    if (!$left instanceof DOMNodeList && !$right instanceof DOMNodeList) {
+                        return $left != $right;
+                    }
+
+                    // Logic for one side object
+                    if ($left instanceof DOMNodeList) {
+                        $obj = $left;
+                        $other = $right;
+                    } else {
+                        $obj = $right;
+                        $other = $left;
+                    }
+
+                    foreach ($obj as $objNode) {
+                        if ($other instanceof DOMNodeList) {
+                            foreach ($other as $otherNode) {
+                                if ($objNode->nodeValue == $otherNode->nodeValue) {
+                                    return true;
+                                }
+                            }
+                        } elseif (!is_object($other) && $objNode->nodeValue == $other) {
+                            return true;
+                        } elseif (is_object($other)) {
+                            var_dump($other);
+                            throw new \RuntimeException('Unidentified object');
+                        }
+                    }
+
+                    return false;
                 },
             ];
         }
