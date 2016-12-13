@@ -250,12 +250,27 @@ class XPathFunction extends AbstractXPath
                         $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
                         $needle = $this->internalString($needle);
 
-                        if (mb_strpos($haystack, $needle) === false) {
+                        if (($pos = mb_strpos($haystack, $needle)) === false) {
                             $result = '';
                             break;
                         }
 
-                        $result = mb_substr($haystack, 0, mb_strpos($haystack, $needle));
+                        $result = mb_substr($haystack, 0, $pos);
+                        break;
+
+                    case 'substring-after':
+                        $haystack = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $haystack = $this->internalString($haystack);
+
+                        $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $needle = $this->internalString($needle);
+
+                        if (($pos = mb_strpos($haystack, $needle)) === false) {
+                            $result = '';
+                            break;
+                        }
+
+                        $result = mb_substr($haystack, $pos + 1);
                         break;
 
                     case 'contains':
