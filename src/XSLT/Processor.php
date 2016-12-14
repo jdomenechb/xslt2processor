@@ -491,7 +491,7 @@ class Processor
 
         if (
             $result === true
-            || (is_string($result) && $result)
+            || ((is_string($result) || is_float($result) || is_int($result)) && $result)
             || $result instanceof DOMNodeList && $result->length
             || $result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList && $result->count()
         ) {
@@ -1030,7 +1030,7 @@ class Processor
         $templates = $this->getTemplatesByName($name);
 
         if (!count($templates)) {
-            throw new RuntimeException('No templated by the name "' . $name . '" found');
+            throw new RuntimeException('No templates by the name "' . $name . '" found');
         }
 
         if (count($templates) > 1) {
