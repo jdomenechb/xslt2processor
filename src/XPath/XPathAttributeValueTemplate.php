@@ -72,7 +72,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
         }
     }
 
-    public function evaluate($context, \DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         $result = '';
 
@@ -80,7 +80,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
             if (is_string($part)) {
                 $result .= $part;
             } elseif ($part instanceof ExpressionInterface) {
-                $result .= $part->evaluate($context, $xPathReference);
+                $result .= $part->evaluate($context);
             } else {
                 throw new \RuntimeException('Part not compatible');
             }

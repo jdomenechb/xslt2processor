@@ -109,7 +109,7 @@ class Processor
     protected $decimalFormats = [];
 
     /**
-     * @var array
+     * @var \Jdomenechb\XSLT2Processor\XPath\Template\Key[]
      */
     protected $keys = [];
 
@@ -280,7 +280,7 @@ class Processor
             $attrTemplate->setDefaultNamespacePrefix($this->namespaces);
             $attrTemplate->setVariableValues($this->variables);
 
-            $newAttr[$attribute->nodeName] = $attrTemplate->evaluate($context, $this->xPath);
+            $newAttr[$attribute->nodeName] = $attrTemplate->evaluate($context);
         }
 
         foreach ($newAttr as $attrName => $attr) {
@@ -487,7 +487,7 @@ class Processor
         // Evaluate the if
         $toEvaluate = $node->getAttribute('test');
         $xPathParsed = $this->parseXPath($toEvaluate);
-        $result = $xPathParsed->evaluate($context, $this->xPath);
+        $result = $xPathParsed->evaluate($context);
 
         if (
             $result === true
@@ -515,6 +515,7 @@ class Processor
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues(array_merge($this->variables, $this->templateParams));
         $xPathParsed->setNamespaces($this->namespaces);
+        $xPathParsed->setKeys($this->keys);
 
         $transformed = $xPathParsed->toString();
 
@@ -532,7 +533,7 @@ class Processor
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues($this->variables);
 
-        return $xPathParsed->evaluate($context, $xPath);
+        return $xPathParsed->evaluate($context);
     }
 
     protected function xslValueOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -540,7 +541,7 @@ class Processor
         // Evaluate the value
         $toEvaluateXPath = $node->getAttribute('select');
         $toEvaluate = $this->parseXPath($toEvaluateXPath);
-        $result = $toEvaluate->evaluate($context, $this->xPath);
+        $result = $toEvaluate->evaluate($context);
 
         //echo $toEvaluate . "<br/>\n";
 
@@ -642,11 +643,7 @@ class Processor
 
         if ($node->hasAttribute('select')) {
             $selectXPath = $node->getAttribute('select');
-            //$selectXPathTransformed = $this->uniformXPath($selectXPath);
-
-            $results = $this->parseXPath($selectXPath)->evaluate($context, $this->xPath);
-
-            //$results = $this->xPath->evaluate($selectXPathTransformed, $context);
+            $results = $this->parseXPath($selectXPath)->evaluate($context);
 
             $this->variables[$name] = $results;
         } else {
@@ -790,7 +787,49 @@ class Processor
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $xPath = $node->getAttribute('select');
-        $result = $this->parseXPath($xPath)->evaluate($context, $this->xPath);
+        $xPathParsed = $this->parseXPath($xPath);
+        $result = $xPathParsed->evaluate($context);
+
+        if (!$result->length) {
+            return;
+        }
+
+        // Detect sortings
+        foreach ($node->childNodes as $childNode) {
+            if (!$childNode instanceof DOMElement) {
+                continue;
+            }
+
+            if ($childNode->nodeName != 'xsl:sort') {
+                continue;
+            }
+
+            if (static::$debug) {
+                echo 'xsl:sort ';
+
+                foreach ($childNode->attributes as $attribute) {
+                    echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
+                }
+
+                echo '<br/>';
+            }
+
+            if ($childNode->hasAttribute('select')) {
+                $xPath = $childNode->getAttribute('select');
+                $xPathParsed = $this->parseXPath($xPath);
+
+                $newResults = $result->toArray();
+
+                usort($newResults, function($a, $b) use ($xPathParsed) {
+                    return strcmp(
+                        $xPathParsed->evaluate($a)->item(0)->nodeValue,
+                        $xPathParsed->evaluate($b)->item(0)->nodeValue
+                    );
+                });
+            }
+
+            break;
+        }
 
         foreach ($result as $eachNode) {
             $this->processChildNodes($node, $eachNode, $newContext);
@@ -849,7 +888,7 @@ class Processor
 
         // Get the nodes to process
         $xPath = $node->getAttribute('select');
-        $result = $this->parseXPath($xPath)->evaluate($context, $this->xPath);
+        $result = $this->parseXPath($xPath)->evaluate($context);
 
         // Get the nodes of the actions to apply
         $matchingNode = null;
@@ -935,10 +974,11 @@ class Processor
 
     protected function xslKey(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        $this->keys[$node->getAttribute('name')] = [
-            'match' => $node->getAttribute('match'),
-            'use' => $node->getAttribute('use'),
-        ];
+        $key = new \Jdomenechb\XSLT2Processor\XPath\Template\Key();
+        $key->setMatch($node->getAttribute('match'));
+        $key->setUse($node->getAttribute('use'));
+
+        $this->keys[$node->getAttribute('name')] = $key;
     }
 
     protected function xslComment(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -979,7 +1019,7 @@ class Processor
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
                 $xPathParsed = $this->parseXPath($xPath);
-                $result = $xPathParsed->evaluate($context, $this->xPath);
+                $result = $xPathParsed->evaluate($context);
 
                 $params[$childNode->getAttribute('name')] = $result;
             }
@@ -1033,5 +1073,10 @@ class Processor
         }
 
         $this->templates[] = $template;
+    }
+
+    protected function xslSort(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    {
+        // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
     }
 }

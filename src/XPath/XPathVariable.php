@@ -107,7 +107,7 @@ class XPathVariable extends AbstractXPath
         $this->value = $value;
     }
 
-    public function evaluate($context, \DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         if ($this->getValue() instanceof \DOMNodeList) {
             return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($this->getValue());
@@ -123,5 +123,10 @@ class XPathVariable extends AbstractXPath
         }
 
         throw new \RuntimeException('Not implemented yet');
+    }
+
+    public function setKeys(array $keys)
+    {
+        // This method is intended to be left empty
     }
 }

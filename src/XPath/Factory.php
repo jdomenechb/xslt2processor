@@ -50,7 +50,7 @@ class Factory
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
                 // It should match a function
-                && preg_match('#^[a-z:-]+\(.*\)$#', $expression)
+                && preg_match('#^[a-z:-]+\(.*\)(?:\[[^\]]+\])*?$#', $expression)
             ) {
                 return new XPathFunction($expression);
             }
@@ -62,7 +62,7 @@ class Factory
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
                 // It should match a sub
-                && preg_match('#^\(.*\)(?:\[[^\]]+\])?$#', $expression)
+                && preg_match('#^\(.*\)(?:\[[^\]]+\])*$#', $expression)
             ) {
 
                 return new XPathSub($expression);

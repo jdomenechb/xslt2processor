@@ -178,13 +178,13 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $this->getRightPart()->setVariableValues($values);
     }
 
-    public function evaluate($context, \DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         $func = static::getOperators()[$this->operator];
 
         return $func(
-            $this->getLeftPart()->evaluate($context, $xPathReference),
-            $this->getRightPart()->evaluate($context, $xPathReference)
+            $this->getLeftPart()->evaluate($context),
+            $this->getRightPart()->evaluate($context)
         );
     }
 
@@ -200,4 +200,11 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $this->getLeftPart()->setNamespaces($namespaces);
         $this->getRightPart()->setNamespaces($namespaces);
     }
+
+    public function setKeys(array $keys)
+    {
+        $this->getLeftPart()->setKeys($keys);
+        $this->getRightPart()->setKeys($keys);
+    }
+
 }

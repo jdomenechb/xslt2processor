@@ -13,10 +13,10 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 class XPathAnd extends AbstractXPathLogic
 {
-    public function evaluate($context, \DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         foreach ($this->getExpressions() as $expression) {
-            if (!$expression->evaluate($context, $xPathReference)) {
+            if (!$expression->evaluate($context)) {
                 return false;
             }
         }

@@ -94,4 +94,24 @@ abstract class AbstractXPathLogic extends AbstractXPath
     }
 
     abstract protected function getOperator();
+
+    public function setKeys(array $values)
+    {
+        array_map(
+            function (ExpressionInterface $value) use ($values) {
+                $value->setKeys($values);
+            },
+            $this->getExpressions()
+        );
+    }
+
+    public function setNamespaces(array $values)
+    {
+        array_map(
+            function (ExpressionInterface $value) use ($values) {
+                $value->setNamespaces($values);
+            },
+            $this->getExpressions()
+        );
+    }
 }

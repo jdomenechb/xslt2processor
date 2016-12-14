@@ -47,7 +47,7 @@ abstract class AbstractXPath implements ExpressionInterface
 
     public function query($context)
     {
-        throw new \RuntimeException('Not implemented yet');
+        throw new \RuntimeException('Not implemented yet in ' . get_called_class());
     }
 
     /**
@@ -64,5 +64,10 @@ abstract class AbstractXPath implements ExpressionInterface
     public function getNamespaces()
     {
         return $this->namespaces;
+    }
+
+    public function setKeys(array $keys)
+    {
+        throw new \RuntimeException('Not implemented yet in ' . get_called_class());
     }
 }

@@ -112,9 +112,9 @@ class XPathPathNode extends AbstractXPath
         }
     }
 
-    public function evaluate($context, DOMXPath $xPathReference)
+    public function evaluate($context)
     {
-        return $this->query($context, $xPathReference);
+        return $this->query($context);
     }
 
     /**
@@ -224,7 +224,7 @@ class XPathPathNode extends AbstractXPath
 
                             while (!$correct && $context->nextSibling !== null) {
                                 $context = $context->nextSibling;
-                                $correct = $this->getSelector()->evaluate($context, func_get_arg(1));
+                                $correct = $this->getSelector()->evaluate($context);
                             }
 
                             if ($correct) {
@@ -288,7 +288,7 @@ class XPathPathNode extends AbstractXPath
                 && (
                     !$this->getSelector()
                     || (
-                        ($evaluateResult = $this->getSelector()->evaluate($childNode, func_get_arg(1)))
+                        ($evaluateResult = $this->getSelector()->evaluate($childNode))
                         && (
                             !$evaluateResult instanceof DOMNodeList
                             || $evaluateResult instanceof DOMNodeList && $evaluateResult->count()
@@ -315,6 +315,14 @@ class XPathPathNode extends AbstractXPath
 
         if (!is_null($this->getSelector())) {
             $this->getSelector()->setNamespaces($namespaces);
+        }
+    }
+
+    public function setKeys(array $keys)
+    {
+
+        if (!is_null($this->getSelector())) {
+            $this->getSelector()->setKeys($keys);
         }
     }
 

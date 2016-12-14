@@ -13,6 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
 use DOMXPath;
+use Jdomenechb\XSLT2Processor\XPath\Template\Key;
 
 /**
  * Interface to define the basic methods needed for an xPath expression.
@@ -51,13 +52,20 @@ interface ExpressionInterface
     public function setVariableValues(array $values);
 
     /**
+     * Receive the keys of the current XSLT template in execution.
+     *
+     * @param Key[] $values
+     */
+    public function setKeys(array $keys);
+
+    /**
      * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
      *
      * @param DOMNode $context
      * @param DOMXPath $xPathReference
      * @returns mixed
      */
-    public function evaluate($context, DOMXPath $xPathReference);
+    public function evaluate($context);
 
     /**
      * Performs a query evaluation on the xPath

@@ -57,7 +57,7 @@ class XPathBooleanOperator extends AbstractXPathOperator
                 },
                 '=' => function ($left, $right) {
                     if (!$left instanceof DOMNodeList && !$right instanceof DOMNodeList) {
-                        return $left != $right;
+                        return $left == $right;
                     }
 
                     // Logic for one side object

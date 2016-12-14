@@ -30,7 +30,7 @@ class XPathAttr extends AbstractXPath
     /**
      * {@inheritDoc}
      */
-    public function evaluate($context, DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         foreach ($context->attributes as $attribute) {
             if ($attribute->nodeName == $this->getName()) {
@@ -98,5 +98,10 @@ class XPathAttr extends AbstractXPath
     public function setName($name)
     {
         $this->name = $name;
+    }
+
+    public function setKeys(array $keys)
+    {
+        // This method is intended to be left empty
     }
 }

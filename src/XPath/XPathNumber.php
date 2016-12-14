@@ -63,7 +63,7 @@ class XPathNumber extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function evaluate($context, DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         // Integer
         if (preg_match('#^-?\d+$#', $this->getNumber())) {
@@ -97,5 +97,10 @@ class XPathNumber extends AbstractXPath
     public function toString()
     {
         return (string) $this->getNumber();
+    }
+
+    public function setKeys(array $keys)
+    {
+        // The method does nothing in this context
     }
 }

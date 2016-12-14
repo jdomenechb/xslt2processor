@@ -43,12 +43,28 @@ class XPathFunction extends AbstractXPath
     protected $namespacePrefix = 'fn';
 
     /**
+     *
+     * @var ExpressionInterface
+     */
+    protected $selector;
+
+    /**
+     *
+     * @var int
+     */
+    protected $position;
+
+    /**
      * @var array
      */
     protected $availableNamespaces = [
         'fn',
         'http://exslt.org/common'
     ];
+
+    protected $keys;
+
+    protected $defaultNamespacePrefix;
 
     /**
      * {@inheritdoc}
@@ -60,25 +76,43 @@ class XPathFunction extends AbstractXPath
 
     public function parse($string)
     {
+        $eph = new Expression\ExpressionParserHelper();
+        $parts = $eph->parseFirstLevelSubExpressions($string, '(', ')');
+
         // Extract name
-        $fParPos = strpos($string, '(');
-        $this->setFullName(substr($string, 0, $fParPos));
+        $this->setFullName(array_shift($parts));
 
         // Parse parameters
         $factory = new Factory();
 
-        $parametersRaw = trim(substr($string, $fParPos + 1, -1));
+        $parametersRaw = array_shift($parts);
 
         if ($parametersRaw === '') {
             return;
         }
 
-        $parameters = $factory->parseByOperator(',', $parametersRaw);
+        $parameters = $eph->explodeRootLevel(',', $parametersRaw);
 
         $parameters = array_map(function ($value) use ($factory) {
             return $factory->create($value);
         }, $parameters);
+
         $this->setParameters($parameters);
+
+        // Selector
+        $parts = $eph->parseFirstLevelSubExpressions(array_shift($parts), '[', ']');
+
+        foreach ($parts as $part) {
+            if (!$part) {
+                continue;
+            }
+
+            if (preg_match('#^\d+$#', $part)) {
+                $this->setPosition($part);
+            } else {
+                $this->setSelector($factory->create($part));
+            }
+        }
     }
 
     public function setFullName($name)
@@ -124,7 +158,7 @@ class XPathFunction extends AbstractXPath
         $this->namespacePrefix = $namespace;
     }
 
-    public function getNamespace()
+    protected function getNamespace()
     {
         if ($this->getNamespacePrefix() == 'fn') {
             return 'fn';
@@ -151,17 +185,31 @@ class XPathFunction extends AbstractXPath
         $toReturn .= implode(', ', $parameters);
         $toReturn .= ')';
 
+        if ($this->getSelector()) {
+            $toReturn .= '[' . $this->getSelector()->toString() . ']';
+        }
+
+        if ($this->getPosition()) {
+            $toReturn .= '[' . $this->getPosition() . ']';
+        }
+
         return  $toReturn;
     }
 
     public function setDefaultNamespacePrefix($prefix)
     {
+        $this->defaultNamespacePrefix = $prefix;
+
         array_map(
             function (ExpressionInterface $value) use ($prefix) {
                 return $value->setDefaultNamespacePrefix($prefix);
             },
             $this->getParameters()
         );
+
+        if ($this->getSelector()) {
+            $this->getSelector()->setDefaultNamespacePrefix($prefix);
+        }
     }
 
     public function setVariableValues(array $values)
@@ -172,6 +220,10 @@ class XPathFunction extends AbstractXPath
             },
             $this->getParameters()
         );
+
+        if ($this->getSelector()) {
+            $this->getSelector()->setVariableValues($values);
+        }
     }
 
     /**
@@ -190,7 +242,7 @@ class XPathFunction extends AbstractXPath
         $this->parameters = $parameters;
     }
 
-    public function evaluate($context, DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         if (array_key_exists($this->getName(), static::getCustomFunctions())) {
             throw new Exception('Custom functions are not supported yet');
@@ -204,11 +256,11 @@ class XPathFunction extends AbstractXPath
             case 'fn':
                 switch ($this->getName()) {
                     case 'string':
-                        $result = $this->internalString($this->getParameters()[0]->evaluate($context, $xPathReference));
+                        $result = $this->internalString($this->getParameters()[0]->evaluate($context));
                         break;
 
                     case 'normalize-space':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
                         $value = trim($value);
                         $value = preg_replace('# +#', ' ', $value);
@@ -217,24 +269,24 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'string-length':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
 
                         $result = mb_strlen($value);
                         break;
 
                     case 'substring':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
 
-                        $start = $this->getParameters()[1]->evaluate($context, $xPathReference) - 1;
+                        $start = $this->getParameters()[1]->evaluate($context) - 1;
 
                         if ($start < 0) {
                             $start = 0;
                         }
 
                         if (isset($this->getParameters()[2])) {
-                            $len = $this->getParameters()[2]->evaluate($context, $xPathReference);
+                            $len = $this->getParameters()[2]->evaluate($context);
 
                             $result = mb_substr($value, $start, $len);
                             break;
@@ -244,10 +296,10 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'substring-before':
-                        $haystack = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $haystack = $this->getParameters()[0]->evaluate($context);
                         $haystack = $this->internalString($haystack);
 
-                        $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $needle = $this->getParameters()[1]->evaluate($context);
                         $needle = $this->internalString($needle);
 
                         if (($pos = mb_strpos($haystack, $needle)) === false) {
@@ -259,10 +311,10 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'substring-after':
-                        $haystack = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $haystack = $this->getParameters()[0]->evaluate($context);
                         $haystack = $this->internalString($haystack);
 
-                        $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $needle = $this->getParameters()[1]->evaluate($context);
                         $needle = $this->internalString($needle);
 
                         if (($pos = mb_strpos($haystack, $needle)) === false) {
@@ -274,18 +326,18 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'contains':
-                        $haystack = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $haystack = $this->getParameters()[0]->evaluate($context);
                         $haystack = $this->internalString($haystack);
 
-                        $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $needle = $this->getParameters()[1]->evaluate($context);
                         $needle = $this->internalString($needle);
 
                         $result = mb_strpos($haystack, $needle) !== false;
                         break;
 
                     case 'concat':
-                        $values = array_map(function ($value) use ($context, $xPathReference) {
-                            $value = $value->evaluate($context, $xPathReference);
+                        $values = array_map(function ($value) use ($context) {
+                            $value = $value->evaluate($context);
                             $value = $this->internalString($value);
 
                             return $value;
@@ -295,13 +347,13 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'replace':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
 
-                        $pattern = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $pattern = $this->getParameters()[1]->evaluate($context);
                         $pattern = $this->internalString($pattern);
 
-                        $replacement = $this->getParameters()[2]->evaluate($context, $xPathReference);
+                        $replacement = $this->getParameters()[2]->evaluate($context);
                         $replacement = $this->internalString($replacement);
 
                         $value = preg_replace('#' . str_replace('#', '\#', $pattern) . '#', $replacement, $value);
@@ -310,24 +362,24 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'starts-with':
-                        $haystack = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $haystack = $this->getParameters()[0]->evaluate($context);
                         $haystack = $this->internalString($haystack);
 
-                        $needle = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $needle = $this->getParameters()[1]->evaluate($context);
                         $needle = $this->internalString($needle);
 
                         $result = mb_strpos($haystack, $needle) === 0;
                         break;
 
                     case 'upper-case':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
 
                         $result = mb_strtoupper($value);
                         break;
 
                     case 'not':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalBoolean($value);
 
                         $result = !$value;
@@ -357,7 +409,7 @@ class XPathFunction extends AbstractXPath
 
                     case 'local-name':
                         if (count($this->getParameters()) > 0) {
-                            $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                            $property = $this->getParameters()[0]->evaluate($context);
 
                             if (!$property->count()) {
                                 $result = '';
@@ -370,20 +422,20 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'system-property':
-                        $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $property = $this->getParameters()[0]->evaluate($context);
                         $property = $this->internalString($property);
 
                         $result = SystemProperties::getProperty($property);
                         break;
 
                     case 'count':
-                        $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $property = $this->getParameters()[0]->evaluate($context);
 
                         $result = $property->count();
                         break;
 
                     case 'name':
-                        $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $property = $this->getParameters()[0]->evaluate($context);
 
                         if (!$property->count()) {
                             $result = null;
@@ -394,16 +446,71 @@ class XPathFunction extends AbstractXPath
                         break;
 
                     case 'translate':
-                        $value = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $value = $this->getParameters()[0]->evaluate($context);
                         $value = $this->internalString($value);
 
-                        $from = $this->getParameters()[1]->evaluate($context, $xPathReference);
+                        $from = $this->getParameters()[1]->evaluate($context);
                         $from = $this->internalString($from);
 
-                        $to = $this->getParameters()[2]->evaluate($context, $xPathReference);
+                        $to = $this->getParameters()[2]->evaluate($context);
                         $to = $this->internalString($to);
 
                         $result = str_replace(str_split($from), str_split($to), $value);
+                        break;
+
+                    case 'generate-id':
+                        if (!count($this->getParameters())) {
+                            $value = $context;
+                        } else {
+                            $value = $this->getParameters()[0]->evaluate($context);
+                        }
+
+                        if ($value instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+                            if (!$value->count()) {
+                                $result = '';
+                                break;
+                            }
+
+                            $value = $value->item(0);
+                        }
+
+                        /* @var $value \DOMElement */
+                        $result = 'n' . sha1($value->getNodePath());
+                        break;
+
+                    case 'key':
+                        $keyName = $this->getParameters()[0]->evaluate($context);
+                        $keyName = $this->internalString($keyName);
+
+                        $toSearch = $this->getParameters()[1]->evaluate($context);
+                        $toSearch = $this->internalString($toSearch);
+
+                        if (!isset($this->keys[$keyName])) {
+                            throw new \RuntimeException('The key named "' . $keyName . '" does not exist');
+                        }
+
+                        /* @var $key Template\Key */
+                        $key = $this->keys[$keyName];
+
+                        // Get all possible nodes
+                        $factory = new Factory();
+                        $match = $factory->create($key->getMatch());
+                        $match->setNamespaces($this->getNamespaces());
+                        $match->setDefaultNamespacePrefix($this->getDefaultNamespacePrefix());
+
+                        $possible = $factory->create($key->getUse() . " = '" . $toSearch . "'");
+                        $possible->setNamespaces($this->getNamespaces());
+                        $possible->setDefaultNamespacePrefix($this->getDefaultNamespacePrefix());
+
+                        $possibleNodes = $match->evaluate($context);
+                        $result = new \Jdomenechb\XSLT2Processor\XML\DOMNodeList();
+
+                        foreach ($possibleNodes as $possibleNode) {
+                            if ($possible->evaluate($possibleNode)) {
+                                $result[] = $possibleNode;
+                            }
+                        }
+
                         break;
 
                     default:
@@ -414,7 +521,7 @@ class XPathFunction extends AbstractXPath
             case 'http://exslt.org/common':
                 switch ($this->getName()) {
                     case 'node-set':
-                        $property = $this->getParameters()[0]->evaluate($context, $xPathReference);
+                        $property = $this->getParameters()[0]->evaluate($context);
                         $property->setParent(true);
 
                         $result = $property;
@@ -430,6 +537,14 @@ class XPathFunction extends AbstractXPath
         if (\Jdomenechb\XSLT2Processor\XSLT\Processor::$debug && $this->getNamespacePrefix() != 'exsl') {
             echo 'Function ' . $this->getFullName() . ' result: <br>';
             var_dump($result);
+        }
+
+        if ($this->getPosition()) {
+            if (!$result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+                throw new \RuntimeException('Result of the function is not a node-set: position invalid');
+            }
+
+            return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($result->item(0));
         }
 
         return $result;
@@ -498,5 +613,50 @@ class XPathFunction extends AbstractXPath
         foreach ($this->getParameters() as $parameter) {
             $parameter->setNamespaces($namespaces);
         }
+
+        if ($this->getSelector()) {
+            $this->getSelector()->setNamespaces($namespaces);
+        }
     }
+
+    public function getSelector()
+    {
+        return $this->selector;
+    }
+
+    public function setSelector(ExpressionInterface $selector)
+    {
+        throw new \RuntimeException('To implement selector in result of a function');
+        $this->selector = $selector;
+    }
+
+    public function getPosition()
+    {
+        return $this->position;
+    }
+
+    public function setPosition($position)
+    {
+        $this->position = $position;
+    }
+
+    public function setKeys(array $keys)
+    {
+        $this->keys = $keys;
+
+        foreach ($this->getParameters() as $parameter) {
+            $parameter->setKeys($keys);
+        }
+
+        if ($this->getSelector()) {
+            $this->getSelector()->setKeys($keys);
+        }
+    }
+
+    public function getDefaultNamespacePrefix()
+    {
+        return $this->defaultNamespacePrefix;
+    }
+
+
 }

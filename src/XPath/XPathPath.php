@@ -104,7 +104,7 @@ class XPathPath extends AbstractXPath
         return new $c($xPath);
     }
 
-    public function evaluate($context, DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         $xPath = $this->toString();
 
@@ -118,11 +118,11 @@ class XPathPath extends AbstractXPath
                 }
 
                 $newEvaluation = new DOMNodeList();
-                $newEvaluation->merge($part->evaluate($evaluation, $xPathReference));
+                $newEvaluation->merge($part->evaluate($evaluation));
 
                 $evaluation = $newEvaluation;
             } else {
-                $evaluation = $part->evaluate($evaluation, $xPathReference);
+                $evaluation = $part->evaluate($evaluation);
             }
         }
 
@@ -183,6 +183,13 @@ class XPathPath extends AbstractXPath
 
         foreach ($this->getParts() as $part) {
             $part->setNamespaces($this->getNamespaces());
+        }
+    }
+
+    public function setKeys(array $keys)
+    {
+        foreach ($this->getParts() as $part) {
+            $part->setKeys($keys);
         }
     }
 }

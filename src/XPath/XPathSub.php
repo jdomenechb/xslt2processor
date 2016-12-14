@@ -94,16 +94,16 @@ class XPathSub extends AbstractXPath
         $this->subExpression = $subExpression;
     }
 
-    public function evaluate($context, \DOMXPath $xPathReference)
+    public function evaluate($context)
     {
         $xPath = $this->toString();
-        $result = $this->getSubExpression()->evaluate($context, $xPathReference);
+        $result = $this->getSubExpression()->evaluate($context);
 
         if (!is_null($this->getSelector())) {
             $newResult = new \Jdomenechb\XSLT2Processor\XML\DOMNodeList();
 
             foreach ($result as $resultElement) {
-                if ($this->getSelector()->evaluate($resultElement, $xPathReference)) {
+                if ($this->getSelector()->evaluate($resultElement)) {
                     $newResult[] = $resultElement;
                 }
             }
@@ -149,5 +149,12 @@ class XPathSub extends AbstractXPath
         $this->getSubExpression()->setNamespaces($namespaces);
     }
 
+    public function setKeys(array $keys)
+    {
+        if (!is_null($this->getSelector())) {
+            $this->getSelector()->setKeys($keys);
+        }
 
+        $this->getSubExpression()->setKeys($keys);
+    }
 }
