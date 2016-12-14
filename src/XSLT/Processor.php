@@ -430,37 +430,55 @@ class Processor
         $fbPossibleTemplate = null;
         $executed = false;
 
-        // Select templates that match
-        foreach ($nodesMatched as $nodeMatched) {
-            foreach ($this->templates as $template) {
-                if (!$fbPossibleTemplate) {
-                    $fbPossibleTemplate = $template;
-                }
+        if (!$nodesMatched->length) {
+            return;
+        }
 
-                $xPath = $template->getMatch();
+        // Select a template that match
+        foreach ($this->templates as $template) {
+            if (!$fbPossibleTemplate) {
+                $fbPossibleTemplate = $template;
+            }
 
-                if (!$xPath) {
-                    continue;
-                }
+            $xPath = $template->getMatch();
 
-                $xPathParsed = $this->parseXPath($xPath);
-                $results = $xPathParsed->query(!$nodeMatched instanceof \DOMDocument? $nodeMatched->parentNode : $nodeMatched);
+            if (!$xPath) {
+                continue;
+            }
 
-                if ($results === false) {
-                    continue;
-                }
+            $xPathParsed = $this->parseXPath($xPath);
+            $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument? $nodesMatched->item(0)->parentNode : $nodesMatched->item(0));
 
-                if (!$results instanceof DOMNodeList && !$results instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
-                    throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
-                }
+            if ($results === false) {
+                continue;
+            }
 
-                foreach ($results as $possible) {
+            if (!$results instanceof DOMNodeList && !$results instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+                throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
+            }
+
+            if (!$results->count()) {
+                continue;
+            }
+
+            $isMatch = false;
+
+            foreach ($results as $possible) {
+                foreach ($nodesMatched as $nodeMatched) {
                     if ($possible->isSameNode($nodeMatched)) {
-
-                        $this->processTemplate($template, $nodeMatched, $newContext);
-                        $executed = true;
+                        $isMatch = true;
+                        break 2;
                     }
                 }
+            }
+
+            if ($isMatch) {
+                foreach ($nodesMatched as $nodeMatched) {
+                    $this->processTemplate($template, $nodeMatched, $newContext);
+                    $executed = true;
+                }
+
+                return;
             }
         }
 
@@ -473,7 +491,7 @@ class Processor
             throw new \RuntimeException('No template match found');
         }
 
-        // Apply the template for tha match
+        // Apply the template for the match
         $xPathProcessed = $this->parseXPath($fbPossibleTemplate->getMatch());
         $nodes = $xPathProcessed->query($context);
 
