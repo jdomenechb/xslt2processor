@@ -283,10 +283,12 @@ class ExpressionParserHelper
     {
         $level = 0;
         $sqLevel = 0;
+        $isString = false;
         $matches = [];
 
         $offset = 0;
         $offsetPiece = 0;
+
         $stringToLower = strtolower($expression);
         $stringLength = strlen($expression);
 
@@ -319,6 +321,13 @@ class ExpressionParserHelper
                 $rSqPos = $stringLength;
             }
 
+            // Position of the string
+            $strPos = strpos($stringToLower, "'", $offset);
+
+            if ($strPos === false) {
+                $strPos = $stringLength;
+            }
+
             // Position of the glue
             $gluePos = strpos($stringToLower, $glue, $offset);
 
@@ -327,7 +336,7 @@ class ExpressionParserHelper
             }
 
             // Calculate min
-            $min = min($lParPos, $rParPos, $lSqPos, $rSqPos, $gluePos);
+            $min = min($lParPos, $rParPos, $lSqPos, $rSqPos, $strPos, $gluePos);
 
             if ($min === $stringLength) {
                 $offset = $stringLength;
@@ -353,11 +362,18 @@ class ExpressionParserHelper
                 if ($level === 0) {
                     --$sqLevel;
                 }
+                
+                $offset = $min + 1;
+            } elseif ($min === $strPos) {
+                if ($level === 0 && $sqLevel == 0) {
+                    $isString = !$isString;
+                }
+
                 $offset = $min + 1;
             } elseif ($min == $gluePos) {
                 $offset = $min + strlen($glue);
 
-                if (!$level && !$sqLevel) {
+                if (!$level && !$sqLevel && !$isString) {
                     $matches[] = trim(substr($expression, $offsetPiece, $gluePos - $offsetPiece));
 
                     $offsetPiece = $offset;
