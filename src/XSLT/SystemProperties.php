@@ -18,11 +18,20 @@ namespace Jdomenechb\XSLT2Processor\XSLT;
  */
 class SystemProperties
 {
+    /**
+     * List of static properties available
+     * @var type
+     */
     protected static $properties = [
         'xsl:vendor' => 'jdomenechb/xslt2processor',
         'xsl:version' => '0.1',
     ];
 
+    /**
+     * Returns the value of the property requested.
+     * @param string $property
+     * @return string Empty string if the requested property does not exist.
+     */
     public static function getProperty($property)
     {
         if (isset(static::$properties[$property])) {

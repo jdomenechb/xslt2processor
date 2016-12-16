@@ -11,19 +11,26 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
 
+/**
+ * This class represents an available xsl:template that can be find in the stylesheet.
+ * @author jdomenechb
+ */
 class Template
 {
     /**
+     * Name of the template (optional)
      * @var string
      */
     protected $name = '';
 
     /**
+     * Match of the template (optional)
      * @var string
      */
     protected $match = '';
 
     /**
+     * Pointer to the real DOMElement node in the XSL DOMs
      * @var \DOMElement
      */
     protected $node;
@@ -34,7 +41,13 @@ class Template
      */
     protected $priority;
 
+    /**
+     * Mode of the template (optional)
+     * @var string
+     */
     protected $mode;
+
+    // TODO: Add a constructor that can parse most of the attributes
 
     /**
      * @return string
@@ -107,10 +120,12 @@ class Template
         return $this->mode;
     }
 
+    /**
+     * Set the mode of the template.
+     * @param string $mode
+     */
     public function setMode($mode)
     {
         $this->mode = $mode;
     }
-
-
 }

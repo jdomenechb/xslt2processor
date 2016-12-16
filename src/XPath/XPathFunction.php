@@ -513,6 +513,14 @@ class XPathFunction extends AbstractXPath
 
                         break;
 
+                    case 'false':
+                        $result = false;
+                        break;
+
+                    case 'true':
+                        $result = true;
+                        break;
+
                     default:
                         throw new RuntimeException('Function "' . $this->getName() . '" not implemented');
                 }

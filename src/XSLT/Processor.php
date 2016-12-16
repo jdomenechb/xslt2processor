@@ -130,6 +130,12 @@ class Processor
     protected $isImported = false;
 
     /**
+     * XSLT version used in the document
+     * @var type
+     */
+    protected $version = null;
+
+    /**
      * Constructor.
      * @param string|\DOMDocument $xslt Path of the XSLT file or DOMDocument containing the XSL stylesheet.
      * @param \DOMDocument $xml DOMDocument of the XML file to be transformed
@@ -180,11 +186,6 @@ class Processor
             file_put_contents('xpath_log.txt', '');
         }
 
-        // FIXME: Remove all ocurrences of these classes
-        // Prepare xPath ckasses
-        $this->xPath = new DOMXPath($this->xml);
-        $this->newXPath = new DOMXPath($this->newXml);
-
         // Process the base xslStylesheet node to be aware of everything the XSL stylesheet features
         $this->xslStylesheet($this->stylesheet->documentElement, $this->xml, $this->newXml);
 
@@ -207,7 +208,7 @@ class Processor
         return $this->newXml->saveHTML();
     }
 
-    protected function xslStylesheet(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $this->namespaces['xsl'] = $node->namespaceURI;
 
@@ -215,20 +216,22 @@ class Processor
             // Default namespace
             if ($attribute->nodeName == 'xpath-default-namespace') {
                 $this->namespaces['default'] = $attribute->nodeValue;
-
                 continue;
             }
+
+            // XSL version
+            if ($attribute->nodeName == 'version') {
+                $this->version = $attribute->nodeValue;
+                continue;
+            }
+
+            //throw new \RuntimeException('xsl:stylesheet parameter "' . $attribute->nodeName . '" not implemented');
         }
 
         $xpath = new DOMXPath($node->ownerDocument);
 
         foreach ($xpath->query('namespace::*', $node) as $nsNode) {
             $this->namespaces[$nsNode->localName] = $nsNode->namespaceURI;
-        }
-
-        foreach ($this->namespaces as $prefix => $namespace) {
-            $this->xPath->registerNamespace($prefix, $namespace);
-            $this->newXPath->registerNamespace($prefix, $namespace);
         }
 
         // Start processing the template
@@ -568,7 +571,7 @@ class Processor
         return $xPathParsed;
     }
 
-    protected function evaluateAttrValueTemplates($attrValue, $context, $xPath)
+    protected function evaluateAttrValueTemplates($attrValue, $context)
     {
         $factory = new Factory();
         $xPathParsed = $factory->createFromAttributeValue($attrValue);
@@ -634,9 +637,10 @@ class Processor
     protected function xslCopyOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
         $selectXPath = $node->getAttribute('select');
-        $selectXPath = $this->uniformXPath($selectXPath);
+        $selectParsed = $this->parseXPath($selectXPath);
+        //$selectXPath = $this->uniformXPath($selectXPath);
 
-        $results = $this->xPath->evaluate($selectXPath, $context);
+        $results = $selectParsed->evaluate($context);
 
         if ($results instanceof OriginalDOMNodeList) {
             foreach ($results as $result) {
@@ -780,9 +784,9 @@ class Processor
         $name = $node->getAttribute('name');
         if ($node->hasAttribute('select')) {
             $selectXPath = $node->getAttribute('select');
-            $selectXPathTransformed = $this->uniformXPath($selectXPath);
+            $selectXPathTransformed = $this->parseXPath($selectXPath);
 
-            $results = $this->xPath->evaluate($selectXPathTransformed, $context);
+            $results = $selectXPathTransformed->evaluate($context);
 
             $value = $results;
         } else {
@@ -900,7 +904,7 @@ class Processor
         $namespace = $node->getAttribute('namespace');
         $name = $node->getAttribute('name');
 
-        $namespace = $this->evaluateAttrValueTemplates($namespace, $context, $this->xPath);
+        $namespace = $this->evaluateAttrValueTemplates($namespace, $context);
 
         $document = $newContext;
 
@@ -1093,7 +1097,8 @@ class Processor
         if (!isset($this->templateParams[$name])) {
             if ($node->hasAttribute('select')) {
                 $select = $node->getAttribute('select');
-                $result = $this->xPath->evaluate($select, $context);
+                $selectParsed = $this->parseXPath($select);
+                $result = $selectParsed->evaluate($context);
 
                 $this->templateParams[$name] = $result;
             } else {
