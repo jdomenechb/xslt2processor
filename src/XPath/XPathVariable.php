@@ -54,7 +54,11 @@ class XPathVariable extends AbstractXPath
             return $this->getValue();
         }
 
-        if ($this->getValue() instanceof \DOMNodeList || $this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+        if (
+            $this->getValue() instanceof \DOMNodeList
+            || $this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList
+            || $this->getValue() instanceof \DOMNode
+        ) {
             return '$' . $this->getName();
         }
 

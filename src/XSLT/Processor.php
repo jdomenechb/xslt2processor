@@ -278,7 +278,7 @@ class Processor
         foreach ($newNode->attributes as $attribute) {
             $attrTemplate = $factory->createFromAttributeValue($attribute->nodeValue);
             $attrTemplate->setDefaultNamespacePrefix($this->namespaces);
-            $attrTemplate->setVariableValues($this->variables);
+            $attrTemplate->setVariableValues(array_merge($this->templateParams, $this->variables));
 
             $newAttr[$attribute->nodeName] = $attrTemplate->evaluate($context);
         }
@@ -446,6 +446,12 @@ class Processor
                 continue;
             }
 
+            $mode = $template->getMode();
+
+            if ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode')) {
+                continue;
+            }
+
             $xPathParsed = $this->parseXPath($xPath);
             $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument? $nodesMatched->item(0)->parentNode : $nodesMatched->item(0));
 
@@ -561,6 +567,12 @@ class Processor
         $toEvaluate = $this->parseXPath($toEvaluateXPath);
         $result = $toEvaluate->evaluate($context);
 
+        if ($result === true) {
+            $result = 'true';
+        } elseif ($result === false) {
+            $result = 'false';
+        }
+
         //echo $toEvaluate . "<br/>\n";
 
         $wNode = $this->getWritableNode($newContext);
@@ -589,7 +601,6 @@ class Processor
         $wNode = $this->getWritableNode($newContext);
 
         if ($adoe != 'yes') {
-//            $text = htmlspecialchars($text);
             $wNode->nodeValue .= $text;
         } else {
             if ($wNode instanceof DOMText) {
@@ -673,12 +684,7 @@ class Processor
     {
         foreach ($node->childNodes as $childNode) {
             // Ignore spaces
-            if ($childNode instanceof DOMText && preg_match('#^\s*$#', $childNode->nodeValue)) {
-                continue;
-            }
-
-            // Ignore comments
-            if ($childNode instanceof DOMComment) {
+            if (!$childNode instanceof DOMElement) {
                 continue;
             }
 
@@ -771,7 +777,7 @@ class Processor
     protected function evaluateBody(DOMElement $node, DOMNode $context, DOMNode $newContext = null)
     {
         // Create temporal context
-        $tmpContext = $this->xml->createElement('tmptmptmptmptmpevaluateBody');
+        $tmpContext = $this->xml->createElement('tmptmptmptmptmpevaluateBody' . rand(0, 9999999));
 
         $this->processChildNodes($node, $context, $tmpContext);
 
@@ -780,7 +786,7 @@ class Processor
                 return $tmpContext->childNodes->item(0)->nodeValue;
             }
 
-            throw new RuntimeException('Variable cannot hold single node results... for now');
+            return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($tmpContext->childNodes->item(0));
         } elseif ($tmpContext->childNodes->length > 1) {
             $allText = true;
             $result = '';
@@ -1006,7 +1012,7 @@ class Processor
         $doc = $newContext->ownerDocument ?: $newContext;
 
         $comment = $doc->createComment($value);
-        $doc->appendChild($comment);
+        $newContext->appendChild($comment);
     }
 
     protected function xslCallTemplate(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -1034,12 +1040,16 @@ class Processor
                 echo '<br/>';
             }
 
+            $childName = $childNode->getAttribute('name');
+
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
                 $xPathParsed = $this->parseXPath($xPath);
                 $result = $xPathParsed->evaluate($context);
 
                 $params[$childNode->getAttribute('name')] = $result;
+            } else {
+                $params[$childNode->getAttribute('name')] = $this->evaluateBody($childNode, $context);
             }
         }
 

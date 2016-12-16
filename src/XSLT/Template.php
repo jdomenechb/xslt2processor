@@ -34,6 +34,8 @@ class Template
      */
     protected $priority;
 
+    protected $mode;
+
     /**
      * @return string
      */
@@ -98,6 +100,16 @@ class Template
     public function setPriority($priority)
     {
         $this->priority = $priority;
+    }
+
+    public function getMode()
+    {
+        return $this->mode;
+    }
+
+    public function setMode($mode)
+    {
+        $this->mode = $mode;
     }
 
 
