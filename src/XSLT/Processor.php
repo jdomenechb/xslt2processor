@@ -12,13 +12,18 @@
 namespace Jdomenechb\XSLT2Processor\XSLT;
 
 use DOMCdataSection;
+use DOMCharacterData;
 use DOMComment;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
-use DOMNodeList;
+use DOMNodeList as OriginalDOMNodeList;
 use DOMText;
+use DOMXPath;
+use ErrorException;
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
+use Jdomenechb\XSLT2Processor\XPath\Template\Key;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use RuntimeException;
 
@@ -67,12 +72,12 @@ class Processor
     protected $templates = [];
 
     /**
-     * @var \DOMXPath
+     * @var DOMXPath
      */
     protected $xPath;
 
     /**
-     * @var \DOMXPath
+     * @var DOMXPath
      */
     protected $newXPath;
 
@@ -109,7 +114,7 @@ class Processor
     protected $decimalFormats = [];
 
     /**
-     * @var \Jdomenechb\XSLT2Processor\XPath\Template\Key[]
+     * @var Key[]
      */
     protected $keys = [];
 
@@ -125,7 +130,9 @@ class Processor
     protected $isImported = false;
 
     /**
-     * {@inheritdoc}
+     * Constructor.
+     * @param string|\DOMDocument $xslt Path of the XSLT file or DOMDocument containing the XSL stylesheet.
+     * @param \DOMDocument $xml DOMDocument of the XML file to be transformed
      */
     public function __construct($xslt, \DOMDocument $xml)
     {
@@ -146,40 +153,51 @@ class Processor
         }
     }
 
+    /**
+     * Main function to be called to transform the source XML with the XSL stylesheet defined
+     * @return string
+     */
     public function transformXML()
     {
-        // Set error handler
+        // Set error handler to throw exception at any error during execution
         set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
-            // error was suppressed with the @-operator
+            // In case the error was suppressed with the @-operator, avi¡oid processing it
             if (0 === error_reporting()) {
                 return false;
             }
 
-            throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+            throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
         });
 
+        // Set the basic things needed
         $this->namespaces = ['default' => null,];
         $this->newXml = new DOMDocument();
         $this->defaultNamespace = 'default';
 
+        // TODO: Move to Factory xPath class
+        // Prepare the xPath log in case it is desired to save xPaths
         if ($this->logXPath) {
             file_put_contents('xpath_log.txt', '');
         }
 
-        // Prepare xPaths
-        $this->xPath = new \DOMXPath($this->xml);
-        $this->newXPath = new \DOMXPath($this->newXml);
+        // FIXME: Remove all ocurrences of these classes
+        // Prepare xPath ckasses
+        $this->xPath = new DOMXPath($this->xml);
+        $this->newXPath = new DOMXPath($this->newXml);
 
+        // Process the base xslStylesheet node to be aware of everything the XSL stylesheet features
         $this->xslStylesheet($this->stylesheet->documentElement, $this->xml, $this->newXml);
 
-        // Execute main template
+        // Create a dummy template to be executed to start all the process
         $node = $this->stylesheet->createElement('init-template');
         $node->setAttribute('select', '/');
 
         $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
 
+        // Restore back the error handler we had
         restore_error_handler();
 
+        // Return the result according to the output parameters
         if ($this->method == 'xml') {
             return $this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML();
         }
@@ -202,7 +220,7 @@ class Processor
             }
         }
 
-        $xpath = new \DOMXPath($node->ownerDocument);
+        $xpath = new DOMXPath($node->ownerDocument);
 
         foreach ($xpath->query('namespace::*', $node) as $nsNode) {
             $this->namespaces[$nsNode->localName] = $nsNode->namespaceURI;
@@ -459,7 +477,7 @@ class Processor
                 continue;
             }
 
-            if (!$results instanceof DOMNodeList && !$results instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+            if (!$results instanceof OriginalDOMNodeList && !$results instanceof DOMNodeList) {
                 throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
             }
 
@@ -516,8 +534,8 @@ class Processor
         if (
             $result === true
             || ((is_string($result) || is_float($result) || is_int($result)) && $result)
-            || $result instanceof DOMNodeList && $result->length
-            || $result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList && $result->count()
+            || $result instanceof OriginalDOMNodeList && $result->length
+            || $result instanceof DOMNodeList && $result->count()
         ) {
             $this->processChildNodes($node, $context, $newContext);
 
@@ -577,7 +595,7 @@ class Processor
 
         $wNode = $this->getWritableNode($newContext);
 
-        if ($result instanceof \DOMNodeList || $result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+        if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
                 $wNode->nodeValue .= $subResult->nodeValue;
             }
@@ -620,7 +638,7 @@ class Processor
 
         $results = $this->xPath->evaluate($selectXPath, $context);
 
-        if ($results instanceof DOMNodeList) {
+        if ($results instanceof OriginalDOMNodeList) {
             foreach ($results as $result) {
                 foreach ($result->childNodes as $childNode) {
                     $childNode = $this->newXml->importNode($childNode);
@@ -786,13 +804,13 @@ class Processor
                 return $tmpContext->childNodes->item(0)->nodeValue;
             }
 
-            return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($tmpContext->childNodes->item(0));
+            return new DOMNodeList($tmpContext->childNodes->item(0));
         } elseif ($tmpContext->childNodes->length > 1) {
             $allText = true;
             $result = '';
 
             foreach ($tmpContext->childNodes as $childNode) {
-                if (!$childNode instanceof \DOMCharacterData) {
+                if (!$childNode instanceof DOMCharacterData) {
                     $allText = false;
                     break;
                 }
@@ -926,7 +944,7 @@ class Processor
             }
         }
 
-        if (!$result instanceof DOMNodeList && !is_array($result)) {
+        if (!$result instanceof OriginalDOMNodeList && !is_array($result)) {
             $result = [$result];
         }
 
@@ -998,7 +1016,7 @@ class Processor
 
     protected function xslKey(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        $key = new \Jdomenechb\XSLT2Processor\XPath\Template\Key();
+        $key = new Key();
         $key->setMatch($node->getAttribute('match'));
         $key->setUse($node->getAttribute('use'));
 
