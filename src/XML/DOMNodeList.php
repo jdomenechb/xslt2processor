@@ -196,7 +196,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     /**
      * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
      *
-     * @var   bools
+     * @var bools
+     *
      * @param mixed $parent
      */
     public function setParent($parent)

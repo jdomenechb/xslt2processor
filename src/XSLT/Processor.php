@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
 
-use DOMCdataSection;
 use DOMCharacterData;
 use DOMComment;
 use DOMDocument;
@@ -21,6 +20,7 @@ use DOMNodeList as OriginalDOMNodeList;
 use DOMText;
 use DOMXPath;
 use ErrorException;
+use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
@@ -272,6 +272,8 @@ class Processor
 
     protected function processChildNodes(DOMNode $parent, DOMNode $context, DOMNode $newContext)
     {
+        $domElementUtils = new DOMElementUtils();
+
         foreach ($parent->childNodes as $childNode) {
             // Ignore spaces
             if ($childNode instanceof DOMText && trim($childNode->nodeValue) === '') {
@@ -290,7 +292,7 @@ class Processor
             }
 
             if ($childNode instanceof DOMText) {
-                $wNode = $this->getWritableNode($newContext);
+                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
                 $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
             }
@@ -570,16 +572,12 @@ class Processor
         return false;
     }
 
-    protected function uniformXPath($xPath)
-    {
-        return $this->parseXPath($xPath)->toString();
-    }
-
     protected function parseXPath($xPath)
     {
         $xPathParsed = null;
         $key = sha1($xPath);
 
+        // If cache defined, try to get it from there
         if ($this->getCache()) {
             $cacheItem = $this->getCache()->getItem($key);
 
@@ -588,16 +586,19 @@ class Processor
             }
         }
 
+        // If no match from cache, parse the xPath
         if (!$xPathParsed) {
             $factory = new Factory();
             $xPathParsed = $factory->create($xPath);
         }
 
+        // If was not in cache, save it if the cache is available
         if ($this->getCache() && !$cacheItem->isHit()) {
             $cacheItem->set($xPathParsed);
             $this->getCache()->save($cacheItem);
         }
 
+        // Set the properties the xPath need for working
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues(array_merge($this->variables, $this->templateParams));
         $xPathParsed->setNamespaces($this->namespaces);
@@ -636,8 +637,8 @@ class Processor
         }
 
         //echo $toEvaluate . "<br/>\n";
-
-        $wNode = $this->getWritableNode($newContext);
+        $domElementUtils = new DOMElementUtils();
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
 
         if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
@@ -660,7 +661,9 @@ class Processor
         }
 
         $adoe = $node->getAttribute('disable-output-escaping');
-        $wNode = $this->getWritableNode($newContext);
+
+        $domElementUtils = new DOMElementUtils();
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
 
         if ($adoe != 'yes') {
             $wNode->nodeValue .= $text;
@@ -679,7 +682,6 @@ class Processor
     {
         $selectXPath = $node->getAttribute('select');
         $selectParsed = $this->parseXPath($selectXPath);
-        //$selectXPath = $this->uniformXPath($selectXPath);
 
         $results = $selectParsed->evaluate($context);
 
@@ -691,42 +693,10 @@ class Processor
                 }
             }
         } else {
-            $wNode = $this->getWritableNode($newContext);
+            $domElementUtils = new DOMElementUtils();
+            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
             $wNode->nodeValue .= $results;
         }
-    }
-
-    protected function getWritableNode($newContext)
-    {
-        $writableNode = $newContext;
-
-        if (!$newContext->childNodes->length) {
-            if (in_array($newContext->nodeName, $this->cdataSectionElements)) {
-                $textNode = $newContext->ownerDocument->createCDATASection('');
-            } else {
-                /* @var $textNode \DOMText */
-                $textNode = $newContext->ownerDocument->createTextNode('');
-            }
-
-            $newContext->appendChild($textNode);
-        }
-
-        if (
-            $newContext->childNodes->item($newContext->childNodes->length - 1) instanceof DOMCdataSection
-            || $newContext->childNodes->item($newContext->childNodes->length - 1) instanceof DOMText
-        ) {
-            $writableNode = $newContext->childNodes->item($newContext->childNodes->length - 1);
-        } else {
-            if (in_array($newContext->nodeName, $this->cdataSectionElements)) {
-                $textNode = $newContext->ownerDocument->createCDATASection('');
-            } else {
-                $textNode = $newContext->ownerDocument->createTextNode('');
-            }
-
-            $writableNode = $newContext->appendChild($textNode);
-        }
-
-        return $writableNode;
     }
 
     protected function xslVariable(DOMNode $node, DOMNode $context, DOMNode $newContext)
@@ -1026,7 +996,8 @@ class Processor
     protected function xslMatchingOrNotMatchingSubstring(DOMNode $node, $match, DOMNode $newContext)
     {
         $tmpContext = $this->xml->createElement('tmptmptmptmptmpmonmsubstring');
-        $text = $this->getWritableNode($tmpContext);
+        $domElementUtils = new DOMElementUtils();
+        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->cdataSectionElements);
         $text->nodeValue = $match;
 
         $this->processChildNodes($node, $tmpContext, $newContext);

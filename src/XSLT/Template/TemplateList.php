@@ -21,8 +21,10 @@ use ArrayObject;
 class TemplateList extends ArrayObject
 {
     /**
-     * Gets a list of templates that have the given match
+     * Gets a list of templates that have the given match.
+     *
      * @return TemplateList
+     * @param  mixed        $match
      */
     public function getByMatch($match)
     {
@@ -36,8 +38,10 @@ class TemplateList extends ArrayObject
     }
 
     /**
-     * Gets a list of templates that have the given name
+     * Gets a list of templates that have the given name.
+     *
      * @return TemplateList
+     * @param  mixed        $name
      */
     public function getByName($name)
     {
