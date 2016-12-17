@@ -496,9 +496,13 @@ class Processor
                 continue;
             }
 
+            // Check that the mode matches
             $mode = $template->getMode();
 
-            if ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode')) {
+            if (
+                $node->hasAttribute('mode') && $mode != $node->getAttribute('mode')
+                || !$node->hasAttribute('mode') && $mode != null
+            ) {
                 continue;
             }
 
