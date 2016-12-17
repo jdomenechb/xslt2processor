@@ -136,6 +136,58 @@ class DOMNodeList implements ArrayAccess, Iterator
             return;
         }
 
+        usort($this->items, function (\DOMNode $a, \DOMNode $b) {
+            if ($a->isSameNode($b)) {
+                return 0;
+            }
+
+            $levelsA = [$a];
+            $levelsB = [$b];
+
+            // Determine all the levels
+            $topParentA = $a;
+
+            while (!$topParentA->parentNode instanceof \DOMDocument) {
+                $topParentA = $topParentA->parentNode;
+                array_unshift($levelsA, $topParentA);
+            }
+
+            $topParentB = $b;
+
+            while (!$topParentB->parentNode instanceof \DOMDocument) {
+                $topParentB = $topParentB->parentNode;
+                array_unshift($levelsB, $topParentB);
+            }
+
+            // Check where is the difference
+            $min = min(count($levelsA), count($levelsB));
+
+            for ($i = 0; $i < $min; $i++) {
+                if ($levelsA[$i] == $levelsB[$i]) {
+                    continue;
+                }
+
+                // At this point, the nodes differ. Let's see in what order they are.
+                foreach ($levelsA[$i - 1]->childNodes as $sibling) {
+                    if ($sibling->isSameNode($levelsA[$i])) {
+                        return -1;
+                    }
+
+                    if ($sibling->isSameNode($levelsB[$i])) {
+                        return 1;
+                    }
+                }
+            }
+        });
+
+    }
+
+    protected function sortByExam()
+    {
+        if (count($this->items) <= 1) {
+            return;
+        }
+
         reset($this->items);
         $first = current($this->items);
 
