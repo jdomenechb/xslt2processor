@@ -64,8 +64,8 @@ class XPathSub extends AbstractXPath
     public function toString()
     {
         return '(' . $this->getSubExpression()->toString() . ')'
-            . (!is_null($this->getPosition())? '[' . $this->getPosition() . ']': '')
-            . (!is_null($this->getSelector())? '[' . $this->getSelector()->toString() . ']': '');
+            . (!is_null($this->getPosition()) ? '[' . $this->getPosition() . ']' : '')
+            . (!is_null($this->getSelector()) ? '[' . $this->getSelector()->toString() . ']' : '');
     }
 
     public function setDefaultNamespacePrefix($prefix)

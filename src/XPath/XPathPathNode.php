@@ -12,10 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
-use RuntimeException;
 
 class XPathPathNode extends AbstractXPath
 {
@@ -49,7 +47,7 @@ class XPathPathNode extends AbstractXPath
     public function parse($string)
     {
         $factory = new Factory();
-        $expressionParserHelper = new ExpressionParserHelper;
+        $expressionParserHelper = new ExpressionParserHelper();
 
         if (mb_strpos($string, '[') === false) {
             $this->setNode($string);
@@ -195,23 +193,22 @@ class XPathPathNode extends AbstractXPath
         if (strpos($this->getNode(), '::') !== false) {
             list($pseudoFirst, $pseudoSecond) = explode('::', $this->getNode());
 
-            switch($pseudoFirst) {
+            switch ($pseudoFirst) {
                 case 'child':
                     switch ($pseudoSecond) {
-                        case '*' :
+                        case '*':
                             $limitBy = static::LIMIT_BY_ELEMENT;
                             $nodeName = '*';
                             break;
 
                         default:
                             throw new \RuntimeException('Second parameter of child:: not recognised');
-
                     }
                     break;
 
                 case 'following-sibling':
                     switch ($pseudoSecond) {
-                        case '*' :
+                        case '*':
                             if ($context instanceof DOMNodeList) {
                                 if ($context->count() > 1 || $context->count() < 1) {
                                     throw new \RuntimeException('following-sibling only needs 1 context node');
@@ -235,7 +232,6 @@ class XPathPathNode extends AbstractXPath
 
                         default:
                             throw new \RuntimeException('Second parameter of following-sibling:: not recognised');
-
                     }
                     break;
 
@@ -264,7 +260,7 @@ class XPathPathNode extends AbstractXPath
         } elseif ($context instanceof DOMNodeList && $context->isParent()) {
             $contextChilds = $context;
         } else {
-            $contextChilds = new DOMNodeList;
+            $contextChilds = new DOMNodeList();
 
             foreach ($context as $contextElement) {
                 $contextChilds->merge(new DOMNodeList($contextElement->childNodes));
@@ -302,7 +298,7 @@ class XPathPathNode extends AbstractXPath
                     break;
                 }
 
-                $i++;
+                ++$i;
             }
         }
 
@@ -320,10 +316,8 @@ class XPathPathNode extends AbstractXPath
 
     public function setKeys(array $keys)
     {
-
         if (!is_null($this->getSelector())) {
             $this->getSelector()->setKeys($keys);
         }
     }
-
 }

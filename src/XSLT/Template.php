@@ -13,36 +13,42 @@ namespace Jdomenechb\XSLT2Processor\XSLT;
 
 /**
  * This class represents an available xsl:template that can be find in the stylesheet.
+ *
  * @author jdomenechb
  */
 class Template
 {
     /**
-     * Name of the template (optional)
+     * Name of the template (optional).
+     *
      * @var string
      */
     protected $name = '';
 
     /**
-     * Match of the template (optional)
+     * Match of the template (optional).
+     *
      * @var string
      */
     protected $match = '';
 
     /**
-     * Pointer to the real DOMElement node in the XSL DOMs
+     * Pointer to the real DOMElement node in the XSL DOMs.
+     *
      * @var \DOMElement
      */
     protected $node;
 
     /**
      * Priority of the template.
+     *
      * @var float
      */
     protected $priority;
 
     /**
-     * Mode of the template (optional)
+     * Mode of the template (optional).
+     *
      * @var string
      */
     protected $mode;
@@ -99,6 +105,7 @@ class Template
 
     /**
      * Returns the priority of the template.
+     *
      * @return float
      */
     public function getPriority()
@@ -108,6 +115,7 @@ class Template
 
     /**
      * Set the priotity of the template.
+     *
      * @param float $priority
      */
     public function setPriority($priority)
@@ -122,6 +130,7 @@ class Template
 
     /**
      * Set the mode of the template.
+     *
      * @param string $mode
      */
     public function setMode($mode)

@@ -28,5 +28,4 @@ class XPathAnd extends AbstractXPathLogic
     {
         return 'and';
     }
-
 }

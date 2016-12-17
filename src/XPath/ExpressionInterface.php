@@ -26,6 +26,7 @@ interface ExpressionInterface
      * Parses the given xPath to an object representation of the element.
      *
      * @param string $xPath
+     *
      * @return bool false if the xPath is not an element of this type
      */
     public function parse($xPath);
@@ -55,20 +56,21 @@ interface ExpressionInterface
      * Receive the keys of the current XSLT template in execution.
      *
      * @param Key[] $values
+     * @param array $keys
      */
     public function setKeys(array $keys);
 
     /**
      * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
      *
-     * @param DOMNode $context
+     * @param DOMNode  $context
      * @param DOMXPath $xPathReference
      * @returns mixed
      */
     public function evaluate($context);
 
     /**
-     * Performs a query evaluation on the xPath
+     * Performs a query evaluation on the xPath.
      *
      * @param DOMNode $context
      * @returns \Jdomenechb\XSLT2Processor\XML\DOMNodeList
@@ -78,12 +80,14 @@ interface ExpressionInterface
     /**
      * Receives an array of namespaces where the key is the prefix and the value is the namespace URI, so the classes
      * can be aware of the namespaces in the document.
+     *
      * @param array $namespaces
      */
     public function setNamespaces(array $namespaces);
 
     /**
      * Returns the set of namespaces that the xPath expressions are aware of.
+     *
      * @return array $namespaces
      */
     public function getNamespaces();

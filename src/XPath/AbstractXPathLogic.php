@@ -93,8 +93,6 @@ abstract class AbstractXPathLogic extends AbstractXPath
         );
     }
 
-    abstract protected function getOperator();
-
     public function setKeys(array $values)
     {
         array_map(
@@ -114,4 +112,6 @@ abstract class AbstractXPathLogic extends AbstractXPath
             $this->getExpressions()
         );
     }
+
+    abstract protected function getOperator();
 }

@@ -14,7 +14,6 @@ namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 use DOMDocument;
 use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
-use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use Jdomenechb\XSLT2Processor\XPath\XPathString;
 use PHPUnit\Framework\TestCase;
 
@@ -92,6 +91,7 @@ class XPathStringTest extends TestCase
      * @dataProvider basicValuesProvider
      *
      * @param mixed $xPath
+     * @param mixed $evaluated
      */
     public function testEvaluate($xPath, $evaluated)
     {
@@ -102,15 +102,14 @@ class XPathStringTest extends TestCase
         $this->assertSame($evaluated, $obj->evaluate($document, $domXPath));
     }
 
-
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
     public function basicValuesProvider()
     {
         return [
-            ["'a'", "a"],
-            ["'abcde'", "abcde"],
-            ["'abc def'", "abc def"],
+            ["'a'", 'a'],
+            ["'abcde'", 'abcde'],
+            ["'abc def'", 'abc def'],
             ["'abc '' def'", "abc ' def"],
         ];
     }
@@ -120,7 +119,7 @@ class XPathStringTest extends TestCase
         return [
             ["'abcde"],
             ["abcde'"],
-            ["abcde"],
+            ['abcde'],
             ['98'],
             ["'98 times of year ' '"],
             ['(/*)'],

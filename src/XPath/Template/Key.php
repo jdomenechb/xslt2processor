@@ -12,7 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath\Template;
 
 /**
- * Entity for a key in a XSL template
+ * Entity for a key in a XSL template.
  *
  * @author jdomenechb
  */

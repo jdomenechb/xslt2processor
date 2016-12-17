@@ -12,9 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMElement;
-use DOMNode;
 use DOMNodeList;
-use DOMXPath;
 use Exception;
 use Jdomenechb\XSLT2Processor\XSLT\CustomFunction;
 use Jdomenechb\XSLT2Processor\XSLT\SystemProperties;
@@ -43,13 +41,11 @@ class XPathFunction extends AbstractXPath
     protected $namespacePrefix = 'fn';
 
     /**
-     *
      * @var ExpressionInterface
      */
     protected $selector;
 
     /**
-     *
      * @var int
      */
     protected $position;
@@ -59,7 +55,7 @@ class XPathFunction extends AbstractXPath
      */
     protected $availableNamespaces = [
         'fn',
-        'http://exslt.org/common'
+        'http://exslt.org/common',
     ];
 
     protected $keys;
@@ -157,20 +153,6 @@ class XPathFunction extends AbstractXPath
     {
         $this->namespacePrefix = $namespace;
     }
-
-    protected function getNamespace()
-    {
-        if ($this->getNamespacePrefix() == 'fn') {
-            return 'fn';
-        }
-
-        if (!isset($this->getNamespaces()[$this->getNamespacePrefix()])) {
-            throw new \RuntimeException('Namespace with prefix "' . $this->getNamespacePrefix() . '" not defined');
-        }
-
-        return $this->getNamespaces()[$this->getNamespacePrefix()];
-    }
-
 
     public function toString()
     {
@@ -406,7 +388,6 @@ class XPathFunction extends AbstractXPath
                         }
 
                         throw new RuntimeException('No position could be found for the node');
-
                     case 'local-name':
                         if (count($this->getParameters()) > 0) {
                             $property = $this->getParameters()[0]->evaluate($context);
@@ -556,7 +537,6 @@ class XPathFunction extends AbstractXPath
         }
 
         return $result;
-
     }
 
     /**
@@ -578,40 +558,6 @@ class XPathFunction extends AbstractXPath
     public static function setCustomFunction(CustomFunction $function)
     {
         self::$customFunctions[$function->getName()] = $function;
-    }
-
-    protected function internalString($value)
-    {
-        if ($value instanceof DOMNodeList) {
-            if ($value->length == 0) {
-                return '';
-            }
-
-            return $value->item(0)->nodeValue;
-        }
-
-        if ($value instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
-            if ($value->count() == 0) {
-                return '';
-            }
-
-            return $value->item(0)->nodeValue;
-        }
-
-        return (string) $value;
-    }
-
-    protected function internalBoolean($value)
-    {
-        if ($value instanceof DOMNodeList) {
-            if ($value->length == 0) {
-                return false;
-            }
-
-            return true;
-        }
-
-        return (bool) $value;
     }
 
     public function setNamespaces(array $namespaces)
@@ -666,5 +612,50 @@ class XPathFunction extends AbstractXPath
         return $this->defaultNamespacePrefix;
     }
 
+    protected function getNamespace()
+    {
+        if ($this->getNamespacePrefix() == 'fn') {
+            return 'fn';
+        }
 
+        if (!isset($this->getNamespaces()[$this->getNamespacePrefix()])) {
+            throw new \RuntimeException('Namespace with prefix "' . $this->getNamespacePrefix() . '" not defined');
+        }
+
+        return $this->getNamespaces()[$this->getNamespacePrefix()];
+    }
+
+    protected function internalString($value)
+    {
+        if ($value instanceof DOMNodeList) {
+            if ($value->length == 0) {
+                return '';
+            }
+
+            return $value->item(0)->nodeValue;
+        }
+
+        if ($value instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
+            if ($value->count() == 0) {
+                return '';
+            }
+
+            return $value->item(0)->nodeValue;
+        }
+
+        return (string) $value;
+    }
+
+    protected function internalBoolean($value)
+    {
+        if ($value instanceof DOMNodeList) {
+            if ($value->length == 0) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return (bool) $value;
+    }
 }

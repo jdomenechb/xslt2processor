@@ -11,24 +11,24 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 /**
- * Class that represents an attribute in an xPath expression
+ * Class that represents an attribute in an xPath expression.
  *
  * @author jdomenechb
  */
 class XPathAttr extends AbstractXPath
 {
     /**
-     * Name of the attribute
+     * Name of the attribute.
+     *
      * @var type
      */
     protected $name;
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function evaluate($context)
     {
@@ -42,12 +42,12 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
      * @param string $xPath
      */
     public function parse($xPath)
     {
-
         if (!preg_match('#^@[a-z-]+$#', $xPath)) {
             return false;
         }
@@ -58,7 +58,7 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setDefaultNamespacePrefix($prefix)
     {
@@ -66,7 +66,7 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setVariableValues(array $values)
     {
@@ -74,7 +74,8 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
      * @return string
      */
     public function toString()
@@ -83,7 +84,8 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * Returns the name of the attribute
+     * Returns the name of the attribute.
+     *
      * @return string
      */
     public function getName()
@@ -92,7 +94,8 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * Sets the name of the attribute.s
+     * Sets the name of the attribute.s.
+     *
      * @param string $name
      */
     public function setName($name)

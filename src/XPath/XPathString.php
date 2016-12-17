@@ -11,18 +11,14 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use DOMNode;
-use DOMXPath;
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathString;
-
 /**
  * Represents a xPath string.
+ *
  * @author jdomenechb
  */
 class XPathString extends AbstractXPath
 {
     /**
-     *
      * @var string
      */
     protected $string;
@@ -57,7 +53,7 @@ class XPathString extends AbstractXPath
      */
     public function toString()
     {
-       return "'" . str_replace("'", "''", $this->getString()) . "'";
+        return "'" . str_replace("'", "''", $this->getString()) . "'";
     }
 
     /**

@@ -14,7 +14,7 @@ namespace Jdomenechb\XSLT2Processor\XPath\Expression;
 use RuntimeException;
 
 /**
- * Helper class with methods to analyze and parse expressions
+ * Helper class with methods to analyze and parse expressions.
  *
  * @author jdomenechb
  */
@@ -24,11 +24,13 @@ class ExpressionParserHelper
      * Given an expression, a start delimiter and an end delimiter, returns a list of pieces from the expression given
      * in which the odd indexes are the expression parts contained in-between this symbols (but only the first level),
      * and the even and zero indexes the parts outside the delimiter symbols.
+     *
      * @param string $expression
      * @param string $start
      * @param string $end
-     * @return string[] Values with odd indexes are parts outside the subexpression, values with even indexes the
-     * subexpressions.
+     *
+     * @return string[] values with odd indexes are parts outside the subexpression, values with even indexes the
+     *                  subexpressions
      */
     public function parseFirstLevelSubExpressions($expression, $start, $end)
     {
@@ -103,7 +105,7 @@ class ExpressionParserHelper
                 }
 
                 $offset = $min + $lengthSOperator;
-            } elseif ($min ===  $rParPos) {
+            } elseif ($min === $rParPos) {
                 if (!$avoidLevel) {
                     --$level;
 
@@ -114,13 +116,13 @@ class ExpressionParserHelper
                 }
 
                 $offset = $min + $lengthEOperator;
-            } elseif ($min ===  $lAPos) {
+            } elseif ($min === $lAPos) {
                 if (!$level) {
                     ++$avoidLevel;
                 }
 
                 $offset = $min + $lengthALOperator;
-            } elseif ($min ===  $rAPos) {
+            } elseif ($min === $rAPos) {
                 if (!$level) {
                     --$avoidLevel;
                 }
@@ -137,13 +139,15 @@ class ExpressionParserHelper
     /**
      * Given an expression, a start delimiter and an end delimiter, the method returns an string with all the level
      * numbers of the subexpression delimited by the start and end string.
+     *
      * @param string $expression
      * @param string $start
      * @param string $end
+     *
      * @return string The level string. For example, if a subexpression is not available in the main expression, the
-     * method will return '0'. In the case of an expression like
-     * 'expr1 or (expr2 and (expression1 and (expression2)) or (expresssion))', being the parenthesis the delimiters,
-     * the returned string would be '012321210'.
+     *                method will return '0'. In the case of an expression like
+     *                'expr1 or (expr2 and (expression1 and (expression2)) or (expresssion))', being the parenthesis the delimiters,
+     *                the returned string would be '012321210'.
      */
     public function subExpressionLevelAnalysis($expression, $start, $end)
     {
@@ -226,11 +230,15 @@ class ExpressionParserHelper
     /**
      * Given an expresison, a delimiter of the literal and the escaped literal, the method returns an string with all
      * the level of the literals delimited by the given symbol.
+     *
      * @param string $expression
      * @param string $delimiter
      * @param string $escaped
-     * @return string
+     * @param mixed  $escapedLiteral
+     *
      * @throws RuntimeException
+     *
+     * @return string
      */
     public function literalLevelAnalysis($expression, $delimiter, $escapedLiteral)
     {
@@ -272,8 +280,6 @@ class ExpressionParserHelper
             } else {
                 $offset = $min + mb_strlen($escapedLiteral);
             }
-
-
         }
 
         return $history;
@@ -362,7 +368,7 @@ class ExpressionParserHelper
                 if ($level === 0) {
                     --$sqLevel;
                 }
-                
+
                 $offset = $min + 1;
             } elseif ($min === $strPos) {
                 if ($level === 0 && $sqLevel == 0) {

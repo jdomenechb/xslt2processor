@@ -206,5 +206,4 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $this->getLeftPart()->setKeys($keys);
         $this->getRightPart()->setKeys($keys);
     }
-
 }

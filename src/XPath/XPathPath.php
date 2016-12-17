@@ -12,9 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMElement;
-use DOMNode;
 use DOMNodeList as OriginalDOMNodeList;
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 class XPathPath extends AbstractXPath
@@ -34,7 +32,7 @@ class XPathPath extends AbstractXPath
 
     public function parse($string)
     {
-//        if ($string === '/') {
+        //        if ($string === '/') {
 //            $string = '/*';
 //        }
 
@@ -112,7 +110,7 @@ class XPathPath extends AbstractXPath
         $evaluation = $context;
 
         foreach ($this->getParts() as $part) {
-            if ($evaluation instanceof DOMNodeList || $evaluation instanceof \DOMNodeList ) {
+            if ($evaluation instanceof DOMNodeList || $evaluation instanceof \DOMNodeList) {
                 if ($evaluation instanceof \DOMNodeList) {
                     $evaluation = new DOMNodeList($evaluation);
                 }
@@ -131,7 +129,7 @@ class XPathPath extends AbstractXPath
         // Fix for text of no existing node
         if (
             is_object($value)
-            &&($offset = mb_strlen($xPath) - 1 - mb_strlen('text()')) >= 0
+            && ($offset = mb_strlen($xPath) - 1 - mb_strlen('text()')) >= 0
             && strrpos($xPath, 'text()', strlen($xPath) - 1 - strlen('text()'))
             && $value instanceof OriginalDOMNodeList
             && $value->length === 0
@@ -158,7 +156,6 @@ class XPathPath extends AbstractXPath
         }
 
         return $contextList;
-
     }
 
     /**

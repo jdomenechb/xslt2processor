@@ -17,7 +17,7 @@ class Factory
 {
     public function create($expression)
     {
-        $expressionParserHelper = new ExpressionParserHelper;
+        $expressionParserHelper = new ExpressionParserHelper();
         $expression = trim($expression);
 
         // Parse string
@@ -64,7 +64,6 @@ class Factory
                 // It should match a sub
                 && preg_match('#^\(.*\)(?:\[[^\]]+\])*$#', $expression)
             ) {
-
                 return new XPathSub($expression);
             }
         }

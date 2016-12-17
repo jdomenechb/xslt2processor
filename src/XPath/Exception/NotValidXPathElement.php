@@ -16,13 +16,15 @@ use RuntimeException;
 /**
  * Exception throw when trying to parse an xPath element that does not match the rules of the element in the
  * constructor.
+ *
  * @author jdomenechb
  */
 class NotValidXPathElement extends RuntimeException
 {
     /**
      * Cosntructor.
-     * @param string $xPath The xPath to be parsed
+     *
+     * @param string $xPath     The xPath to be parsed
      * @param string $className The name of the class who tried to parse the xPath
      */
     public function __construct($xPath, $className)

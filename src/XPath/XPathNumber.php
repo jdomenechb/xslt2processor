@@ -11,8 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use DOMNode;
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
 
 /**
@@ -92,7 +90,6 @@ class XPathNumber extends AbstractXPath
     {
         return $this->number;
     }
-
 
     public function toString()
     {

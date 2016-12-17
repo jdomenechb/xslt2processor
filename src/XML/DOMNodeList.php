@@ -1,6 +1,8 @@
 <?php
 
-/*
+/**
+ * This file is part of the XSLT2Processor package.
+ *
  * (c) Jordi Domènech Bonilla
  *
  * For the full copyright and license information, please view the LICENSE
@@ -19,24 +21,28 @@ use RuntimeException;
 
 /**
  * Class for offering a set of nodes, replacing \DOMNodeList, capable of importing node lists form multiple formats.
+ *
  * @author jdomenechb
  */
 class DOMNodeList implements ArrayAccess, Iterator
 {
     /**
      * Items holded in the list.
+     *
      * @var array
      */
     protected $items;
 
     /**
      * Defines if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     *
      * @var bools
      */
     protected $parent = false;
 
     /**
      * Constructor.
+     *
      * @param mixed $items
      */
     public function __construct($items = [])
@@ -45,7 +51,7 @@ class DOMNodeList implements ArrayAccess, Iterator
             $this->fromDOMNodeList($items);
         } elseif ($items instanceof DOMNode) {
             $this->fromArray([$items]);
-        } elseif ($items instanceof DOMNodeList) {
+        } elseif ($items instanceof self) {
             $this->fromArray($items->toArray());
         } elseif (is_array($items)) {
             $this->fromArray($items);
@@ -55,8 +61,28 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
+     * Add support for var length, like \DOMNodeList.
+     *
+     * @param string $name
+     *
+     * @throws RuntimeException
+     *
+     * @return int
+     */
+    public function __get($name)
+    {
+        if ($name !== 'length') {
+            throw new RuntimeException('Property ' . $name . ' not available');
+        }
+
+        return $this->count();
+    }
+
+    /**
      * Get an item vy index.
+     *
      * @param int $index
+     *
      * @return DOMNode
      */
     public function item($index)
@@ -130,6 +156,54 @@ class DOMNodeList implements ArrayAccess, Iterator
         return count($this->items);
     }
 
+    public function current()
+    {
+        return current($this->items);
+    }
+
+    public function key()
+    {
+        return key($this->items);
+    }
+
+    public function next()
+    {
+        return next($this->items);
+    }
+
+    public function rewind()
+    {
+        reset($this->items);
+    }
+
+    public function valid()
+    {
+        $key = key($this->items);
+
+        return $key !== null && $key !== false;
+    }
+
+    /**
+     * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     *
+     * @var bools
+     */
+    public function isParent()
+    {
+        return $this->parent;
+    }
+
+    /**
+     * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     *
+     * @var   bools
+     * @param mixed $parent
+     */
+    public function setParent($parent)
+    {
+        $this->parent = $parent;
+    }
+
     protected function sort()
     {
         if (count($this->items) <= 1) {
@@ -162,7 +236,7 @@ class DOMNodeList implements ArrayAccess, Iterator
             // Check where is the difference
             $min = min(count($levelsA), count($levelsB));
 
-            for ($i = 0; $i < $min; $i++) {
+            for ($i = 0; $i < $min; ++$i) {
                 if ($levelsA[$i] == $levelsB[$i]) {
                     continue;
                 }
@@ -179,7 +253,6 @@ class DOMNodeList implements ArrayAccess, Iterator
                 }
             }
         });
-
     }
 
     protected function sortByExam()
@@ -205,7 +278,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         } else {
             $this->items = array_values($this->items);
         }
-
     }
 
     protected function recursiveRelativeSort(&$newResults, DOMNode $node)
@@ -233,64 +305,4 @@ class DOMNodeList implements ArrayAccess, Iterator
             $this->recursiveRelativeSort($newResults, $childNode);
         }
     }
-
-    public function current()
-    {
-        return current($this->items);
-    }
-
-    public function key()
-    {
-        return key($this->items);
-    }
-
-    public function next()
-    {
-        return next($this->items);
-    }
-
-    public function rewind()
-    {
-        reset($this->items);
-    }
-
-    public function valid()
-    {
-        $key = key($this->items);
-        return ($key !== NULL && $key !== FALSE);
-    }
-
-    /**
-     * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     * @var bools
-     */
-    public function isParent()
-    {
-        return $this->parent;
-    }
-
-    /**
-     * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     * @var bools
-     */
-    public function setParent($parent)
-    {
-        $this->parent = $parent;
-    }
-
-    /**
-     * Add support for var length, like \DOMNodeList
-     * @param string $name
-     * @return int
-     * @throws RuntimeException
-     */
-    public function __get($name)
-    {
-        if ($name !== 'length') {
-            throw new RuntimeException('Property ' . $name . ' not available');
-        }
-
-        return $this->count();
-    }
-
 }

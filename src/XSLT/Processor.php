@@ -31,6 +31,10 @@ use RuntimeException;
 class Processor
 {
     /**
+     * @var bool
+     */
+    public static $debug = false;
+    /**
      * @var DOMDocument
      */
     protected $newXml;
@@ -95,12 +99,7 @@ class Processor
     /**
      * @var bool
      */
-    protected $logXPath = true;
-
-    /**
-     * @var bool
-     */
-    public static $debug = false;
+    protected $logXPath = false;
 
     protected $debugIdentation = -1;
 
@@ -126,26 +125,30 @@ class Processor
 
     /**
      * Determines if the the template being processed right now is imported/included or not.
+     *
      * @var bool
      */
     protected $isImported = false;
 
     /**
-     * XSLT version used in the document
+     * XSLT version used in the document.
+     *
      * @var type
      */
     protected $version = null;
 
     /**
-     * CacheItemPool to be used for caching. If null, no caching will be performed
+     * CacheItemPool to be used for caching. If null, no caching will be performed.
+     *
      * @var CacheItemPoolInterface
      */
     protected $cache;
 
     /**
      * Constructor.
-     * @param string|\DOMDocument $xslt Path of the XSLT file or DOMDocument containing the XSL stylesheet.
-     * @param \DOMDocument $xml DOMDocument of the XML file to be transformed
+     *
+     * @param string|\DOMDocument $xslt path of the XSLT file or DOMDocument containing the XSL stylesheet
+     * @param \DOMDocument        $xml  DOMDocument of the XML file to be transformed
      */
     public function __construct($xslt, \DOMDocument $xml)
     {
@@ -155,7 +158,7 @@ class Processor
             $this->stylesheet = new DOMDocument();
             $this->stylesheet->load($xslt);
             $this->filePath = $xslt;
-        } else if ($xslt instanceof \DOMDocument) {
+        } elseif ($xslt instanceof \DOMDocument) {
             $this->stylesheet = $xslt;
 
             if (is_file($xslt->documentURI)) {
@@ -167,13 +170,14 @@ class Processor
     }
 
     /**
-     * Main function to be called to transform the source XML with the XSL stylesheet defined
+     * Main function to be called to transform the source XML with the XSL stylesheet defined.
+     *
      * @return string
      */
     public function transformXML()
     {
         // Set error handler to throw exception at any error during execution
-        set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
+        set_error_handler(function ($errno, $errstr, $errfile, $errline, array $errcontext) {
             // In case the error was suppressed with the @-operator, avi¡oid processing it
             if (0 === error_reporting()) {
                 return false;
@@ -183,7 +187,7 @@ class Processor
         });
 
         // Set the basic things needed
-        $this->namespaces = ['default' => null,];
+        $this->namespaces = ['default' => null];
         $this->newXml = new DOMDocument();
         $this->defaultNamespace = 'default';
 
@@ -213,6 +217,24 @@ class Processor
         //TODO: Doctype
 
         return $this->newXml->saveHTML();
+    }
+
+    /**
+     * @return CacheItemPoolInterface
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    public function setCache(CacheItemPoolInterface $cache)
+    {
+        $this->cache = $cache;
+    }
+
+    public function setLogXPath($value)
+    {
+        $this->logXPath = $value;
     }
 
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -249,7 +271,7 @@ class Processor
     {
         foreach ($parent->childNodes as $childNode) {
             // Ignore spaces
-            if ($childNode instanceof DOMText && preg_match('#^\s*$#', $childNode->nodeValue)) {
+            if ($childNode instanceof DOMText && trim($childNode->nodeValue) === '') {
                 continue;
             }
 
@@ -334,7 +356,7 @@ class Processor
             foreach ($node->attributes as $attribute) {
                 echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
             }
-            echo "<br>";
+            echo '<br>';
             echo 'Before';
             echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
@@ -481,7 +503,7 @@ class Processor
             }
 
             $xPathParsed = $this->parseXPath($xPath);
-            $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument? $nodesMatched->item(0)->parentNode : $nodesMatched->item(0));
+            $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument ? $nodesMatched->item(0)->parentNode : $nodesMatched->item(0));
 
             if ($results === false) {
                 continue;
@@ -892,7 +914,7 @@ class Processor
 
                 $newResults = $result->toArray();
 
-                usort($newResults, function($a, $b) use ($xPathParsed) {
+                usort($newResults, function ($a, $b) use ($xPathParsed) {
                     return strcmp(
                         $xPathParsed->evaluate($a)->item(0)->nodeValue,
                         $xPathParsed->evaluate($b)->item(0)->nodeValue
@@ -1135,7 +1157,7 @@ class Processor
 
     protected function insertTemplate(Template $template)
     {
-        for ($i = 0; $i < count($this->templates); $i++) {
+        for ($i = 0; $i < count($this->templates); ++$i) {
             $currentTemplate = $this->templates[$i];
 
             if ($template->getPriority() > $currentTemplate->getPriority()) {
@@ -1156,20 +1178,4 @@ class Processor
     {
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
     }
-
-    /**
-     *
-     * @return CacheItemPoolInterface
-     */
-    public function getCache()
-    {
-        return $this->cache;
-    }
-
-    public function setCache(CacheItemPoolInterface $cache)
-    {
-        $this->cache = $cache;
-    }
-
-
 }

@@ -45,7 +45,8 @@ class XPathUnionOperator extends AbstractXPathOperator
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
      * @param DOMNode $context
      */
     public function query($context)
@@ -58,6 +59,4 @@ class XPathUnionOperator extends AbstractXPathOperator
 
         return $results;
     }
-
-    
 }

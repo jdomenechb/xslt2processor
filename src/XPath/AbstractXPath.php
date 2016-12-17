@@ -51,7 +51,7 @@ abstract class AbstractXPath implements ExpressionInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setNamespaces(array $namespaces)
     {
@@ -59,7 +59,7 @@ abstract class AbstractXPath implements ExpressionInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getNamespaces()
     {
