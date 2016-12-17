@@ -12,7 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XSLT\Template;
 
 /**
- * Entity for a key in a XSL template.
+ * Entity with the info of an xsl:key in a XSL stylesheet.
  *
  * @author jdomenechb
  */

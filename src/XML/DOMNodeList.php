@@ -297,7 +297,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         }
 
         // Treat all childs
-
         if (!$node instanceof DOMElement) {
             return;
         }

@@ -23,8 +23,9 @@ class TemplateList extends ArrayObject
     /**
      * Gets a list of templates that have the given match.
      *
+     * @param mixed $match
+     *
      * @return TemplateList
-     * @param  mixed        $match
      */
     public function getByMatch($match)
     {
@@ -40,8 +41,9 @@ class TemplateList extends ArrayObject
     /**
      * Gets a list of templates that have the given name.
      *
+     * @param mixed $name
+     *
      * @return TemplateList
-     * @param  mixed        $name
      */
     public function getByName($name)
     {

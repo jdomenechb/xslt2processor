@@ -22,10 +22,10 @@ $config = PhpCsFixer\Config::create()
         ],
         'ordered_imports' => true,
         'ordered_class_elements' => true,
-        'phpdoc_order' => true,
         'phpdoc_add_missing_param_annotation' => [
             'only_untyped' => false,
         ],
+        'phpdoc_order' => true,
         'no_useless_else' => true,
         'no_useless_return' => true,
     ])

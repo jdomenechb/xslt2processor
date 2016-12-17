@@ -378,7 +378,7 @@ class Processor
         }
     }
 
-    protected function xslOutput(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslOutput(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
@@ -415,7 +415,7 @@ class Processor
         }
     }
 
-    protected function xslTemplate(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $template = new Template();
         $template->setNode($node);
@@ -460,7 +460,7 @@ class Processor
         $this->templateParams = $currentParams;
     }
 
-    protected function xslApplyTemplates(DOMNode $node, DOMNode $context, DOMNode $newContext, $first = false)
+    protected function xslApplyTemplates(DOMElement $node, DOMNode $context, DOMNode $newContext, $first = false)
     {
         // Select the candidates to be processed
         $applyTemplatesSelect = $node->getAttribute('select');
@@ -551,7 +551,7 @@ class Processor
         }
     }
 
-    protected function xslIf(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslIf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Evaluate the if
         $toEvaluate = $node->getAttribute('test');
@@ -623,7 +623,7 @@ class Processor
         return $xPathParsed->evaluate($context);
     }
 
-    protected function xslValueOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslValueOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Evaluate the value
         $toEvaluateXPath = $node->getAttribute('select');
@@ -649,7 +649,7 @@ class Processor
         }
     }
 
-    protected function xslText(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslText(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Get the text
         $text = '';
@@ -678,7 +678,7 @@ class Processor
         }
     }
 
-    protected function xslCopyOf(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslCopyOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $selectXPath = $node->getAttribute('select');
         $selectParsed = $this->parseXPath($selectXPath);
@@ -699,7 +699,7 @@ class Processor
         }
     }
 
-    protected function xslVariable(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslVariable(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
 
@@ -713,7 +713,7 @@ class Processor
         }
     }
 
-    protected function xslChoose(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslChoose(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         foreach ($node->childNodes as $childNode) {
             // Ignore spaces
@@ -740,7 +740,7 @@ class Processor
         }
     }
 
-    protected function xslImport(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslImport(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if (!$this->filePath) {
             throw new RuntimeException('The XSLT template must be loaded from a file for xsl:import to work');
@@ -765,7 +765,7 @@ class Processor
         $this->filePath = $oldFilePath;
     }
 
-    protected function xslInclude(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslInclude(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if (!$this->filePath) {
             throw new RuntimeException('The XSLT template must be loaded from a file for xsl:include to work');
@@ -893,7 +893,7 @@ class Processor
         }
     }
 
-    protected function xslFunction(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslFunction(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $template = new CustomFunction();
         $template->setNode($node);
@@ -910,7 +910,7 @@ class Processor
         XPathFunction::setCustomFunction($template);
     }
 
-    protected function xslElement(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslElement(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $namespace = $node->getAttribute('namespace');
         $name = $node->getAttribute('name');
@@ -934,12 +934,12 @@ class Processor
         $this->processChildNodes($node, $context, $newNode);
     }
 
-    protected function xslSequence(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslSequence(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $this->xslCopyOf($node, $context, $newContext);
     }
 
-    protected function xslAnalyzeString(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslAnalyzeString(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $regex = '#' . str_replace('#', '\#', $node->getAttribute('regex')) . '#';
 
@@ -993,7 +993,7 @@ class Processor
         }
     }
 
-    protected function xslMatchingOrNotMatchingSubstring(DOMNode $node, $match, DOMNode $newContext)
+    protected function xslMatchingOrNotMatchingSubstring(DOMElement $node, $match, DOMNode $newContext)
     {
         $tmpContext = $this->xml->createElement('tmptmptmptmptmpmonmsubstring');
         $domElementUtils = new DOMElementUtils();
@@ -1003,7 +1003,7 @@ class Processor
         $this->processChildNodes($node, $tmpContext, $newContext);
     }
 
-    protected function xslDecimalFormat(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslDecimalFormat(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = 'default';
         $info = [];
@@ -1030,7 +1030,7 @@ class Processor
         $this->decimalFormats[$name] = $info;
     }
 
-    protected function xslKey(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslKey(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $key = new Key();
         $key->setMatch($node->getAttribute('match'));
@@ -1039,7 +1039,7 @@ class Processor
         $this->keys[$node->getAttribute('name')] = $key;
     }
 
-    protected function xslComment(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslComment(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $value = $this->evaluateBody($node, $context, $newContext);
         /* @var $doc DOMDocument */
@@ -1049,7 +1049,7 @@ class Processor
         $newContext->appendChild($comment);
     }
 
-    protected function xslCallTemplate(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslCallTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $params = [];
         $name = $node->getAttribute('name');
@@ -1101,7 +1101,7 @@ class Processor
         $this->processTemplate($templates[0], $context, $newContext, $params);
     }
 
-    protected function xslParam(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslParam(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
 
@@ -1118,7 +1118,7 @@ class Processor
         }
     }
 
-    protected function xslSort(DOMNode $node, DOMNode $context, DOMNode $newContext)
+    protected function xslSort(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
     }
