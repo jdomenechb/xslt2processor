@@ -25,6 +25,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\Template\Key;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
+use Psr\Cache\CacheItemPoolInterface;
 use RuntimeException;
 
 class Processor
@@ -134,6 +135,12 @@ class Processor
      * @var type
      */
     protected $version = null;
+
+    /**
+     * CacheItemPool to be used for caching. If null, no caching will be performed
+     * @var CacheItemPoolInterface
+     */
+    protected $cache;
 
     /**
      * Constructor.
@@ -555,8 +562,27 @@ class Processor
 
     protected function parseXPath($xPath)
     {
-        $factory = new Factory();
-        $xPathParsed = $factory->create($xPath);
+        $xPathParsed = null;
+        $key = sha1($xPath);
+
+        if ($this->getCache()) {
+            $cacheItem = $this->getCache()->getItem($key);
+
+            if ($cacheItem->isHit()) {
+                $xPathParsed = $cacheItem->get();
+            }
+        }
+
+        if (!$xPathParsed) {
+            $factory = new Factory();
+            $xPathParsed = $factory->create($xPath);
+        }
+
+        if ($this->getCache() && !$cacheItem->isHit()) {
+            $cacheItem->set($xPathParsed);
+            $this->getCache()->save($cacheItem);
+        }
+
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues(array_merge($this->variables, $this->templateParams));
         $xPathParsed->setNamespaces($this->namespaces);
@@ -1130,4 +1156,20 @@ class Processor
     {
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
     }
+
+    /**
+     *
+     * @return CacheItemPoolInterface
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    public function setCache(CacheItemPoolInterface $cache)
+    {
+        $this->cache = $cache;
+    }
+
+
 }
