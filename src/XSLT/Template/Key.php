@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Jdomenechb\XSLT2Processor\XPath\Template;
+namespace Jdomenechb\XSLT2Processor\XSLT\Template;
 
 /**
  * Entity for a key in a XSL template.

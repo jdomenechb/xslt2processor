@@ -9,7 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Jdomenechb\XSLT2Processor\XSLT;
+namespace Jdomenechb\XSLT2Processor\XSLT\Template;
+
+use DOMElement;
 
 /**
  * This class represents an available xsl:template that can be find in the stylesheet.
@@ -35,7 +37,7 @@ class Template
     /**
      * Pointer to the real DOMElement node in the XSL DOMs.
      *
-     * @var \DOMElement
+     * @var DOMElement
      */
     protected $node;
 
@@ -88,7 +90,7 @@ class Template
     }
 
     /**
-     * @return \DOMElement
+     * @return DOMElement
      */
     public function getNode()
     {
@@ -96,7 +98,7 @@ class Template
     }
 
     /**
-     * @param \DOMElement $node
+     * @param DOMElement $node
      */
     public function setNode($node)
     {

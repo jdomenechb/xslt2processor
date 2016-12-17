@@ -23,8 +23,10 @@ use DOMXPath;
 use ErrorException;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
-use Jdomenechb\XSLT2Processor\XPath\Template\Key;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
+use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
+use Jdomenechb\XSLT2Processor\XSLT\Template\Template;
+use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
 use Psr\Cache\CacheItemPoolInterface;
 use RuntimeException;
 
@@ -72,7 +74,7 @@ class Processor
     protected $method = 'xml';
 
     /**
-     * @return Template[]
+     * @return TemplateList
      */
     protected $templates = [];
 
@@ -153,6 +155,7 @@ class Processor
     public function __construct($xslt, \DOMDocument $xml)
     {
         $this->xml = $xml;
+        $this->templates = new TemplateList();
 
         if (is_string($xslt) && is_file($xslt)) {
             $this->stylesheet = new DOMDocument();
@@ -442,21 +445,7 @@ class Processor
             $template->setPriority($template->getPriority() + 2);
         }
 
-        $this->insertTemplate($template);
-    }
-
-    protected function getTemplatesByMatch($match)
-    {
-        return array_values(array_filter($this->templates, function (Template $value) use ($match) {
-            return $value->getMatch() == $match;
-        }));
-    }
-
-    protected function getTemplatesByName($name)
-    {
-        return array_values(array_filter($this->templates, function (Template $value) use ($name) {
-            return $value->getName() == $name;
-        }));
+        $this->templates->appendTemplate($template);
     }
 
     protected function processTemplate(Template $template, DOMNode $context, DOMNode $newContext, $params = [])
@@ -1128,8 +1117,7 @@ class Processor
         }
 
         // Select the candidates to be processed
-
-        $templates = $this->getTemplatesByName($name);
+        $templates = $this->templates->getByName($name);
 
         if (!count($templates)) {
             throw new RuntimeException('No templates by the name "' . $name . '" found');
@@ -1157,25 +1145,6 @@ class Processor
                 $this->templateParams[$name] = null;
             }
         }
-    }
-
-    protected function insertTemplate(Template $template)
-    {
-        for ($i = 0; $i < count($this->templates); ++$i) {
-            $currentTemplate = $this->templates[$i];
-
-            if ($template->getPriority() > $currentTemplate->getPriority()) {
-                $newTemplates = array_slice($this->templates, 0, $i);
-                $newTemplates[] = $template;
-                $newTemplates = array_merge($newTemplates, array_slice($this->templates, $i));
-
-                $this->templates = $newTemplates;
-
-                return;
-            }
-        }
-
-        $this->templates[] = $template;
     }
 
     protected function xslSort(DOMNode $node, DOMNode $context, DOMNode $newContext)

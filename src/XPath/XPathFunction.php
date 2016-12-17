@@ -470,7 +470,7 @@ class XPathFunction extends AbstractXPath
                             throw new \RuntimeException('The key named "' . $keyName . '" does not exist');
                         }
 
-                        /* @var $key Template\Key */
+                        /* @var $key \Jdomenechb\XSLT2Processor\XSLT\Template\Key */
                         $key = $this->keys[$keyName];
 
                         // Get all possible nodes

@@ -13,7 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
 use DOMXPath;
-use Jdomenechb\XSLT2Processor\XPath\Template\Key;
+use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
 
 /**
  * Interface to define the basic methods needed for an xPath expression.
