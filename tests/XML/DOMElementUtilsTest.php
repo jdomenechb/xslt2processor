@@ -26,9 +26,11 @@ use PHPUnit\Framework\TestCase;
 class DOMElementUtilsTest extends TestCase
 {
     /**
-     * Tests that the method adds the correct node in each case
+     * Tests that the method adds the correct node in each case.
+     *
      * @dataProvider cdataCasesProvider
-     * @param array $cdataCases
+     *
+     * @param array  $cdataCases
      * @param string $classType
      */
     public function testAddWritableNodeTo(array $cdataCases, $classType)
@@ -45,9 +47,11 @@ class DOMElementUtilsTest extends TestCase
     }
 
     /**
-     * Tests that the method adds the correct node in each case when the node contains elements
+     * Tests that the method adds the correct node in each case when the node contains elements.
+     *
      * @dataProvider cdataCasesProvider
-     * @param array $cdataCases
+     *
+     * @param array  $cdataCases
      * @param string $classType
      */
     public function testAddWritableNodeToAlreadyExisting(array $cdataCases, $classType)
@@ -67,9 +71,11 @@ class DOMElementUtilsTest extends TestCase
     }
 
     /**
-     * Tests that the method returns the correct object for DOMElements that contain no nodes
+     * Tests that the method returns the correct object for DOMElements that contain no nodes.
+     *
      * @dataProvider cdataCasesProvider
-     * @param array $cdataCases
+     *
+     * @param array  $cdataCases
      * @param string $classType
      */
     public function testGetNoWritableNode(array $cdataCases, $classType)
@@ -86,8 +92,10 @@ class DOMElementUtilsTest extends TestCase
     }
 
     /**
-     * Tests that the method returns the correct object for DOMElements that contain only one node
+     * Tests that the method returns the correct object for DOMElements that contain only one node.
+     *
      * @dataProvider writableNodeProvider
+     *
      * @param DOMCharacterData $node
      */
     public function testGetOnlyWritableNode(DOMCharacterData $node)
@@ -103,8 +111,10 @@ class DOMElementUtilsTest extends TestCase
     }
 
     /**
-     * Tests that the method returns the correct object for DOMElements that contain multiple text nodes
+     * Tests that the method returns the correct object for DOMElements that contain multiple text nodes.
+     *
      * @dataProvider writableNodeProvider
+     *
      * @param DOMCharacterData $node
      */
     public function testGetMultipleWritableNode(DOMCharacterData $node)
@@ -121,8 +131,10 @@ class DOMElementUtilsTest extends TestCase
     }
 
     /**
-     * Tests that the method returns the correct object for DOMElements that contain multiple nodes, not only text
+     * Tests that the method returns the correct object for DOMElements that contain multiple nodes, not only text.
+     *
      * @dataProvider writableNodeProvider
+     *
      * @param DOMCharacterData $node
      */
     public function testGetMultipleWithOtherWritableNode(DOMCharacterData $node)
@@ -141,9 +153,11 @@ class DOMElementUtilsTest extends TestCase
 
     /**
      * Tests that the method returns the correct object for DOMElements that multiple nodes with DOMElements but not a
-     * last writable node
+     * last writable node.
+     *
      * @dataProvider cdataCasesProvider
-     * @param array $cdataCases
+     *
+     * @param array  $cdataCases
      * @param string $classType
      */
     public function testGetMultipleWithOtherButNoWritableNode(array $cdataCases, $classType)
@@ -166,6 +180,7 @@ class DOMElementUtilsTest extends TestCase
 
     /**
      * Provider of writable nodes.
+     *
      * @return array
      */
     public function writableNodeProvider()
@@ -178,6 +193,7 @@ class DOMElementUtilsTest extends TestCase
 
     /**
      * Provider of cdata cases.
+     *
      * @return array
      */
     public function cdataCasesProvider()
