@@ -35,7 +35,7 @@ class DOMElementUtils
     {
         // If it has no child nodes, we must create a base text or CDATA node.
         if (!$node->childNodes->length) {
-            $this->addWritableNodeTo($node);
+            $this->addWritableNodeTo($node, $cdataSections);
         }
 
         // We try to get the last child node
@@ -47,7 +47,7 @@ class DOMElementUtils
             $writableNode = $node->childNodes->item($node->childNodes->length - 1);
         } else {
             // It contains another non-text element: we add one at the end
-            $writableNode = $this->addWritableNodeTo($node);
+            $writableNode = $this->addWritableNodeTo($node, $cdataSections);
         }
 
         return $writableNode;
