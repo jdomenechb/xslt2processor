@@ -38,15 +38,13 @@ class DOMElementUtils
             $this->addWritableNodeTo($node, $cdataSections);
         }
 
-        // We try to get the last child node
+        // We try to get the last writable child node: the last or a new one
         if (
             $node->childNodes->item($node->childNodes->length - 1) instanceof DOMCdataSection
             || $node->childNodes->item($node->childNodes->length - 1) instanceof DOMText
         ) {
-            // It is a writable node: we have what we wanted
             $writableNode = $node->childNodes->item($node->childNodes->length - 1);
         } else {
-            // It contains another non-text element: we add one at the end
             $writableNode = $this->addWritableNodeTo($node, $cdataSections);
         }
 

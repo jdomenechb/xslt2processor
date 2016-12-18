@@ -33,20 +33,29 @@ use RuntimeException;
 class Processor
 {
     /**
+     * If true, outputs debug information.
+     *
      * @var bool
      */
     public static $debug = false;
+
     /**
+     * The DOMDocument that represents the transformed document.
+     *
      * @var DOMDocument
      */
     protected $newXml;
 
     /**
+     * The DOMDocument that represents the stylesheet.
+     *
      * @var DOMDocument
      */
     protected $stylesheet;
 
     /**
+     * The DOMDocument that represents the original XML.
+     *
      * @var DOMDocument
      */
     protected $xml;
@@ -57,6 +66,8 @@ class Processor
     protected $defaultNamespace = 'default';
 
     /**
+     * List of namespaces contained in the document.
+     *
      * @var array
      */
     protected $namespaces = [
@@ -64,29 +75,16 @@ class Processor
     ];
 
     /**
-     * @var false
+     * Contains information about how the output should be formatted.
+     *
+     * @var Output
      */
-    protected $removeXmlDeclaration = false;
-
-    /**
-     * @var string
-     */
-    protected $method = 'xml';
+    protected $output;
 
     /**
      * @return TemplateList
      */
     protected $templates = [];
-
-    /**
-     * @var DOMXPath
-     */
-    protected $xPath;
-
-    /**
-     * @var DOMXPath
-     */
-    protected $newXPath;
 
     /**
      * @var array
@@ -102,13 +100,6 @@ class Processor
      * @var bool
      */
     protected $logXPath = false;
-
-    protected $debugIdentation = -1;
-
-    /**
-     * @var array
-     */
-    protected $cdataSectionElements = [];
 
     /**
      * @var array
@@ -213,8 +204,10 @@ class Processor
         restore_error_handler();
 
         // Return the result according to the output parameters
-        if ($this->method == 'xml') {
-            return $this->removeXmlDeclaration && $this->newXml->documentElement ? $this->newXml->saveXML($this->newXml->documentElement) : $this->newXml->saveXML();
+        if ($this->getOutput()->getMethod() == Output::METHOD_XML) {
+            return $this->getOutput()->getRemoveXmlDeclaration() && $this->newXml->documentElement ?
+                $this->newXml->saveXML($this->newXml->documentElement) :
+                $this->newXml->saveXML();
         }
 
         //TODO: Doctype
@@ -238,6 +231,30 @@ class Processor
     public function setLogXPath($value)
     {
         $this->logXPath = $value;
+    }
+
+    /**
+     * Returns the Output class that determines the format of the transformation.
+     *
+     * @return Output
+     */
+    public function getOutput()
+    {
+        if (!$this->output) {
+            $this->output = new Output();
+        }
+
+        return $this->output;
+    }
+
+    /**
+     * Sets the Output class that determines the format of the transformation.
+     *
+     * @param Output $output
+     */
+    public function setOutput(Output $output)
+    {
+        $this->output = $output;
     }
 
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -292,7 +309,7 @@ class Processor
             }
 
             if ($childNode instanceof DOMText) {
-                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
+                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
                 $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
             }
@@ -307,7 +324,7 @@ class Processor
             echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
             echo "<b>$node->nodeName</b><br>";
             echo 'Before';
-            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
+            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
 
         // Copy the node to the new document
@@ -346,7 +363,7 @@ class Processor
 
         if (static::$debug) {
             echo 'After';
-            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
+            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
             echo '</div>';
         }
     }
@@ -363,14 +380,14 @@ class Processor
             }
             echo '<br>';
             echo 'Before';
-            echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
+            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
         }
 
         if (method_exists($this, $methodName)) {
             $this->$methodName($node, $context, $newContext);
             if (static::$debug) {
                 echo 'After';
-                echo '<pre>' . htmlspecialchars($this->method == 'xml' ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
+                echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
                 echo '</div>';
             }
         } else {
@@ -383,7 +400,7 @@ class Processor
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
                 case 'omit-xml-declaration':
-                    $this->removeXmlDeclaration = $attribute->nodeValue == 'yes';
+                    $this->getOutput()->setRemoveXmlDeclaration($attribute->nodeValue == 'yes');
                     break;
 
                 case 'indent':
@@ -392,7 +409,7 @@ class Processor
                     break;
 
                 case 'method':
-                    $this->method = $attribute->nodeValue;
+                    $this->getOutput()->setMethod($attribute->nodeValue);
                     break;
 
                 case 'encoding':
@@ -401,7 +418,10 @@ class Processor
 
                 case 'cdata-section-elements':
                     $elements = explode(' ', $attribute->nodeValue);
-                    $this->cdataSectionElements = array_merge($this->cdataSectionElements, $elements);
+                    $this->getOutput()->setCdataSectionElements(array_merge(
+                        $this->getOutput()->getCdataSectionElements(),
+                        $elements
+                    ));
 
                     break;
 
@@ -428,7 +448,7 @@ class Processor
             }
         }
 
-        // Priority
+        // Set the priority by default if not defined
         if (!$node->hasAttribute('priority')) {
             $xPath = $node->getAttribute('match');
 
@@ -638,7 +658,7 @@ class Processor
 
         //echo $toEvaluate . "<br/>\n";
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
 
         if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
@@ -663,7 +683,7 @@ class Processor
         $adoe = $node->getAttribute('disable-output-escaping');
 
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
 
         if ($adoe != 'yes') {
             $wNode->nodeValue .= $text;
@@ -694,7 +714,7 @@ class Processor
             }
         } else {
             $domElementUtils = new DOMElementUtils();
-            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->cdataSectionElements);
+            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
             $wNode->nodeValue .= $results;
         }
     }
@@ -997,7 +1017,7 @@ class Processor
     {
         $tmpContext = $this->xml->createElement('tmptmptmptmptmpmonmsubstring');
         $domElementUtils = new DOMElementUtils();
-        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->cdataSectionElements);
+        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->getOutput()->getCdataSectionElements());
         $text->nodeValue = $match;
 
         $this->processChildNodes($node, $tmpContext, $newContext);
