@@ -56,3 +56,5 @@ test.php
 test
 composer.lock
 index3.php
+.idea
+phpinfo.php

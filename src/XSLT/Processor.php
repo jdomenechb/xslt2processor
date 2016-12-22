@@ -146,7 +146,6 @@ class Processor
     public function __construct($xslt, \DOMDocument $xml)
     {
         $this->xml = $xml;
-        $this->templates = new TemplateList();
 
         if (is_string($xslt) && is_file($xslt)) {
             $this->stylesheet = new DOMDocument();
@@ -157,6 +156,8 @@ class Processor
 
             if (is_file($xslt->documentURI)) {
                 $this->filePath = $xslt->documentURI;
+            } else if (strpos($xslt->documentURI, 'file:/') === 0) {
+                $this->filePath = substr($xslt->documentURI, 6);
             }
         } else {
             throw new \RuntimeException('XSLT must be a file path or a DOMDocument');
@@ -255,6 +256,20 @@ class Processor
     public function setOutput(Output $output)
     {
         $this->output = $output;
+    }
+
+    public function getTemplates()
+    {
+        if (!$this->templates) {
+            $this->templates = new TemplateList();
+        }
+
+        return $this->templates;
+    }
+
+    public function setTemplates($templates)
+    {
+        $this->templates = $templates;
     }
 
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -467,7 +482,7 @@ class Processor
             $template->setPriority($template->getPriority() + 2);
         }
 
-        $this->templates->appendTemplate($template);
+        $this->getTemplates()->appendTemplate($template);
     }
 
     protected function processTemplate(Template $template, DOMNode $context, DOMNode $newContext, $params = [])
@@ -496,7 +511,7 @@ class Processor
         }
 
         // Select a template that match
-        foreach ($this->templates as $template) {
+        foreach ($this->getTemplates() as $template) {
             if (!$fbPossibleTemplate) {
                 $fbPossibleTemplate = $template;
             }
@@ -1108,7 +1123,7 @@ class Processor
         }
 
         // Select the candidates to be processed
-        $templates = $this->templates->getByName($name);
+        $templates = $this->getTemplates()->getByName($name);
 
         if (!count($templates)) {
             throw new RuntimeException('No templates by the name "' . $name . '" found');
