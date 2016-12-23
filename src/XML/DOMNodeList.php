@@ -27,7 +27,7 @@ use RuntimeException;
 class DOMNodeList implements ArrayAccess, Iterator
 {
     /**
-     * Items holded in the list.
+     * Items in the list.
      *
      * @var array
      */
@@ -36,7 +36,7 @@ class DOMNodeList implements ArrayAccess, Iterator
     /**
      * Defines if the list must be considered as a parent for processing (for example, when it's a set of variables).
      *
-     * @var bools
+     * @var bool
      */
     protected $parent = false;
 
@@ -50,9 +50,9 @@ class DOMNodeList implements ArrayAccess, Iterator
         if ($items instanceof OriginalDOMNodeList) {
             $this->fromDOMNodeList($items);
         } elseif ($items instanceof DOMNode) {
-            $this->fromArray([$items]);
+            $this->fromDOMNode($items);
         } elseif ($items instanceof self) {
-            $this->fromArray($items->toArray());
+            $this->fromSelf($items);
         } elseif (is_array($items)) {
             $this->fromArray($items);
         } else {
@@ -79,7 +79,7 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Get an item vy index.
+     * Get an item by index.
      *
      * @param int $index
      *
@@ -127,15 +127,36 @@ class DOMNodeList implements ArrayAccess, Iterator
         $this->sort();
     }
 
+    /**
+     * Fills the object with the items in the given OriginalDOMNodeList
+     * @param OriginalDOMNodeList $items
+     */
     public function fromDOMNodeList(OriginalDOMNodeList $items)
     {
-        $newArray = [];
+        $this->items = [];
 
         foreach ($items as $item) {
-            $newArray[] = $item;
+            $this->items[] = $item;
         }
+    }
 
-        $this->items = $newArray;
+    /**
+     * Fills the object with the given DOMNode item
+     * @param DOMNode $item
+     */
+    public function fromDOMNode(DOMNode $item)
+    {
+        $this->items = [$item];
+    }
+
+    /**
+     * Fills the object with the given self DOMNodeList item
+     * @param DOMNodeList $item
+     */
+    public function fromSelf(DOMNodeList $item)
+    {
+        $this->items = $item->toArray();
+        $this->sort();
     }
 
     public function merge(DOMNodeList ...$list)
@@ -151,6 +172,10 @@ class DOMNodeList implements ArrayAccess, Iterator
         $this->sort();
     }
 
+    /**
+     * Returns the number of nodes the object contains
+     * @return int
+     */
     public function count()
     {
         return count($this->items);
@@ -185,8 +210,7 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     /**
      * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     *
-     * @var bools
+     * @return bool
      */
     public function isParent()
     {
@@ -195,9 +219,7 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     /**
      * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     *
-     * @var bools
-     *
+
      * @param mixed $parent
      */
     public function setParent($parent)
