@@ -128,6 +128,32 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests that the DOMNodeList returns an error if trying to access a non valid property
+     */
+    public function testNotValidProperty()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Property invalidProperty not available');
+
+        $newDOMNodeList = new DOMNodeList();
+        $newDOMNodeList->invalidProperty;
+    }
+
+    /**
+     * Tests getting a single item
+     * @depends testFromDOMNodeList
+     * @param DOMNodeList $oldDOMNodeList
+     */
+    public function testItem(DOMNodeList $oldDOMNodeList)
+    {
+        $items = $oldDOMNodeList->toArray();
+
+        foreach ($items as $key => $item) {
+            $this->assertSame($item, $oldDOMNodeList->item($key));
+        }
+    }
+
+    /**
      * Provider of DOMNodeList with multiple lengths
      * @return array
      */

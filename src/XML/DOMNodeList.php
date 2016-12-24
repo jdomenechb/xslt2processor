@@ -121,6 +121,10 @@ class DOMNodeList implements ArrayAccess, Iterator
         return $this->items;
     }
 
+    /**
+     * Fills the object with the items in the given array
+     * @param array $items
+     */
     public function fromArray(array $items)
     {
         $this->items = $items;
@@ -276,55 +280,5 @@ class DOMNodeList implements ArrayAccess, Iterator
                 }
             }
         });
-    }
-
-    protected function sortByExam()
-    {
-        if (count($this->items) <= 1) {
-            return;
-        }
-
-        reset($this->items);
-        $first = current($this->items);
-
-        if ($first instanceof DOMDocument) {
-            $doc = $first;
-        } else {
-            $doc = $first->ownerDocument;
-        }
-
-        $newResults = [];
-        $this->recursiveRelativeSort($newResults, $doc->documentElement);
-
-        if ($newResults) {
-            $this->items = $newResults;
-        } else {
-            $this->items = array_values($this->items);
-        }
-    }
-
-    protected function recursiveRelativeSort(&$newResults, DOMNode $node)
-    {
-        if (!$this->items) {
-            return;
-        }
-
-        // Check if the current node is in the list
-        foreach ($this->items as $key => $item) {
-            if ($node->isSameNode($item)) {
-                $newResults[] = $item;
-                unset($this->items[$key]);
-                break;
-            }
-        }
-
-        // Treat all childs
-        if (!$node instanceof DOMElement) {
-            return;
-        }
-
-        foreach ($node->childNodes as $childNode) {
-            $this->recursiveRelativeSort($newResults, $childNode);
-        }
     }
 }

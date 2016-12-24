@@ -14,6 +14,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMElement;
 use DOMNodeList;
 use Exception;
+use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\FunctionImplementationInterface;
 use Jdomenechb\XSLT2Processor\XSLT\CustomFunction;
 use Jdomenechb\XSLT2Processor\XSLT\SystemProperties;
 use RuntimeException;
@@ -26,7 +27,7 @@ class XPathFunction extends AbstractXPath
     protected $name;
 
     /**
-     * @var array
+     * @var ExpressionInterface[]
      */
     protected $parameters = [];
 
@@ -54,8 +55,8 @@ class XPathFunction extends AbstractXPath
      * @var array
      */
     protected $availableNamespaces = [
-        'fn',
-        'http://exslt.org/common',
+        'fn' => 'fn',
+        'http://exslt.org/common' => 'exslt',
     ];
 
     protected $keys;
@@ -209,7 +210,7 @@ class XPathFunction extends AbstractXPath
     }
 
     /**
-     * @return array
+     * @return ExpressionInterface[]
      */
     public function getParameters()
     {
@@ -230,298 +231,27 @@ class XPathFunction extends AbstractXPath
             throw new Exception('Custom functions are not supported yet');
         }
 
-        if (!in_array($this->getNamespace(), $this->availableNamespaces)) {
+        if (!isset($this->availableNamespaces[$this->getNamespace()])) {
             throw new \RuntimeException('Namespace "' . $this->getNamespace() . '" not implemented for functions');
         }
 
-        switch ($this->getNamespace()) {
-            case 'fn':
-                switch ($this->getName()) {
-                    case 'string':
-                        $result = $this->internalString($this->getParameters()[0]->evaluate($context));
-                        break;
-
-                    case 'normalize-space':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-                        $value = trim($value);
-                        $value = preg_replace('# +#', ' ', $value);
-
-                        $result = $value;
-                        break;
-
-                    case 'string-length':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-
-                        $result = mb_strlen($value);
-                        break;
-
-                    case 'substring':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-
-                        $start = $this->getParameters()[1]->evaluate($context) - 1;
-
-                        if ($start < 0) {
-                            $start = 0;
-                        }
-
-                        if (isset($this->getParameters()[2])) {
-                            $len = $this->getParameters()[2]->evaluate($context);
-
-                            $result = mb_substr($value, $start, $len);
-                            break;
-                        }
-
-                        $result = mb_substr($value, $start);
-                        break;
-
-                    case 'substring-before':
-                        $haystack = $this->getParameters()[0]->evaluate($context);
-                        $haystack = $this->internalString($haystack);
-
-                        $needle = $this->getParameters()[1]->evaluate($context);
-                        $needle = $this->internalString($needle);
-
-                        if (($pos = mb_strpos($haystack, $needle)) === false) {
-                            $result = '';
-                            break;
-                        }
-
-                        $result = mb_substr($haystack, 0, $pos);
-                        break;
-
-                    case 'substring-after':
-                        $haystack = $this->getParameters()[0]->evaluate($context);
-                        $haystack = $this->internalString($haystack);
-
-                        $needle = $this->getParameters()[1]->evaluate($context);
-                        $needle = $this->internalString($needle);
-
-                        if (($pos = mb_strpos($haystack, $needle)) === false) {
-                            $result = '';
-                            break;
-                        }
-
-                        $result = mb_substr($haystack, $pos + 1);
-                        break;
-
-                    case 'contains':
-                        $haystack = $this->getParameters()[0]->evaluate($context);
-                        $haystack = $this->internalString($haystack);
-
-                        $needle = $this->getParameters()[1]->evaluate($context);
-                        $needle = $this->internalString($needle);
-
-                        $result = mb_strpos($haystack, $needle) !== false;
-                        break;
-
-                    case 'concat':
-                        $values = array_map(function ($value) use ($context) {
-                            $value = $value->evaluate($context);
-                            $value = $this->internalString($value);
-
-                            return $value;
-                        }, $this->getParameters());
-
-                        $result = implode('', $values);
-                        break;
-
-                    case 'replace':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-
-                        $pattern = $this->getParameters()[1]->evaluate($context);
-                        $pattern = $this->internalString($pattern);
-
-                        $replacement = $this->getParameters()[2]->evaluate($context);
-                        $replacement = $this->internalString($replacement);
-
-                        $value = preg_replace('#' . str_replace('#', '\#', $pattern) . '#', $replacement, $value);
-
-                        $result = $value;
-                        break;
-
-                    case 'starts-with':
-                        $haystack = $this->getParameters()[0]->evaluate($context);
-                        $haystack = $this->internalString($haystack);
-
-                        $needle = $this->getParameters()[1]->evaluate($context);
-                        $needle = $this->internalString($needle);
-
-                        $result = mb_strpos($haystack, $needle) === 0;
-                        break;
-
-                    case 'upper-case':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-
-                        $result = mb_strtoupper($value);
-                        break;
-
-                    case 'not':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalBoolean($value);
-
-                        $result = !$value;
-                        break;
-
-                    case 'position':
-                        // Iterate all siblings
-                        $parent = $context->parentNode;
-                        $i = 0;
-
-                        foreach ($parent->childNodes as $childNode) {
-                            if ($childNode instanceof DOMElement) {
-                                ++$i;
-
-                                if ($childNode->isSameNode($context)) {
-                                    $result = $i;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (is_int($result)) {
-                            break;
-                        }
-
-                        throw new RuntimeException('No position could be found for the node');
-                    case 'local-name':
-                        if (count($this->getParameters()) > 0) {
-                            $property = $this->getParameters()[0]->evaluate($context);
-
-                            if (!$property->count()) {
-                                $result = '';
-                            } else {
-                                $result = $property->item(0)->localName;
-                            }
-                        } else {
-                            $result = $context->localName;
-                        }
-                        break;
-
-                    case 'system-property':
-                        $property = $this->getParameters()[0]->evaluate($context);
-                        $property = $this->internalString($property);
-
-                        $result = SystemProperties::getProperty($property);
-                        break;
-
-                    case 'count':
-                        $property = $this->getParameters()[0]->evaluate($context);
-
-                        $result = $property->count();
-                        break;
-
-                    case 'name':
-                        $property = $this->getParameters()[0]->evaluate($context);
-
-                        if (!$property->count()) {
-                            $result = null;
-                            break;
-                        }
-
-                        $result = $property->item(0)->nodeName;
-                        break;
-
-                    case 'translate':
-                        $value = $this->getParameters()[0]->evaluate($context);
-                        $value = $this->internalString($value);
-
-                        $from = $this->getParameters()[1]->evaluate($context);
-                        $from = $this->internalString($from);
-
-                        $to = $this->getParameters()[2]->evaluate($context);
-                        $to = $this->internalString($to);
-
-                        $result = str_replace(str_split($from), str_split($to), $value);
-                        break;
-
-                    case 'generate-id':
-                        if (!count($this->getParameters())) {
-                            $value = $context;
-                        } else {
-                            $value = $this->getParameters()[0]->evaluate($context);
-                        }
-
-                        if ($value instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
-                            if (!$value->count()) {
-                                $result = '';
-                                break;
-                            }
-
-                            $value = $value->item(0);
-                        }
-
-                        /* @var $value \DOMElement */
-                        $result = 'n' . sha1($value->getNodePath());
-                        break;
-
-                    case 'key':
-                        $keyName = $this->getParameters()[0]->evaluate($context);
-                        $keyName = $this->internalString($keyName);
-
-                        $toSearch = $this->getParameters()[1]->evaluate($context);
-                        $toSearch = $this->internalString($toSearch);
-
-                        if (!isset($this->keys[$keyName])) {
-                            throw new \RuntimeException('The key named "' . $keyName . '" does not exist');
-                        }
-
-                        /* @var $key \Jdomenechb\XSLT2Processor\XSLT\Template\Key */
-                        $key = $this->keys[$keyName];
-
-                        // Get all possible nodes
-                        $factory = new Factory();
-                        $match = $factory->create($key->getMatch());
-                        $match->setNamespaces($this->getNamespaces());
-                        $match->setDefaultNamespacePrefix($this->getDefaultNamespacePrefix());
-
-                        $possible = $factory->create($key->getUse() . " = '" . $toSearch . "'");
-                        $possible->setNamespaces($this->getNamespaces());
-                        $possible->setDefaultNamespacePrefix($this->getDefaultNamespacePrefix());
-
-                        $possibleNodes = $match->evaluate($context);
-                        $result = new \Jdomenechb\XSLT2Processor\XML\DOMNodeList();
-
-                        foreach ($possibleNodes as $possibleNode) {
-                            if ($possible->evaluate($possibleNode)) {
-                                $result[] = $possibleNode;
-                            }
-                        }
-
-                        break;
-
-                    case 'false':
-                        $result = false;
-                        break;
-
-                    case 'true':
-                        $result = true;
-                        break;
-
-                    default:
-                        throw new RuntimeException('Function "' . $this->getName() . '" not implemented');
-                }
-                break;
-
-            case 'http://exslt.org/common':
-                switch ($this->getName()) {
-                    case 'node-set':
-                        $property = $this->getParameters()[0]->evaluate($context);
-                        $property->setParent(true);
-
-                        $result = $property;
-                        break;
-
-                    default:
-                        throw new RuntimeException('Function "' . $this->getName() . '" not implemented');
-                }
-
-                break;
+        $className = __NAMESPACE__ . '\\FunctionImplementation';
+        $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
+        $className .= '\\' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+
+        if (!class_exists($className)) {
+            $className = __NAMESPACE__ . '\\FunctionImplementation';
+            $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
+            $className .= '\\' . 'Func' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+
+            if (!class_exists($className)) {
+                throw new RuntimeException('The function ' . $this->getFullName() . ' is not supported yet (' . $className . ')');
+            }
         }
+
+        /** @var $obj FunctionImplementationInterface */
+        $obj = new $className();
+        $result = $obj->evaluate($this, $context);
 
         if (\Jdomenechb\XSLT2Processor\XSLT\Processor::$debug && $this->getNamespacePrefix() != 'exsl') {
             echo 'Function ' . $this->getFullName() . ' result: <br>';
@@ -537,6 +267,7 @@ class XPathFunction extends AbstractXPath
         }
 
         return $result;
+
     }
 
     /**
@@ -625,37 +356,12 @@ class XPathFunction extends AbstractXPath
         return $this->getNamespaces()[$this->getNamespacePrefix()];
     }
 
-    protected function internalString($value)
+    /**
+     * Return the keys generated by an XSLT transformation
+     * @return mixed
+     */
+    public function getKeys()
     {
-        if ($value instanceof DOMNodeList) {
-            if ($value->length == 0) {
-                return '';
-            }
-
-            return $value->item(0)->nodeValue;
-        }
-
-        if ($value instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
-            if ($value->count() == 0) {
-                return '';
-            }
-
-            return $value->item(0)->nodeValue;
-        }
-
-        return (string) $value;
-    }
-
-    protected function internalBoolean($value)
-    {
-        if ($value instanceof DOMNodeList) {
-            if ($value->length == 0) {
-                return false;
-            }
-
-            return true;
-        }
-
-        return (bool) $value;
+        return $this->keys;
     }
 }

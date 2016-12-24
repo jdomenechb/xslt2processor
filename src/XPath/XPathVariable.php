@@ -38,33 +38,36 @@ class XPathVariable extends AbstractXPath
 
     public function toString()
     {
-        if (is_null($this->getValue())) {
-            return '$' . $this->getName();
-        }
+//        if (is_null($this->getValue())) {
+//            return '$' . $this->getName();
+//        }
+//
+//        if (is_bool($this->getValue())) {
+//            return $this->getValue() ? 'true()' : 'false()';
+//        }
+//
+//        if (is_string($this->getValue())) {
+//            return "'" . $this->getValue() . "'";
+//        }
+//
+//        if (is_int($this->getValue()) || is_float($this->getValue())) {
+//            return $this->getValue();
+//        }
+//
+//        if (
+//            $this->getValue() instanceof \DOMNodeList
+//            || $this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList
+//            || $this->getValue() instanceof \DOMNode
+//        ) {
+//            return '$' . $this->getName();
+//        }
+//
+//        var_dump($this->getValue());
+//
+//        throw new \RuntimeException('Variable of type not recognised');
 
-        if (is_bool($this->getValue())) {
-            return $this->getValue() ? 'true()' : 'false()';
-        }
+        return '$' . $this->getName();
 
-        if (is_string($this->getValue())) {
-            return "'" . $this->getValue() . "'";
-        }
-
-        if (is_int($this->getValue()) || is_float($this->getValue())) {
-            return $this->getValue();
-        }
-
-        if (
-            $this->getValue() instanceof \DOMNodeList
-            || $this->getValue() instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList
-            || $this->getValue() instanceof \DOMNode
-        ) {
-            return '$' . $this->getName();
-        }
-
-        var_dump($this->getValue());
-
-        throw new \RuntimeException('Variable of type not recognised');
     }
 
     public function setDefaultNamespacePrefix($prefix)
