@@ -33,17 +33,31 @@ class XPathString extends AbstractXPath
         $eph = new Expression\ExpressionParserHelper();
 
         if (
-            // Starts with single quote
-            mb_substr($xPath, 0, 1) !== "'"
-            // Ends with single quote
-            || mb_substr($xPath, -1) !== "'"
-            // Does not contain other quotes inside
-            || strpos(substr($eph->literalLevelAnalysis($xPath, "'", "''"), 1, -1), '0') !== false
+            (
+                // Starts with single quote
+                mb_substr($xPath, 0, 1) !== "'"
+                // Ends with single quote
+                || mb_substr($xPath, -1) !== "'"
+                // Does not contain other quotes inside
+                || strpos(substr($eph->literalLevelAnalysis($xPath, "'", "''"), 1, -1), '0') !== false
+            )
+            && (
+                // Starts with double quote
+                mb_substr($xPath, 0, 1) !== '"'
+                // Ends with double quote
+                || mb_substr($xPath, -1) !== '"'
+                // Does not contain other quotes inside
+                || strpos(substr($eph->literalLevelAnalysis($xPath, '"', '""'), 1, -1), '0') !== false
+            )
         ) {
             return false;
         }
 
-        $this->string = (string) str_replace("''", "'", mb_substr($xPath, 1, -1));
+        if (mb_substr($xPath, 1, 1) == "'") {
+            $this->string = (string) str_replace("''", "'", mb_substr($xPath, 1, -1));
+        } else {
+            $this->string = (string) str_replace('""', '"', mb_substr($xPath, 1, -1));
+        }
 
         return true;
     }
