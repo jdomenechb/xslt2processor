@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 class XPathAttributeValueTemplate extends AbstractXPath
 {
     protected $parts;
@@ -80,7 +82,13 @@ class XPathAttributeValueTemplate extends AbstractXPath
             if (is_string($part)) {
                 $result .= $part;
             } elseif ($part instanceof ExpressionInterface) {
-                $result .= $part->evaluate($context);
+                $tmp = $part->evaluate($context);
+
+                if ($tmp instanceof DOMNodeList) {
+                    $tmp = $tmp->item(0)->nodeValue;
+                }
+
+                $result .= $tmp;
             } else {
                 throw new \RuntimeException('Part not compatible');
             }

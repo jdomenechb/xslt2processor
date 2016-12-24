@@ -173,8 +173,12 @@ class Processor
     {
         // Set error handler to throw exception at any error during execution
         set_error_handler(function ($errno, $errstr, $errfile, $errline, array $errcontext) {
-            // In case the error was suppressed with the @-operator, avi¡oid processing it
+            // In case the error was suppressed with the @-operator, avoid processing it
             if (0 === error_reporting()) {
+                return false;
+            }
+
+            if ($errno == E_USER_WARNING || $errno == E_USER_NOTICE) {
                 return false;
             }
 
@@ -211,9 +215,9 @@ class Processor
                 $this->newXml->saveXML();
         }
 
-        //TODO: Doctype
+        $content = $this->getOutput()->getDoctype() . "\n";
 
-        return $this->newXml->saveHTML();
+        return $content . $this->newXml->saveHTML();
     }
 
     /**
@@ -406,12 +410,22 @@ class Processor
                 echo '</div>';
             }
         } else {
-            throw new RuntimeException('The method ' . $methodName . ' does not exist');
+            throw new RuntimeException('The XSL tag  ' . $node->nodeName . ' is not supported yet');
         }
     }
 
     protected function xslOutput(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
+        // Avoid for now processing outputs with name
+        if ($node->hasAttribute('name')) {
+            trigger_error(
+                'xsl:output with attribute "name" is not supported, the whole tag will be ignored',
+                E_USER_WARNING
+            );
+
+            return;
+        }
+
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
                 case 'omit-xml-declaration':
@@ -441,11 +455,19 @@ class Processor
                     break;
 
                 case 'version':
-                    // TODO: We do not care about version yet
+                    $this->getOutput()->setVersion($attribute->nodeValue);
+                    break;
+
+                case 'doctype-public':
+                    $this->getOutput()->setDoctypePublicAttribute($attribute->nodeValue);
+                    break;
+
+                case 'doctype-system':
+                    $this->getOutput()->setDoctypeSystemAttribute($attribute->nodeValue);
                     break;
 
                 default:
-                    throw new RuntimeException($attribute->nodeName . ' attribute from xslOutput not supported');
+                    trigger_error($attribute->nodeName . ' attribute from xslOutput not supported', E_USER_WARNING);
             }
         }
     }
@@ -560,6 +582,13 @@ class Processor
 
             if ($isMatch) {
                 foreach ($nodesMatched as $nodeMatched) {
+                    if (static::$debug) {
+                        echo '<p>Chosen template: ';
+                        echo '@name="' . $template->getName() . '"';
+                        echo ' ### @match="' . $template->getMatch() . '"';
+                        echo '</p>';
+                    }
+
                     $this->processTemplate($template, $nodeMatched, $newContext);
                     $executed = true;
                 }
@@ -1156,5 +1185,32 @@ class Processor
     protected function xslSort(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
+    }
+
+    protected function xslStripSpace(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        $elements = $node->getAttribute('elements');
+        $elements = explode(' ', $elements);
+        $newElements = [];
+
+        foreach ($elements as $element) {
+            $parts = explode(':', $element);
+
+            if (count($parts) === 1) {
+                $newElements[$this->namespaces[$this->defaultNamespace]][$parts[0]] = $parts[0];
+            } else {
+                $newElements[$this->namespaces[$parts[0]]][$parts[1]] = $parts[1];
+            }
+        }
+
+        $xPathLeaves = $this->parseXPath('//*[not(*)]');
+        $leaves = $xPathLeaves->evaluate($context);
+
+        foreach ($leaves as $leaf) {
+            /** @var $leaf DOMElement */
+            if (isset($newElements[$leaf->namespaceURI][$leaf->localName]) && preg_match('#^\s*$#', $leaf->nodeValue)) {
+                $leaf->nodeValue = '';
+            }
+        }
     }
 }

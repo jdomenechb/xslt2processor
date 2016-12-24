@@ -242,6 +242,14 @@ class DOMNodeList implements ArrayAccess, Iterator
                 return 0;
             }
 
+            if ($a instanceof DOMDocument) {
+                return -1;
+            }
+
+            if ($b instanceof DOMDocument) {
+                return 1;
+            }
+
             $levelsA = [$a];
             $levelsB = [$b];
 

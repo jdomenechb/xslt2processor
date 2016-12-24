@@ -18,7 +18,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 class XPathPath extends AbstractXPath
 {
     /**
-     * @var string
+     * @var ExpressionInterface[]
      */
     protected $parts;
 
@@ -32,10 +32,6 @@ class XPathPath extends AbstractXPath
 
     public function parse($string)
     {
-        //        if ($string === '/') {
-//            $string = '/*';
-//        }
-
         $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->explodeRootLevel('/', $string);
         $factory = new Factory();
@@ -159,7 +155,7 @@ class XPathPath extends AbstractXPath
     }
 
     /**
-     * @return mixed
+     * @return ExpressionInterface[]
      */
     public function getParts()
     {

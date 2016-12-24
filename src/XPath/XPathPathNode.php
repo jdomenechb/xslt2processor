@@ -183,7 +183,7 @@ class XPathPathNode extends AbstractXPath
                 $doc = $item->ownerDocument;
             }
 
-            return $doc;
+            return new DOMNodeList($doc);
         }
 
         $limitBy = static::LIMIT_BY_ELEMENT;
@@ -235,6 +235,34 @@ class XPathPathNode extends AbstractXPath
                     }
                     break;
 
+                case 'ancestor-or-self':
+                    switch ($pseudoSecond) {
+                        case '*':
+                            if ($context instanceof DOMNodeList) {
+                                if ($context->count() > 1 || $context->count() < 1) {
+                                    throw new \RuntimeException('ancestor-or-self');
+                                }
+
+                                $context = $context->item(0);
+                            }
+
+                            $items = new DOMNodeList($context);
+
+                            while ($context->parentNode instanceof DOMElement) {
+                                if ($this->getSelector()->evaluate($context->parentNode)) {
+                                    $items->merge(new DOMNodeList($context->parentNode));
+                                }
+
+                                $context = $context->parentNode;
+                            }
+
+                            return $items;
+
+                        default:
+                            throw new \RuntimeException('Second parameter of ancestor-or-self:: not recognised');
+                    }
+                    break;
+
                 default:
                     throw new \RuntimeException('Pseudoelement not recognised');
             }
@@ -263,7 +291,7 @@ class XPathPathNode extends AbstractXPath
             $contextChilds = new DOMNodeList();
 
             foreach ($context as $contextElement) {
-                $contextChilds->merge(new DOMNodeList($contextElement->childNodes));
+                $contextChilds->merge(new DOMNodeList($contextElement instanceof \DOMDocument? $contextElement->documentElement: $contextElement->childNodes));
             }
         }
 

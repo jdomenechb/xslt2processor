@@ -32,13 +32,21 @@ class XPathAttr extends AbstractXPath
      */
     public function evaluate($context)
     {
-        foreach ($context->attributes as $attribute) {
-            if ($attribute->nodeName == $this->getName()) {
-                return new DOMNodeList($attribute);
+        if (!$context instanceof DOMNodeList) {
+            $context = new DOMNodeList($context);
+        }
+
+        $results = new DOMNodeList();
+
+        foreach ($context as $contextNode) {
+            foreach ($contextNode->attributes as $attribute) {
+                if ($attribute->nodeName == $this->getName()) {
+                    $results->merge(new DOMNodeList($attribute));
+                }
             }
         }
 
-        return new DOMNodeList();
+        return $results;
     }
 
     /**
