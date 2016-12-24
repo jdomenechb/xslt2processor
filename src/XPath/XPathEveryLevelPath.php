@@ -1,0 +1,159 @@
+<?php
+
+/**
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Jdomenechb\XSLT2Processor\XPath;
+
+use DOMElement;
+use DOMNodeList as OriginalDOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
+
+class XPathEveryLevelPath extends AbstractXPath
+{
+    /**
+     * @var ExpressionInterface
+     */
+    protected $leftPart;
+
+    /**
+     * @var ExpressionInterface
+     */
+    protected $rightPart;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($string = null)
+    {
+        if ($string && !$this->parse($string)) {
+            throw new NotValidXPathElement($string, static::class);
+        }
+    }
+
+    public function parse($string)
+    {
+        $eph = new Expression\ExpressionParserHelper();
+        $parts = $eph->explodeRootLevel('//', $string);
+
+        if (count($parts) <= 1) {
+            return false;
+        }
+
+        $factory = new Factory();
+
+        $this->setLeftPart($factory->create(array_shift($parts)));
+        $this->setRightPart($factory->create(implode('//', $parts)));
+
+        return true;
+    }
+
+
+    public function toString()
+    {
+        return $this->getLeftPart()->toString() . '//' . $this->getRightPart()->toString();
+    }
+
+    public function setDefaultNamespacePrefix($prefix)
+    {
+        $this->getLeftPart()->setDefaultNamespacePrefix($prefix);
+        $this->getRightPart()->setDefaultNamespacePrefix($prefix);
+    }
+
+    /**
+     * @return ExpressionInterface
+     */
+    public function getLeftPart()
+    {
+        return $this->leftPart;
+    }
+
+    /**
+     * @param ExpressionInterface $leftPart
+     */
+    public function setLeftPart(ExpressionInterface $leftPart)
+    {
+        $this->leftPart = $leftPart;
+    }
+
+    /**
+     * @return ExpressionInterface
+     */
+    public function getRightPart()
+    {
+        return $this->rightPart;
+    }
+
+    /**
+     * @param ExpressionInterface $rightPart
+     */
+    public function setRightPart(ExpressionInterface $rightPart)
+    {
+        $this->rightPart = $rightPart;
+    }
+
+    public function setVariableValues(array $values)
+    {
+        $this->getLeftPart()->setVariableValues($values);
+        $this->getRightPart()->setVariableValues($values);
+    }
+
+    public function evaluate($context)
+    {
+//        throw new \RuntimeException("Evaluation not implemented yet for " . __CLASS__);
+
+        $evaluation = $this->getLeftPart()->evaluate($context);
+
+        if (!$evaluation instanceof DOMNodeList) {
+            throw new \RuntimeException('Left part of ' . static::class . ' is not a list of nodes');
+        }
+
+        $results = new DOMNodeList();
+
+        foreach ($evaluation as $node) {
+            $this->deepEvaluation($results, $node);
+        }
+
+        return $results;
+
+    }
+
+    protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
+    {
+        $results->merge($this->getRightPart()->evaluate($node));
+
+        foreach ($node->childNodes as $childNode) {
+            if (!$childNode instanceof DOMElement) {
+                continue;
+            }
+
+            $this->deepEvaluation($results, $childNode);
+        }
+    }
+
+    public static function getOperators()
+    {
+        throw new \RuntimeException('Not set as abstract because of PHP 5.5: reimplement please');
+    }
+
+    public function setNamespaces(array $namespaces)
+    {
+        parent::setNamespaces($namespaces);
+
+        $this->getLeftPart()->setNamespaces($namespaces);
+        $this->getRightPart()->setNamespaces($namespaces);
+    }
+
+    public function setKeys(array $keys)
+    {
+        $this->getLeftPart()->setKeys($keys);
+        $this->getRightPart()->setKeys($keys);
+    }
+}

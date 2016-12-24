@@ -125,6 +125,13 @@ class Factory
             return $tmp;
         }
 
+        // Parse every level path
+        $tmp = new XPathEveryLevelPath();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
+        }
+
         // Parse path
         if (count($expressionParserHelper->explodeRootLevel('/', $expression)) > 1) {
             return new XPathPath($expression);
