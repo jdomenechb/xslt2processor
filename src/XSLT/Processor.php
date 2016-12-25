@@ -33,11 +33,9 @@ use RuntimeException;
 class Processor
 {
     /**
-     * If true, outputs debug information.
-     *
-     * @var bool
+     * @var Debug
      */
-    public static $debug = false;
+    protected $debug;
 
     /**
      * The DOMDocument that represents the transformed document.
@@ -156,12 +154,15 @@ class Processor
 
             if (is_file($xslt->documentURI)) {
                 $this->filePath = $xslt->documentURI;
-            } else if (strpos($xslt->documentURI, 'file:/') === 0) {
+            } elseif (strpos($xslt->documentURI, 'file:/') === 0) {
                 $this->filePath = substr($xslt->documentURI, 6);
             }
         } else {
             throw new \RuntimeException('XSLT must be a file path or a DOMDocument');
         }
+
+        $this->setDebug(Debug::getInstance());
+        $this->getDebug()->setOutput($this->getOutput());
     }
 
     /**
@@ -276,6 +277,22 @@ class Processor
         $this->templates = $templates;
     }
 
+    /**
+     * @return Debug
+     */
+    public function getDebug()
+    {
+        return $this->debug;
+    }
+
+    /**
+     * @param Debug $debug
+     */
+    public function setDebug($debug)
+    {
+        $this->debug = $debug;
+    }
+
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $this->namespaces['xsl'] = $node->namespaceURI;
@@ -339,12 +356,7 @@ class Processor
 
     protected function processNormalNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        if (static::$debug) {
-            echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
-            echo "<b>$node->nodeName</b><br>";
-            echo 'Before';
-            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
-        }
+        $this->getDebug()->startNodeLevel($this->newXml, $node);
 
         // Copy the node to the new document
         $doc = $newContext->ownerDocument ?: $newContext;
@@ -380,35 +392,19 @@ class Processor
 
         $this->processChildNodes($node, $context, $newNode);
 
-        if (static::$debug) {
-            echo 'After';
-            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
-            echo '</div>';
-        }
+        $this->getDebug()->endNodeLevel($this->newXml);
     }
 
     protected function processXsltNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
         $methodName = 'xsl' . implode('', array_map('ucfirst', explode('-', substr($node->nodeName, 4))));
 
-        if (static::$debug) {
-            echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">';
-            echo "<b>$methodName</b><br>";
-            foreach ($node->attributes as $attribute) {
-                echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
-            }
-            echo '<br>';
-            echo 'Before';
-            echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
-        }
+        $this->getDebug()->startNodeLevel($this->newXml, $node);
 
         if (method_exists($this, $methodName)) {
             $this->$methodName($node, $context, $newContext);
-            if (static::$debug) {
-                echo 'After';
-                echo '<pre>' . htmlspecialchars($this->getOutput()->getMethod() == Output::METHOD_XML ? $this->newXml->saveXML() : $this->newXml->saveHTML()) . '</pre>';
-                echo '</div>';
-            }
+
+            $this->getDebug()->endNodeLevel($this->newXml);
         } else {
             throw new RuntimeException('The XSL tag  ' . $node->nodeName . ' is not supported yet');
         }
@@ -582,15 +578,10 @@ class Processor
 
             if ($isMatch) {
                 foreach ($nodesMatched as $nodeMatched) {
-                    if (static::$debug) {
-                        echo '<p>Chosen template: ';
-                        echo '@name="' . $template->getName() . '"';
-                        echo ' ### @match="' . $template->getMatch() . '"';
-                        echo '</p>';
-                    }
-
+                    $this->getDebug()->showTemplate($template);
                     $this->processTemplate($template, $nodeMatched, $newContext);
-                    $executed = true;
+
+                    //$executed = true;
                 }
 
                 return;
@@ -598,7 +589,7 @@ class Processor
         }
 
         // No matched templates: if first, select the most prioritary one
-        if (!$first || $executed) {
+        if (!$first/* || $executed*/) {
             return;
         }
 
@@ -785,21 +776,19 @@ class Processor
                 continue;
             }
 
+            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+
             if ($childNode->nodeName == 'xsl:when') {
                 if ($this->xslIf($childNode, $context, $newContext)) {
-                    if (static::$debug) {
-                        echo 'Option chosen: xsl:when test="' . $childNode->getAttribute('test') . '"<br>';
-                    }
+                    $this->getDebug()->endNodeLevel($this->newXml);
                     break;
                 }
             }
 
             if ($childNode->nodeName == 'xsl:otherwise') {
-                if (static::$debug) {
-                    echo 'Option chosen: xsl:otherwise';
-                }
-
                 $this->processChildNodes($childNode, $context, $newContext);
+
+                $this->getDebug()->endNodeLevel($this->newXml);
             }
         }
     }
@@ -925,15 +914,7 @@ class Processor
                 continue;
             }
 
-            if (static::$debug) {
-                echo 'xsl:sort ';
-
-                foreach ($childNode->attributes as $attribute) {
-                    echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
-                }
-
-                echo '<br/>';
-            }
+            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
 
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
@@ -948,6 +929,8 @@ class Processor
                     );
                 });
             }
+
+            $this->getDebug()->endNodeLevel($this->newXml);
 
             break;
         }
@@ -1128,15 +1111,7 @@ class Processor
                 throw new RuntimeException('Found not recognized "' . $childNode->nodeName . '" inside xsl:call-template');
             }
 
-            if (static::$debug) {
-                echo 'xsl:with-param ';
-
-                foreach ($childNode->attributes as $attribute) {
-                    echo '@' . $attribute->name . '=' . $attribute->value . ' --- ';
-                }
-
-                echo '<br/>';
-            }
+            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
 
             $childName = $childNode->getAttribute('name');
 
@@ -1149,6 +1124,8 @@ class Processor
             } else {
                 $params[$childNode->getAttribute('name')] = $this->evaluateBody($childNode, $context);
             }
+
+            $this->getDebug()->endNodeLevel($this->newXml);
         }
 
         // Select the candidates to be processed

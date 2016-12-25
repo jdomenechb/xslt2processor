@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the XSLT2processor package.
+ * This file is part of the XSLT2Processor package.
  *
  * (c) Jordi Domènech Bonilla
  *
@@ -14,15 +14,14 @@ namespace Jdomenechb\XSLT2Processor\Tests\XML;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 /**
- * Class DOMNodeListTest for testing DOMNodeList
- * @package Jdomenechb\XSLT2Processor\Tests\XML
+ * Class DOMNodeListTest for testing DOMNodeList.
+ *
  * @author jdomemechb
  */
 class DOMNodeListTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
-     * Tests that importing a DOMNodeList is possible
+     * Tests that importing a DOMNodeList is possible.
      */
     public function testFromDOMNodeList()
     {
@@ -55,7 +54,7 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that importing a DOMNode is possible
+     * Tests that importing a DOMNode is possible.
      */
     public function testFromDOMNode()
     {
@@ -72,8 +71,11 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that importing from another DOMNodeList is possible
+     * Tests that importing from another DOMNodeList is possible.
+     *
      * @depends testFromDOMNodeList
+     *
+     * @param DOMNodeList $oldDOMNodeList
      */
     public function testFromSelf(DOMNodeList $oldDOMNodeList)
     {
@@ -84,8 +86,10 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that importing from an array is possible
+     * Tests that importing from an array is possible.
+     *
      * @depends testFromDOMNodeList
+     *
      * @param DOMNodeList $oldDOMNodeList
      */
     public function testFromArray(DOMNodeList $oldDOMNodeList)
@@ -97,7 +101,7 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that an empty DOMNodeList is effectively empty
+     * Tests that an empty DOMNodeList is effectively empty.
      */
     public function testEmpty()
     {
@@ -106,8 +110,10 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that the DOMNodeList can be counted
+     * Tests that the DOMNodeList can be counted.
+     *
      * @dataProvider multipleLengthProvider
+     *
      * @param array $items
      */
     public function testCount(array $items)
@@ -117,8 +123,10 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that the DOMNodeList can be counted via length attribute
+     * Tests that the DOMNodeList can be counted via length attribute.
+     *
      * @dataProvider multipleLengthProvider
+     *
      * @param array $items
      */
     public function testLength(array $items)
@@ -128,7 +136,7 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests that the DOMNodeList returns an error if trying to access a non valid property
+     * Tests that the DOMNodeList returns an error if trying to access a non valid property.
      */
     public function testNotValidProperty()
     {
@@ -140,8 +148,10 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests getting a single item
+     * Tests getting a single item.
+     *
      * @depends testFromDOMNodeList
+     *
      * @param DOMNodeList $oldDOMNodeList
      */
     public function testItem(DOMNodeList $oldDOMNodeList)
@@ -154,7 +164,8 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Provider of DOMNodeList with multiple lengths
+     * Provider of DOMNodeList with multiple lengths.
+     *
      * @return array
      */
     public function multipleLengthProvider()

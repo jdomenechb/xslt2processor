@@ -291,7 +291,7 @@ class XPathPathNode extends AbstractXPath
             $contextChilds = new DOMNodeList();
 
             foreach ($context as $contextElement) {
-                $contextChilds->merge(new DOMNodeList($contextElement instanceof \DOMDocument? $contextElement->documentElement: $contextElement->childNodes));
+                $contextChilds->merge(new DOMNodeList($contextElement instanceof \DOMDocument ? $contextElement->documentElement : $contextElement->childNodes));
             }
         }
 

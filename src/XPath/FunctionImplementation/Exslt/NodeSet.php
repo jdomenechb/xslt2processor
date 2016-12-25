@@ -11,20 +11,20 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Exslt;
 
-
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function node-set from EXSLT library,
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn
+ * Function node-set from EXSLT library.
  */
 class NodeSet extends AbstractFunctionImplementation
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param XPathFunction $func
      * @param $context
+     *
      * @return string
      */
     public function evaluate(XPathFunction $func, $context)

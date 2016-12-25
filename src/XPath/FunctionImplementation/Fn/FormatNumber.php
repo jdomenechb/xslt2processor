@@ -11,20 +11,20 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
-
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function format-number() from XSLT standard library,
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn
+ * Function format-number() from XSLT standard library.
  */
 class FormatNumber extends AbstractFunctionImplementation
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param XPathFunction $func
      * @param $context
+     *
      * @return string
      */
     public function evaluate(XPathFunction $func, $context)
@@ -51,11 +51,10 @@ class FormatNumber extends AbstractFunctionImplementation
             throw new \RuntimeException('format-number function with decimal format not implemented yet');
         }
 
-
         $j = 1;
         $finalNumber = '';
 
-        for ($i = mb_strlen($formatParts[0]) - 1; $i >= 0; $i--) {
+        for ($i = mb_strlen($formatParts[0]) - 1; $i >= 0; --$i) {
             // Percent
             if ($i === mb_strlen($formatParts[0]) - 1 && $formatParts[0][$i] === '%') {
                 $number *= 100;
@@ -82,7 +81,7 @@ class FormatNumber extends AbstractFunctionImplementation
                 )
             ) {
                 $finalNumber = '0' . $finalNumber;
-            } else if ($numberPart !== 0) {
+            } elseif ($numberPart !== 0) {
                 $finalNumber = $numberPart . $finalNumber;
             }
 

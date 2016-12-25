@@ -10,18 +10,20 @@
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation;
+
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Interface that defines a base function implementation object
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation
+ * Interface that defines a base function implementation object.
  */
 interface FunctionImplementationInterface
 {
     /**
-     * Evaluate the function by the given application context and node context
+     * Evaluate the function by the given application context and node context.
+     *
      * @param XPathFunction $func
      * @param $context
+     *
      * @return mixed
      */
     public function evaluate(XPathFunction $func, $context);

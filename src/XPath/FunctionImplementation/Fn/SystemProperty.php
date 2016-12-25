@@ -11,14 +11,12 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
-
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use Jdomenechb\XSLT2Processor\XSLT\SystemProperties;
 
 /**
- * Function system-property from XSLT standard library,
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn
+ * Function system-property from XSLT standard library.
  */
 class SystemProperty extends AbstractFunctionImplementation
 {

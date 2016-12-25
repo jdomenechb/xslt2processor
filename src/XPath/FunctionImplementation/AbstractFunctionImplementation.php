@@ -11,14 +11,15 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation;
 
-
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 abstract class AbstractFunctionImplementation implements FunctionImplementationInterface
 {
     /**
      * Converts the given value into an string.
+     *
      * @param mixed $value
+     *
      * @return string
      */
     protected function valueAsString($value)
@@ -36,7 +37,9 @@ abstract class AbstractFunctionImplementation implements FunctionImplementationI
 
     /**
      * Converts the given value into a boolean.
+     *
      * @param mixed $value
+     *
      * @return bool
      */
     protected function valueAsBool($value)

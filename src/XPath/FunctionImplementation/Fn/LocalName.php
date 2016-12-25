@@ -11,20 +11,20 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
-
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function local-name() from XSLT standard library,
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn
+ * Function local-name() from XSLT standard library.
  */
 class LocalName extends AbstractFunctionImplementation
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param XPathFunction $func
      * @param $context
+     *
      * @return string
      */
     public function evaluate(XPathFunction $func, $context)

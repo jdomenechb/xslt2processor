@@ -11,20 +11,20 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
-
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function string-length() from XSLT standard library,
- * @package Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn
+ * Function string-length() from XSLT standard library.
  */
 class StringLength extends AbstractFunctionImplementation
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param XPathFunction $func
      * @param $context
+     *
      * @return string
      */
     public function evaluate(XPathFunction $func, $context)

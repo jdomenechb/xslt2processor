@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMElement;
-use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 
@@ -54,7 +53,6 @@ class XPathEveryLevelPath extends AbstractXPath
 
         return true;
     }
-
 
     public function toString()
     {
@@ -107,7 +105,7 @@ class XPathEveryLevelPath extends AbstractXPath
 
     public function evaluate($context)
     {
-//        throw new \RuntimeException("Evaluation not implemented yet for " . __CLASS__);
+        //        throw new \RuntimeException("Evaluation not implemented yet for " . __CLASS__);
 
         $evaluation = $this->getLeftPart()->evaluate($context);
 
@@ -122,20 +120,6 @@ class XPathEveryLevelPath extends AbstractXPath
         }
 
         return $results;
-
-    }
-
-    protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
-    {
-        $results->merge($this->getRightPart()->evaluate($node));
-
-        foreach ($node->childNodes as $childNode) {
-            if (!$childNode instanceof DOMElement) {
-                continue;
-            }
-
-            $this->deepEvaluation($results, $childNode);
-        }
     }
 
     public static function getOperators()
@@ -155,5 +139,18 @@ class XPathEveryLevelPath extends AbstractXPath
     {
         $this->getLeftPart()->setKeys($keys);
         $this->getRightPart()->setKeys($keys);
+    }
+
+    protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
+    {
+        $results->merge($this->getRightPart()->evaluate($node));
+
+        foreach ($node->childNodes as $childNode) {
+            if (!$childNode instanceof DOMElement) {
+                continue;
+            }
+
+            $this->deepEvaluation($results, $childNode);
+        }
     }
 }

@@ -44,20 +44,22 @@ class Output
     protected $cdataSectionElements = [];
 
     /**
-     * Version of the output that is intended to be used
+     * Version of the output that is intended to be used.
      *
      * @var float
      */
     protected $version;
 
     /**
-     * Public attribute in the DOCTYPE declaration
+     * Public attribute in the DOCTYPE declaration.
+     *
      * @var string
      */
     protected $doctypePublicAttribute;
 
     /**
-     * System attribute in the DOCTYPE declaration
+     * System attribute in the DOCTYPE declaration.
+     *
      * @var string
      */
     protected $doctypeSystemAttribute;
@@ -123,7 +125,8 @@ class Output
     }
 
     /**
-     * Get the version of ouptut intended to use
+     * Get the version of ouptut intended to use.
+     *
      * @return float
      */
     public function getVersion()
@@ -132,7 +135,8 @@ class Output
     }
 
     /**
-     * Set the version of ouptut intended to use
+     * Set the version of ouptut intended to use.
+     *
      * @param float $version
      */
     public function setVersion($version)
@@ -141,7 +145,8 @@ class Output
     }
 
     /**
-     * Get the public attribute in the DOCTYPE declaration
+     * Get the public attribute in the DOCTYPE declaration.
+     *
      * @return string
      */
     public function getDoctypePublicAttribute()
@@ -150,7 +155,8 @@ class Output
     }
 
     /**
-     * Set the public attribute in the DOCTYPE declaration
+     * Set the public attribute in the DOCTYPE declaration.
+     *
      * @param string $doctypePublicAttribute
      */
     public function setDoctypePublicAttribute($doctypePublicAttribute)
@@ -159,7 +165,8 @@ class Output
     }
 
     /**
-     * Get the system attribute in the DOCTYPE declaration
+     * Get the system attribute in the DOCTYPE declaration.
+     *
      * @return string
      */
     public function getDoctypeSystemAttribute()
@@ -168,7 +175,8 @@ class Output
     }
 
     /**
-     * Set the system attribute in the DOCTYPE declaration
+     * Set the system attribute in the DOCTYPE declaration.
+     *
      * @param string $doctypeSystemAttribute
      */
     public function setDoctypeSystemAttribute($doctypeSystemAttribute)
@@ -178,10 +186,10 @@ class Output
 
     public function getDoctype()
     {
-        $version = $this->getVersion() ? : 4;
+        $version = $this->getVersion() ?: 4;
 
         if ($this->getMethod() !== static::METHOD_HTML) {
-            throw new \RuntimeException("Non HTML output methods are not supported for DOCTYPE");
+            throw new \RuntimeException('Non HTML output methods are not supported for DOCTYPE');
         }
 
         $doctype = '<!DOCTYPE ';
@@ -215,5 +223,4 @@ class Output
 
         return $doctype . '>';
     }
-
 }

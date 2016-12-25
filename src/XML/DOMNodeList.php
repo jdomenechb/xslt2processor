@@ -13,7 +13,6 @@ namespace Jdomenechb\XSLT2Processor\XML;
 
 use ArrayAccess;
 use DOMDocument;
-use DOMElement;
 use DOMNode;
 use DOMNodeList as OriginalDOMNodeList;
 use Iterator;
@@ -122,7 +121,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Fills the object with the items in the given array
+     * Fills the object with the items in the given array.
+     *
      * @param array $items
      */
     public function fromArray(array $items)
@@ -132,7 +132,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Fills the object with the items in the given OriginalDOMNodeList
+     * Fills the object with the items in the given OriginalDOMNodeList.
+     *
      * @param OriginalDOMNodeList $items
      */
     public function fromDOMNodeList(OriginalDOMNodeList $items)
@@ -145,7 +146,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Fills the object with the given DOMNode item
+     * Fills the object with the given DOMNode item.
+     *
      * @param DOMNode $item
      */
     public function fromDOMNode(DOMNode $item)
@@ -154,7 +156,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Fills the object with the given self DOMNodeList item
+     * Fills the object with the given self DOMNodeList item.
+     *
      * @param DOMNodeList $item
      */
     public function fromSelf(DOMNodeList $item)
@@ -177,7 +180,8 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * Returns the number of nodes the object contains
+     * Returns the number of nodes the object contains.
+     *
      * @return int
      */
     public function count()
@@ -214,6 +218,7 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     /**
      * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
+     *
      * @return bool
      */
     public function isParent()
