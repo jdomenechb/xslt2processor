@@ -24,6 +24,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
+use Jdomenechb\XSLT2Processor\XSLT\Context\BaseContext;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Template;
 use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
@@ -136,6 +137,11 @@ class Processor
     protected $cache;
 
     /**
+     * @var BaseContext
+     */
+    protected $baseContext;
+
+    /**
      * Constructor.
      *
      * @param string|\DOMDocument $xslt path of the XSLT file or DOMDocument containing the XSL stylesheet
@@ -187,7 +193,7 @@ class Processor
         });
 
         // Set the basic things needed
-        $this->namespaces = ['default' => null];
+        $this->baseContext = new BaseContext();
         $this->newXml = new DOMDocument();
         $this->defaultNamespace = 'default';
 
@@ -295,12 +301,12 @@ class Processor
 
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        $this->namespaces['xsl'] = $node->namespaceURI;
+        $this->getBaseContext()->getNamespaces()[BaseContext::NAMESPACE_XSL] = $node->namespaceURI;
 
         foreach ($node->attributes as $attribute) {
             // Default namespace
             if ($attribute->nodeName == 'xpath-default-namespace') {
-                $this->namespaces['default'] = $attribute->nodeValue;
+                $this->getBaseContext()->getNamespaces()[BaseContext::NAMESPACE_DEFAULT] = $attribute->nodeValue;
                 continue;
             }
 
@@ -316,7 +322,8 @@ class Processor
         $xpath = new DOMXPath($node->ownerDocument);
 
         foreach ($xpath->query('namespace::*', $node) as $nsNode) {
-            $this->namespaces[$nsNode->localName] = $nsNode->namespaceURI;
+            $this->getBaseContext()->getNamespaces()[$nsNode->localName] = $nsNode->namespaceURI;
+
         }
 
         // Start processing the template
@@ -339,7 +346,7 @@ class Processor
             }
 
             // Determine if it is an XSLT node or not
-            if ($childNode->namespaceURI == $this->namespaces['xsl']) {
+            if ($childNode->namespaceURI === $this->getBaseContext()->getNamespaces()['xsl']) {
                 $this->processXsltNode($childNode, $context, $newContext);
                 continue;
             }
@@ -379,11 +386,7 @@ class Processor
         $newAttr = [];
 
         foreach ($newNode->attributes as $attribute) {
-            $attrTemplate = $factory->createFromAttributeValue($attribute->nodeValue);
-            $attrTemplate->setDefaultNamespacePrefix($this->namespaces);
-            $attrTemplate->setVariableValues(array_merge($this->templateParams, $this->variables));
-
-            $newAttr[$attribute->nodeName] = $attrTemplate->evaluate($context);
+            $newAttr[$attribute->nodeName] = $this->evaluateAttrValueTemplates($attribute->nodeValue, $context);
         }
 
         foreach ($newAttr as $attrName => $attr) {
@@ -655,7 +658,7 @@ class Processor
         // Set the properties the xPath need for working
         $xPathParsed->setDefaultNamespacePrefix('default');
         $xPathParsed->setVariableValues(array_merge($this->variables, $this->templateParams));
-        $xPathParsed->setNamespaces($this->namespaces);
+        $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
         $xPathParsed->setKeys($this->keys);
 
         $transformed = $xPathParsed->toString();
@@ -671,8 +674,10 @@ class Processor
     {
         $factory = new Factory();
         $xPathParsed = $factory->createFromAttributeValue($attrValue);
-        $xPathParsed->setDefaultNamespacePrefix('default');
-        $xPathParsed->setVariableValues($this->variables);
+        $xPathParsed->setDefaultNamespacePrefix($this->defaultNamespace);
+        $xPathParsed->setVariableValues(array_merge($this->templateParams, $this->variables));
+        $xPathParsed->setKeys($this->keys);
+        $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
 
         return $xPathParsed->evaluate($context);
     }
@@ -1175,9 +1180,9 @@ class Processor
             $parts = explode(':', $element);
 
             if (count($parts) === 1) {
-                $newElements[$this->namespaces[$this->defaultNamespace]][$parts[0]] = $parts[0];
+                $newElements[$this->getBaseContext()->getNamespaces()[$this->defaultNamespace]][$parts[0]] = $parts[0];
             } else {
-                $newElements[$this->namespaces[$parts[0]]][$parts[1]] = $parts[1];
+                $newElements[$this->getBaseContext()->getNamespaces()[$parts[0]]][$parts[1]] = $parts[1];
             }
         }
 
@@ -1191,4 +1196,14 @@ class Processor
             }
         }
     }
+
+    /**
+     * @return BaseContext
+     */
+    public function getBaseContext()
+    {
+        return $this->baseContext;
+    }
+
+
 }

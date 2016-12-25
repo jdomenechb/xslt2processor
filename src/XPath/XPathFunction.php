@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use Exception;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\FunctionImplementationInterface;
 use Jdomenechb\XSLT2Processor\XSLT\CustomFunction;
 use Jdomenechb\XSLT2Processor\XSLT\Debug;

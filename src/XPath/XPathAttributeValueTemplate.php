@@ -98,6 +98,30 @@ class XPathAttributeValueTemplate extends AbstractXPath
         return $result;
     }
 
+    public function setNamespaces(array $namespaces)
+    {
+        parent::setNamespaces($namespaces);
+
+        foreach ($this->getParts() as $part) {
+            if (!$part instanceof ExpressionInterface) {
+                continue;
+            }
+
+            $part->setNamespaces($namespaces);
+        }
+    }
+
+    public function setKeys(array $keys)
+    {
+        foreach ($this->getParts() as $part) {
+            if (!$part instanceof ExpressionInterface) {
+                continue;
+            }
+
+            $part->setKeys($keys);
+        }
+    }
+
     /**
      * @return mixed
      */
