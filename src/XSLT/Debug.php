@@ -42,7 +42,7 @@ class Debug
     /**
      * Debug constructor.
      */
-    private function __construct()
+    protected function __construct()
     {
     }
 
@@ -116,6 +116,8 @@ class Debug
     {
         if ($this->isEnabled()) {
             echo '<p>Function ' . $name . ' result:</p>';
+
+            /** @noinspection ForgottenDebugOutputInspection */
             var_dump($result);
         }
     }

@@ -239,7 +239,7 @@ class XPathPathNode extends AbstractXPath
                     switch ($pseudoSecond) {
                         case '*':
                             if ($context instanceof DOMNodeList) {
-                                if ($context->count() > 1 || $context->count() < 1) {
+                                if ($context->count() !== 1) {
                                     throw new \RuntimeException('ancestor-or-self');
                                 }
 
@@ -248,7 +248,7 @@ class XPathPathNode extends AbstractXPath
 
                             $items = new DOMNodeList($context);
 
-                            while ($context->parentNode instanceof DOMElement) {
+                            while ($context->parentNode instanceof \DOMElement) {
                                 if ($this->getSelector()->evaluate($context->parentNode)) {
                                     $items->merge(new DOMNodeList($context->parentNode));
                                 }

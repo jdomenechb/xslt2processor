@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
 use DOMDocument;
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use PHPUnit\Framework\TestCase;
@@ -34,7 +33,7 @@ class XPathNumberTest extends TestCase
     public function testInvalid($xPath)
     {
         $this->expectException(NotValidXPathElement::class);
-        $obj = new XPathNumber($xPath);
+        new XPathNumber($xPath);
     }
 
     /**
@@ -95,10 +94,9 @@ class XPathNumberTest extends TestCase
     public function testEvaluate($xPath)
     {
         $document = new DOMDocument();
-        $domXPath = new DOMXPath($document);
 
         $obj = new XPathNumber($xPath);
-        $this->assertEquals($xPath, $obj->evaluate($document, $domXPath), '', 0.0000001);
+        $this->assertEquals($xPath, $obj->evaluate($document), '', 0.0000001);
     }
 
     /**
@@ -107,10 +105,9 @@ class XPathNumberTest extends TestCase
     public function testNan()
     {
         $document = new DOMDocument();
-        $domXPath = new DOMXPath($document);
 
         $obj = new XPathNumber('NaN');
-        $this->assertNan($obj->evaluate($document, $domXPath));
+        $this->assertNan($obj->evaluate($document));
     }
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------

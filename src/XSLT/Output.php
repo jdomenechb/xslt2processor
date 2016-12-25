@@ -117,7 +117,7 @@ class Output
     /**
      * Sets the list of elements that must be CDATA.
      *
-     * @param type $cdataSectionElements
+     * @param array $cdataSectionElements
      */
     public function setCdataSectionElements($cdataSectionElements)
     {

@@ -292,6 +292,8 @@ class DOMNodeList implements ArrayAccess, Iterator
                     }
                 }
             }
+
+            return 0;
         });
     }
 }

@@ -231,7 +231,7 @@ class XPathFunction extends AbstractXPath
     public function evaluate($context)
     {
         if (array_key_exists($this->getName(), static::getCustomFunctions())) {
-            throw new Exception('Custom functions are not supported yet');
+            throw new \RuntimeException('Custom functions are not supported yet');
         }
 
         if (!isset($this->availableNamespaces[$this->getNamespace()])) {

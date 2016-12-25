@@ -21,7 +21,7 @@ class SystemProperties
     /**
      * List of static properties available.
      *
-     * @var type
+     * @var array
      */
     protected static $properties = [
         'xsl:vendor' => 'jdomenechb/xslt2processor',

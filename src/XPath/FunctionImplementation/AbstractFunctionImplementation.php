@@ -45,11 +45,7 @@ abstract class AbstractFunctionImplementation implements FunctionImplementationI
     protected function valueAsBool($value)
     {
         if ($value instanceof DOMNodeList) {
-            if ($value->length == 0) {
-                return false;
-            }
-
-            return true;
+            return $value->length !== 0;
         }
 
         return (bool) $value;

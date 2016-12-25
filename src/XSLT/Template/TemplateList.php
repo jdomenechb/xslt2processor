@@ -58,7 +58,9 @@ class TemplateList extends ArrayObject
 
     public function appendTemplate(Template $template)
     {
-        for ($i = 0; $i < count($this); ++$i) {
+        $count = count($this);
+
+        for ($i = 0; $i < $count; ++$i) {
             $currentTemplate = $this[$i];
 
             if ($template->getPriority() > $currentTemplate->getPriority()) {

@@ -48,7 +48,6 @@ class XPathBooleanOperator extends AbstractXPathOperator
                         } elseif (!is_object($other) && $objNode->nodeValue != $other) {
                             return true;
                         } elseif (is_object($other)) {
-                            var_dump($other);
                             throw new \RuntimeException('Unidentified object');
                         }
                     }
@@ -79,7 +78,6 @@ class XPathBooleanOperator extends AbstractXPathOperator
                         } elseif (!is_object($other) && $objNode->nodeValue == $other) {
                             return true;
                         } elseif (is_object($other)) {
-                            var_dump($other);
                             throw new \RuntimeException('Unidentified object');
                         }
                     }

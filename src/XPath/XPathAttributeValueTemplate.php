@@ -25,8 +25,9 @@ class XPathAttributeValueTemplate extends AbstractXPath
     public function parse($string)
     {
         $factory = new Factory();
+        $total = count($string);
 
-        for ($i = 1; $i < count($string); $i = $i + 2) {
+        for ($i = 1; $i < $total; $i += 2) {
             $string[$i] = $factory->create($string[$i]);
         }
 

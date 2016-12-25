@@ -186,8 +186,8 @@ class DOMElementUtilsTest extends TestCase
     public function writableNodeProvider()
     {
         return [
-            [new DOMText(rand(0, 9999))],
-            [new DOMCdataSection(rand(0, 9999))],
+            [new DOMText(mt_rand(0, 9999))],
+            [new DOMCdataSection(mt_rand(0, 9999))],
         ];
     }
 

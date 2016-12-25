@@ -124,9 +124,9 @@ class Processor
     /**
      * XSLT version used in the document.
      *
-     * @var type
+     * @var float
      */
-    protected $version = null;
+    protected $version;
 
     /**
      * CacheItemPool to be used for caching. If null, no caching will be performed.
@@ -522,7 +522,6 @@ class Processor
         $nodesMatched = $applyTemplatesSelectParsed->query($context);
 
         $fbPossibleTemplate = null;
-        $executed = false;
 
         if (!$nodesMatched->length) {
             return;
@@ -544,8 +543,8 @@ class Processor
             $mode = $template->getMode();
 
             if (
-                $node->hasAttribute('mode') && $mode != $node->getAttribute('mode')
-                || !$node->hasAttribute('mode') && $mode != null
+                ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode'))
+                || (!$node->hasAttribute('mode') && $mode != null)
             ) {
                 continue;
             }
@@ -863,7 +862,7 @@ class Processor
     protected function evaluateBody(DOMElement $node, DOMNode $context, DOMNode $newContext = null)
     {
         // Create temporal context
-        $tmpContext = $this->xml->createElement('tmptmptmptmptmpevaluateBody' . rand(0, 9999999));
+        $tmpContext = $this->xml->createElement('tmptmptmptmptmpevaluateBody' . mt_rand(0, 9999999));
 
         $this->processChildNodes($node, $context, $tmpContext);
 
@@ -892,6 +891,8 @@ class Processor
 
             return $tmpContext->childNodes;
         }
+
+        return null;
     }
 
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)

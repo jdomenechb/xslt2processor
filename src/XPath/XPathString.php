@@ -35,7 +35,7 @@ class XPathString extends AbstractXPath
         if (
             (
                 // Starts with single quote
-                mb_substr($xPath, 0, 1) !== "'"
+                mb_strpos($xPath, "'") !== 0
                 // Ends with single quote
                 || mb_substr($xPath, -1) !== "'"
                 // Does not contain other quotes inside
@@ -43,7 +43,7 @@ class XPathString extends AbstractXPath
             )
             && (
                 // Starts with double quote
-                mb_substr($xPath, 0, 1) !== '"'
+                mb_strpos($xPath, '"') !== 0
                 // Ends with double quote
                 || mb_substr($xPath, -1) !== '"'
                 // Does not contain other quotes inside

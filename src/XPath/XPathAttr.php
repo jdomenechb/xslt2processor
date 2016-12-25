@@ -23,7 +23,7 @@ class XPathAttr extends AbstractXPath
     /**
      * Name of the attribute.
      *
-     * @var type
+     * @var string
      */
     protected $name;
 

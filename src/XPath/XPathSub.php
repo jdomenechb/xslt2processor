@@ -50,8 +50,9 @@ class XPathSub extends AbstractXPath
 
         if (isset($parts[1]) && $parts[1] != '') {
             $subParts = $eph->parseFirstLevelSubExpressions($parts[1], '[', ']');
+            $subPartsCount = count($subParts);
 
-            for ($i = 1; $i < count($subParts); $i += 2) {
+            for ($i = 1; $i < $subPartsCount; $i += 2) {
                 if (preg_match('#^\d+$#', $subParts[$i])) {
                     $this->setPosition($subParts[$i]);
                 } else {
@@ -96,7 +97,8 @@ class XPathSub extends AbstractXPath
 
     public function evaluate($context)
     {
-        $xPath = $this->toString();
+        //$xPath = $this->toString();
+
         $result = $this->getSubExpression()->evaluate($context);
 
         if (!is_null($this->getSelector())) {
