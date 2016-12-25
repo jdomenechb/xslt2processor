@@ -18,18 +18,39 @@ use Jdomenechb\XSLT2Processor\XSLT\Template\Template;
  */
 class Debug
 {
+    /**
+     * Instance for the singleton pattern.
+     *
+     * @var self
+     */
     protected static $instance;
+
+    /**
+     * Determines if the debug is enabled.
+     *
+     * @var bool
+     */
     protected $enabled = false;
 
     /**
+     * Output class of the processor, to determine the format of output debug.
+     *
      * @var Output
      */
     protected $output;
 
+    /**
+     * Debug constructor.
+     */
     private function __construct()
     {
     }
 
+    /**
+     * Prints the end of a level, with the "after" changes.
+     *
+     * @param \DOMDocument $xml
+     */
     public function endNodeLevel(\DOMDocument $xml)
     {
         if ($this->isEnabled()) {
@@ -40,6 +61,12 @@ class Debug
         }
     }
 
+    /**
+     * Prints the start of a level, with the info of the node provided and the "before" status.
+     *
+     * @param \DOMDocument $xml
+     * @param \DOMNode     $node
+     */
     public function startNodeLevel(\DOMDocument $xml, \DOMNode $node)
     {
         if ($this->isEnabled()) {
@@ -64,16 +91,27 @@ class Debug
         }
     }
 
+    /**
+     * Prints information about a given template.
+     *
+     * @param Template $template
+     */
     public function showTemplate(Template $template)
     {
         if ($this->isEnabled()) {
-            echo '<p>Chosen template: ';
+            echo '<p>Template: ';
             echo '@name="' . $template->getName() . '"';
             echo ' ### @match="' . $template->getMatch() . '"';
             echo '</p>';
         }
     }
 
+    /**
+     * Prints the result of a function.
+     *
+     * @param $name
+     * @param $result
+     */
     public function showFunction($name, $result)
     {
         if ($this->isEnabled()) {
@@ -111,6 +149,8 @@ class Debug
     }
 
     /**
+     * Get output class of the processor, to determine the format of output debug.
+     *
      * @param Output $output
      */
     public function setOutput($output)
@@ -119,6 +159,8 @@ class Debug
     }
 
     /**
+     * Get a Singleton instance.
+     *
      * @return self
      */
     public static function getInstance()
@@ -132,6 +174,8 @@ class Debug
     }
 
     /**
+     * Get the XML string of the document.
+     *
      * @param \DOMDocument $xml
      *
      * @return string

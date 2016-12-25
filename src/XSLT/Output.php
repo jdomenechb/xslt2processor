@@ -184,6 +184,11 @@ class Output
         $this->doctypeSystemAttribute = $doctypeSystemAttribute;
     }
 
+    /**
+     * Returns a well-formed DOCTYPE by the information provided to this class.
+     *
+     * @return string
+     */
     public function getDoctype()
     {
         $version = $this->getVersion() ?: 4;
