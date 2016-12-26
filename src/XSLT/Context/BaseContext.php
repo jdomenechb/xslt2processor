@@ -11,6 +11,9 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT\Context;
 
+use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
+use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
+
 /**
  * Defines the base context shared between templates.
  * @author jdomenechb
@@ -26,9 +29,21 @@ class BaseContext
      */
     protected $namespaces;
 
+    /**
+     * @var Key[]
+     */
+    protected $keys;
+
+    /**
+     * @return TemplateList
+     */
+    protected $templates;
+
     public function __construct()
     {
         $this->namespaces = new \ArrayObject(['default' => null]);
+        $this->keys = new \ArrayObject();
+        $this->templates = new TemplateList();
     }
 
     /**
@@ -45,6 +60,47 @@ class BaseContext
     public function setNamespaces($namespaces)
     {
         $this->namespaces = $namespaces;
+    }
+
+    /**
+     * @todo Support other namespaces when the prefix "default" is used
+     * @return string
+     */
+    public function getDefaultNamespace()
+    {
+        return static::NAMESPACE_DEFAULT;
+    }
+
+    /**
+     * @return Key[]
+     */
+    public function getKeys()
+    {
+        return $this->keys;
+    }
+
+    /**
+     * @param Key[]
+     */
+    public function setKeys($keys)
+    {
+        $this->keys = $keys;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTemplates()
+    {
+        return $this->templates;
+    }
+
+    /**
+     * @param mixed $templates
+     */
+    public function setTemplates($templates)
+    {
+        $this->templates = $templates;
     }
 
 
