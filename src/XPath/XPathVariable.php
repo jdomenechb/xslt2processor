@@ -12,6 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathVariable extends AbstractXPath
 {
@@ -41,18 +43,6 @@ class XPathVariable extends AbstractXPath
     public function toString()
     {
         return '$' . $this->getName();
-    }
-
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        // Nothing
-    }
-
-    public function setVariableValues(array $values)
-    {
-        if (isset($values[$this->getName()])) {
-            $this->setValue($values[$this->getName()]);
-        }
     }
 
     /**
@@ -105,8 +95,21 @@ class XPathVariable extends AbstractXPath
         throw new \RuntimeException('Not implemented yet');
     }
 
-    public function setKeys(array $keys)
+    public function setGlobalContext(GlobalContext $context)
     {
-        // This method is intended to be left empty
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
+
+        if (isset($context->getVariables()[$this->getName()])) {
+            $this->setValue($context->getVariables()[$this->getName()]);
+        }
     }
 }

@@ -14,6 +14,9 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMElement;
 use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
+use \RuntimeException;
 
 class XPathPath extends AbstractXPath
 {
@@ -54,19 +57,6 @@ class XPathPath extends AbstractXPath
         return implode('/', $parts);
     }
 
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        foreach ($this->getParts() as $part) {
-            $part->setDefaultNamespacePrefix($prefix);
-        }
-    }
-
-    public function setVariableValues(array $values)
-    {
-        foreach ($this->getParts() as $part) {
-            $part->setVariableValues($values);
-        }
-    }
 
     /**
      * @param DOMElement $node
@@ -170,19 +160,27 @@ class XPathPath extends AbstractXPath
         $this->parts = $parts;
     }
 
-    public function setNamespaces(array $namespaces)
+    public function setGlobalContext(GlobalContext $context)
     {
-        parent::setNamespaces($namespaces);
+        try {
+            parent::setGlobalContext($context);
+        } catch (RuntimeException $e) {}
 
         foreach ($this->getParts() as $part) {
-            $part->setNamespaces($this->getNamespaces());
+            $part->setGlobalContext($context);
         }
     }
 
-    public function setKeys(array $keys)
+    public function setTemplateContext(TemplateContext $context)
     {
+        try {
+            parent::setTemplateContext($context);
+        } catch (RuntimeException $e) {}
+
         foreach ($this->getParts() as $part) {
-            $part->setKeys($keys);
+            $part->setTemplateContext($context);
         }
     }
+
+
 }

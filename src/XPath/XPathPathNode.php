@@ -14,6 +14,8 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMNode;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathPathNode extends AbstractXPath
 {
@@ -103,12 +105,6 @@ class XPathPathNode extends AbstractXPath
         $this->setNode($toSet);
     }
 
-    public function setVariableValues(array $values)
-    {
-        if (!is_null($this->getSelector())) {
-            $this->getSelector()->setVariableValues($values);
-        }
-    }
 
     public function evaluate($context)
     {
@@ -274,7 +270,7 @@ class XPathPathNode extends AbstractXPath
             list($namespacePrefix, $localName) = $parts;
         } else {
             $localName = $nodeName;
-            $namespacePrefix = null;
+            $namespacePrefix = $this->getGlobalContext()->getDefaultNamespace();
         }
 
         // Detect the nodes we are interested in
@@ -306,7 +302,7 @@ class XPathPathNode extends AbstractXPath
                 && (
                     (
                         $childNode->localName === $localName
-                        && $childNode->namespaceURI == $this->getNamespaces()[$namespacePrefix]
+                        && $childNode->namespaceURI == $this->getGlobalContext()->getNamespaces()[$namespacePrefix]
                     ) || $localName === '*'
                 )
                 && (
@@ -333,19 +329,25 @@ class XPathPathNode extends AbstractXPath
         return $result;
     }
 
-    public function setNamespaces(array $namespaces)
+    public function setGlobalContext(GlobalContext $context)
     {
-        parent::setNamespaces($namespaces);
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
 
         if (!is_null($this->getSelector())) {
-            $this->getSelector()->setNamespaces($namespaces);
+            $this->getSelector()->setGlobalContext($context);
         }
     }
 
-    public function setKeys(array $keys)
+    public function setTemplateContext(TemplateContext $context)
     {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
+
         if (!is_null($this->getSelector())) {
-            $this->getSelector()->setKeys($keys);
+            $this->getSelector()->setTemplateContext($context);
         }
     }
 }

@@ -29,16 +29,31 @@ class Position extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        // Iterate all siblings
-        $parent = $context->parentNode;
-        $i = 0;
+        if ($func->getTemplateContext()->getContextParent()) {
+            $parent = $func->getTemplateContext()->getContextParent();
+            $i = 0;
 
-        foreach ($parent->childNodes as $childNode) {
-            if ($childNode instanceof \DOMElement) {
-                ++$i;
+            foreach ($parent as $childNode) {
+                if ($childNode instanceof \DOMElement) {
+                    ++$i;
 
-                if ($childNode->isSameNode($context)) {
-                    return $i;
+                    if ($childNode->isSameNode($context)) {
+                        return $i;
+                    }
+                }
+            }
+        } else {
+            // Iterate all siblings
+            $parent = $context->parentNode;
+            $i = 0;
+
+            foreach ($parent->childNodes as $childNode) {
+                if ($childNode instanceof \DOMElement) {
+                    ++$i;
+
+                    if ($childNode->isSameNode($context)) {
+                        return $i;
+                    }
                 }
             }
         }

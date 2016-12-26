@@ -12,6 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Class that represents an attribute in an xPath expression.
@@ -65,21 +67,6 @@ class XPathAttr extends AbstractXPath
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        // This method is intended to be left empty
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setVariableValues(array $values)
-    {
-        // This method is intended to be left empty
-    }
 
     /**
      * {@inheritdoc}
@@ -102,7 +89,7 @@ class XPathAttr extends AbstractXPath
     }
 
     /**
-     * Sets the name of the attribute.s.
+     * Sets the name of the attributes.
      *
      * @param string $name
      */
@@ -111,8 +98,17 @@ class XPathAttr extends AbstractXPath
         $this->name = $name;
     }
 
-    public function setKeys(array $keys)
+    public function setGlobalContext(GlobalContext $context)
     {
-        // This method is intended to be left empty
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
     }
 }

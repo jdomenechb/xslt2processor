@@ -24,7 +24,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
-use Jdomenechb\XSLT2Processor\XSLT\Context\BaseContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContextStack;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
@@ -104,9 +104,9 @@ class Processor
     protected $cache;
 
     /**
-     * @var BaseContext
+     * @var GlobalContext
      */
-    protected $baseContext;
+    protected $globalContext;
 
     /**
      * @var TemplateContextStack
@@ -165,7 +165,7 @@ class Processor
         });
 
         // Set the basic things needed
-        $this->baseContext = new BaseContext();
+        $this->globalContext = new GlobalContext();
         $this->newXml = new DOMDocument();
 
         // TODO: Move to Factory xPath class
@@ -258,12 +258,12 @@ class Processor
 
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        $this->getBaseContext()->getNamespaces()[BaseContext::NAMESPACE_XSL] = $node->namespaceURI;
+        $this->getGlobalContext()->getNamespaces()[GlobalContext::NAMESPACE_XSL] = $node->namespaceURI;
 
         foreach ($node->attributes as $attribute) {
             // Default namespace
             if ($attribute->nodeName == 'xpath-default-namespace') {
-                $this->getBaseContext()->getNamespaces()[$this->getBaseContext()->getDefaultNamespace()] = $attribute->nodeValue;
+                $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()] = $attribute->nodeValue;
                 continue;
             }
 
@@ -279,7 +279,7 @@ class Processor
         $xpath = new DOMXPath($node->ownerDocument);
 
         foreach ($xpath->query('namespace::*', $node) as $nsNode) {
-            $this->getBaseContext()->getNamespaces()[$nsNode->localName] = $nsNode->namespaceURI;
+            $this->getGlobalContext()->getNamespaces()[$nsNode->localName] = $nsNode->namespaceURI;
 
         }
 
@@ -303,7 +303,7 @@ class Processor
             }
 
             // Determine if it is an XSLT node or not
-            if ($childNode->namespaceURI === $this->getBaseContext()->getNamespaces()['xsl']) {
+            if ($childNode->namespaceURI === $this->getGlobalContext()->getNamespaces()['xsl']) {
                 $this->processXsltNode($childNode, $context, $newContext);
                 continue;
             }
@@ -459,18 +459,17 @@ class Processor
             $template->setPriority($template->getPriority() + 2);
         }
 
-        $this->getBaseContext()->getTemplates()->appendTemplate($template);
+        $this->getGlobalContext()->getTemplates()->appendTemplate($template);
     }
 
     protected function processTemplate(Template $template, DOMNode $context, DOMNode $newContext, $params = [])
     {
-        $newTContext = clone $this->getTemplateContextStack()->top();
+        $newTContext = $this->getTemplateContextStack()->top();
+
         $newTContext->setVariables(new \ArrayObject(array_merge($newTContext->getVariables()->getArrayCopy(), $params)));
         $newTContext->setVariablesDeclaredInContext(new \ArrayObject(array_keys($params)));
 
-        $this->getTemplateContextStack()->push($newTContext);
         $this->processChildNodes($template->getNode(), $context, $newContext);
-        $this->getTemplateContextStack()->pop();
     }
 
     protected function xslApplyTemplates(DOMElement $node, DOMNode $context, DOMNode $newContext, $first = false)
@@ -488,7 +487,7 @@ class Processor
         }
 
         // Select a template that match
-        foreach ($this->getBaseContext()->getTemplates() as $template) {
+        foreach ($this->getGlobalContext()->getTemplates() as $template) {
             if (!$fbPossibleTemplate) {
                 $fbPossibleTemplate = $template;
             }
@@ -538,9 +537,10 @@ class Processor
             if ($isMatch) {
                 foreach ($nodesMatched as $nodeMatched) {
                     $this->getDebug()->showTemplate($template);
+                    $this->getTemplateContextStack()->pushAClone();
+                    $this->getTemplateContextStack()->top()->setContextParent($nodesMatched);
                     $this->processTemplate($template, $nodeMatched, $newContext);
-
-                    //$executed = true;
+                    $this->getTemplateContextStack()->pop();
                 }
 
                 return;
@@ -561,7 +561,10 @@ class Processor
         $nodes = $xPathProcessed->query($context);
 
         foreach ($nodes as $contextNode) {
+            $this->getTemplateContextStack()->pushAClone();
+            $this->getTemplateContextStack()->top()->setContextParent($nodes);
             $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext);
+            $this->getTemplateContextStack()->pop();
         }
     }
 
@@ -613,10 +616,14 @@ class Processor
         }
 
         // Set the properties the xPath need for working
-        $xPathParsed->setDefaultNamespacePrefix($this->getBaseContext()->getDefaultNamespace());
-        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
-        $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
-        $xPathParsed->setKeys($this->getBaseContext()->getKeys()->getArrayCopy());
+        $xPathParsed->setGlobalContext($this->getGlobalContext());
+        $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
+
+        // FIXME: remove
+//        $xPathParsed->setDefaultNamespacePrefix($this->getGlobalContext()->getDefaultNamespace());
+//        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
+//        $xPathParsed->setNamespaces($this->getGlobalContext()->getNamespaces()->getArrayCopy());
+//        $xPathParsed->setKeys($this->getGlobalContext()->getKeys()->getArrayCopy());
 
         $transformed = $xPathParsed->toString();
 
@@ -632,10 +639,14 @@ class Processor
     {
         $factory = new Factory();
         $xPathParsed = $factory->createFromAttributeValue($attrValue);
-        $xPathParsed->setDefaultNamespacePrefix($this->getBaseContext()->getDefaultNamespace());
-        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
-        $xPathParsed->setKeys($this->getBaseContext()->getKeys()->getArrayCopy());
-        $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
+        $xPathParsed->setGlobalContext($this->getGlobalContext());
+        $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
+
+        // FIXME: remove
+//        $xPathParsed->setDefaultNamespacePrefix($this->getGlobalContext()->getDefaultNamespace());
+//        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
+//        $xPathParsed->setKeys($this->getGlobalContext()->getKeys()->getArrayCopy());
+//        $xPathParsed->setNamespaces($this->getGlobalContext()->getNamespaces()->getArrayCopy());
 
         return $xPathParsed->evaluate($context);
     }
@@ -751,6 +762,8 @@ class Processor
                     $this->getDebug()->endNodeLevel($this->newXml);
                     break;
                 }
+
+                $this->getDebug()->endNodeLevel($this->newXml);
             }
 
             if ($childNode->nodeName == 'xsl:otherwise') {
@@ -904,9 +917,13 @@ class Processor
             break;
         }
 
+        //$this->getTemplateContextStack()->push(clone $this->getTemplateContextStack()->top());
+
         foreach ($result as $eachNode) {
             $this->processChildNodes($node, $eachNode, $newContext);
         }
+
+        //$this->getTemplateContextStack()->pop();
     }
 
     protected function xslFunction(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1052,7 +1069,7 @@ class Processor
         $key->setMatch($node->getAttribute('match'));
         $key->setUse($node->getAttribute('use'));
 
-        $this->getBaseContext()->getKeys()[$node->getAttribute('name')] = $key;
+        $this->getGlobalContext()->getKeys()[$node->getAttribute('name')] = $key;
     }
 
     protected function xslComment(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1098,7 +1115,7 @@ class Processor
         }
 
         // Select the candidates to be processed
-        $templates = $this->getBaseContext()->getTemplates()->getByName($name);
+        $templates = $this->getGlobalContext()->getTemplates()->getByName($name);
 
         if (!count($templates)) {
             throw new RuntimeException('No templates by the name "' . $name . '" found');
@@ -1108,7 +1125,9 @@ class Processor
             throw new RuntimeException('Multiple templates by the name "' . $name . '" found');
         }
 
+        $this->getTemplateContextStack()->pushAClone();
         $this->processTemplate($templates[0], $context, $newContext, $params);
+        $this->getTemplateContextStack()->pop();
     }
 
     protected function xslParam(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1148,9 +1167,9 @@ class Processor
             $parts = explode(':', $element);
 
             if (count($parts) === 1) {
-                $newElements[$this->getBaseContext()->getNamespaces()[$this->getBaseContext()->getDefaultNamespace()]][$parts[0]] = $parts[0];
+                $newElements[$this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()]][$parts[0]] = $parts[0];
             } else {
-                $newElements[$this->getBaseContext()->getNamespaces()[$parts[0]]][$parts[1]] = $parts[1];
+                $newElements[$this->getGlobalContext()->getNamespaces()[$parts[0]]][$parts[1]] = $parts[1];
             }
         }
 
@@ -1166,11 +1185,11 @@ class Processor
     }
 
     /**
-     * @return BaseContext
+     * @return GlobalContext
      */
-    public function getBaseContext()
+    public function getGlobalContext()
     {
-        return $this->baseContext;
+        return $this->globalContext;
     }
 
     /**

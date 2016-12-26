@@ -14,6 +14,8 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMElement;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathEveryLevelPath extends AbstractXPath
 {
@@ -59,11 +61,6 @@ class XPathEveryLevelPath extends AbstractXPath
         return $this->getLeftPart()->toString() . '//' . $this->getRightPart()->toString();
     }
 
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        $this->getLeftPart()->setDefaultNamespacePrefix($prefix);
-        $this->getRightPart()->setDefaultNamespacePrefix($prefix);
-    }
 
     /**
      * @return ExpressionInterface
@@ -97,16 +94,8 @@ class XPathEveryLevelPath extends AbstractXPath
         $this->rightPart = $rightPart;
     }
 
-    public function setVariableValues(array $values)
-    {
-        $this->getLeftPart()->setVariableValues($values);
-        $this->getRightPart()->setVariableValues($values);
-    }
-
     public function evaluate($context)
     {
-        //        throw new \RuntimeException("Evaluation not implemented yet for " . __CLASS__);
-
         $evaluation = $this->getLeftPart()->evaluate($context);
 
         if (!$evaluation instanceof DOMNodeList) {
@@ -122,25 +111,6 @@ class XPathEveryLevelPath extends AbstractXPath
         return $results;
     }
 
-    public static function getOperators()
-    {
-        throw new \RuntimeException('Not set as abstract because of PHP 5.5: reimplement please');
-    }
-
-    public function setNamespaces(array $namespaces)
-    {
-        parent::setNamespaces($namespaces);
-
-        $this->getLeftPart()->setNamespaces($namespaces);
-        $this->getRightPart()->setNamespaces($namespaces);
-    }
-
-    public function setKeys(array $keys)
-    {
-        $this->getLeftPart()->setKeys($keys);
-        $this->getRightPart()->setKeys($keys);
-    }
-
     protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
     {
         $results->merge($this->getRightPart()->evaluate($node));
@@ -152,5 +122,25 @@ class XPathEveryLevelPath extends AbstractXPath
 
             $this->deepEvaluation($results, $childNode);
         }
+    }
+
+    public function setGlobalContext(GlobalContext $context)
+    {
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+
+        $this->getLeftPart()->setGlobalContext($context);
+        $this->getRightPart()->setGlobalContext($context);
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
+
+        $this->getLeftPart()->setTemplateContext($context);
+        $this->getRightPart()->setTemplateContext($context);
     }
 }

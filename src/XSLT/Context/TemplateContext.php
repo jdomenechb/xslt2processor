@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT\Context;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 /**
  * Defines the context for a template, a var body, etc.
  * @author jdomemechb
@@ -26,6 +28,11 @@ class TemplateContext
      * @var \ArrayObject
      */
     protected $variablesDeclaredInContext;
+
+    /**
+     * @var DOMNodeList
+     */
+    protected $contextParent;
 
     public function __construct()
     {
@@ -52,6 +59,7 @@ class TemplateContext
     public function __clone()
     {
         $this->setVariablesDeclaredInContext(new \ArrayObject());
+        $this->setContextParent(null);
     }
 
     /**
@@ -69,4 +77,22 @@ class TemplateContext
     {
         $this->variablesDeclaredInContext = $variablesDeclaredInContext;
     }
+
+    /**
+     * @return DOMNodeList
+     */
+    public function getContextParent()
+    {
+        return $this->contextParent;
+    }
+
+    /**
+     * @param DOMNodeList $contextParent
+     */
+    public function setContextParent(DOMNodeList $contextParent = null)
+    {
+        $this->contextParent = $contextParent;
+    }
+
+
 }

@@ -11,6 +11,9 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
+
 abstract class AbstractXPathLogic extends AbstractXPath
 {
     /**
@@ -73,41 +76,29 @@ abstract class AbstractXPathLogic extends AbstractXPath
         return $this->expressions;
     }
 
-    public function setDefaultNamespacePrefix($prefix)
+    public function setGlobalContext(GlobalContext $context)
     {
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+
         array_map(
-            function (ExpressionInterface $value) use ($prefix) {
-                $value->setDefaultNamespacePrefix($prefix);
+            function (ExpressionInterface $value) use ($context) {
+                $value->setGlobalContext($context);
             },
             $this->getExpressions()
         );
     }
 
-    public function setVariableValues(array $values)
+    public function setTemplateContext(TemplateContext $context)
     {
-        array_map(
-            function (ExpressionInterface $value) use ($values) {
-                $value->setVariableValues($values);
-            },
-            $this->getExpressions()
-        );
-    }
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
 
-    public function setKeys(array $values)
-    {
         array_map(
-            function (ExpressionInterface $value) use ($values) {
-                $value->setKeys($values);
-            },
-            $this->getExpressions()
-        );
-    }
-
-    public function setNamespaces(array $values)
-    {
-        array_map(
-            function (ExpressionInterface $value) use ($values) {
-                $value->setNamespaces($values);
+            function (ExpressionInterface $value) use ($context) {
+                $value->setTemplateContext($context);
             },
             $this->getExpressions()
         );

@@ -11,6 +11,9 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
+
 class XPathSub extends AbstractXPath
 {
     /**
@@ -69,16 +72,6 @@ class XPathSub extends AbstractXPath
             . (!is_null($this->getSelector()) ? '[' . $this->getSelector()->toString() . ']' : '');
     }
 
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        $this->getSubExpression()->setDefaultNamespacePrefix($prefix);
-    }
-
-    public function setVariableValues(array $values)
-    {
-        $this->getSubExpression()->setVariableValues($values);
-    }
-
     /**
      * @return ExpressionInterface
      */
@@ -130,6 +123,9 @@ class XPathSub extends AbstractXPath
         $this->position = $position;
     }
 
+    /**
+     * @return ExpressionInterface
+     */
     public function getSelector()
     {
         return $this->selector;
@@ -140,23 +136,29 @@ class XPathSub extends AbstractXPath
         $this->selector = $selector;
     }
 
-    public function setNamespaces(array $namespaces)
+    public function setGlobalContext(GlobalContext $context)
     {
-        parent::setNamespaces($namespaces);
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
 
         if (!is_null($this->getSelector())) {
-            $this->getSelector()->setNamespaces($namespaces);
+            $this->getSelector()->setGlobalContext($context);
         }
 
-        $this->getSubExpression()->setNamespaces($namespaces);
+        $this->getSubExpression()->setGlobalContext($context);
     }
 
-    public function setKeys(array $keys)
+    public function setTemplateContext(TemplateContext $context)
     {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
+
         if (!is_null($this->getSelector())) {
-            $this->getSelector()->setKeys($keys);
+            $this->getSelector()->setTemplateContext($context);
         }
 
-        $this->getSubExpression()->setKeys($keys);
+        $this->getSubExpression()->setTemplateContext($context);
     }
 }

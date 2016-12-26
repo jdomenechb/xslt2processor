@@ -12,6 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Abstract class for implementing an XPath element.
@@ -21,6 +23,8 @@ use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 abstract class AbstractXPath implements ExpressionInterface
 {
     protected $namespaces;
+    protected $globalContext;
+    protected $templateContext;
 
     /**
      * Constructor.
@@ -58,16 +62,36 @@ abstract class AbstractXPath implements ExpressionInterface
         $this->namespaces = $namespaces;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNamespaces()
-    {
-        return $this->namespaces;
-    }
 
-    public function setKeys(array $keys)
+    public function setGlobalContext(GlobalContext $context)
     {
+        $this->globalContext = $context;
+
         throw new \RuntimeException('Not implemented yet in ' . get_called_class());
     }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        $this->templateContext = $context;
+
+        throw new \RuntimeException('Not implemented yet in ' . get_called_class());
+    }
+
+    /**
+     * @return GlobalContext
+     */
+    public function getGlobalContext()
+    {
+        return $this->globalContext;
+    }
+
+    /**
+     * @return TemplateContext
+     */
+    public function getTemplateContext()
+    {
+        return $this->templateContext;
+    }
+
+
 }

@@ -12,6 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathAttributeValueTemplate extends AbstractXPath
 {
@@ -53,28 +55,6 @@ class XPathAttributeValueTemplate extends AbstractXPath
         return $result;
     }
 
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        foreach ($this->getParts() as $part) {
-            if (!$part instanceof ExpressionInterface) {
-                continue;
-            }
-
-            $part->setDefaultNamespacePrefix($prefix);
-        }
-    }
-
-    public function setVariableValues(array $values)
-    {
-        foreach ($this->getParts() as $part) {
-            if (!$part instanceof ExpressionInterface) {
-                continue;
-            }
-
-            $part->setVariableValues($values);
-        }
-    }
-
     public function evaluate($context)
     {
         $result = '';
@@ -98,32 +78,8 @@ class XPathAttributeValueTemplate extends AbstractXPath
         return $result;
     }
 
-    public function setNamespaces(array $namespaces)
-    {
-        parent::setNamespaces($namespaces);
-
-        foreach ($this->getParts() as $part) {
-            if (!$part instanceof ExpressionInterface) {
-                continue;
-            }
-
-            $part->setNamespaces($namespaces);
-        }
-    }
-
-    public function setKeys(array $keys)
-    {
-        foreach ($this->getParts() as $part) {
-            if (!$part instanceof ExpressionInterface) {
-                continue;
-            }
-
-            $part->setKeys($keys);
-        }
-    }
-
     /**
-     * @return mixed
+     * @return mixed[]
      */
     public function getParts()
     {
@@ -131,10 +87,36 @@ class XPathAttributeValueTemplate extends AbstractXPath
     }
 
     /**
-     * @param mixed $parts
+     * @param mixed[] $parts
      */
     public function setParts($parts)
     {
         $this->parts = $parts;
+    }
+
+    public function setGlobalContext(GlobalContext $context)
+    {
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+
+        foreach ($this->getParts() as $part) {
+            if ($part instanceof ExpressionInterface) {
+                $part->setGlobalContext($context);
+            }
+        }
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
+
+        foreach ($this->getParts() as $part) {
+            if ($part instanceof ExpressionInterface) {
+                $part->setTemplateContext($context);
+            }
+        }
     }
 }

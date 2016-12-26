@@ -10,6 +10,8 @@
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Represents a xPath string.
@@ -73,22 +75,6 @@ class XPathString extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        // The method does nothing in this context
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setVariableValues(array $values)
-    {
-        // The method does nothing in this context
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function evaluate($context)
     {
         return (string) $this->getString();
@@ -102,8 +88,17 @@ class XPathString extends AbstractXPath
         return $this->string;
     }
 
-    public function setKeys(array $keys)
+    public function setGlobalContext(GlobalContext $context)
     {
-        // This method is intended to be left empty
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
     }
 }

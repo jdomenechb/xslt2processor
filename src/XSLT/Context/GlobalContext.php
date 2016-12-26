@@ -18,7 +18,7 @@ use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
  * Defines the base context shared between templates.
  * @author jdomenechb
  */
-class BaseContext
+class GlobalContext
 {
     const NAMESPACE_DEFAULT = 'default';
     const NAMESPACE_XSL = 'xsl';

@@ -13,7 +13,8 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
 use DOMXPath;
-use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Interface to define the basic methods needed for an xPath expression.
@@ -38,27 +39,6 @@ interface ExpressionInterface
      */
     public function toString();
 
-    /**
-     * Defines the namespace prefix that will be used for elements that do not have any.
-     *
-     * @param string $prefix
-     */
-    public function setDefaultNamespacePrefix($prefix);
-
-    /**
-     * Receive the value of the current variable scope.
-     *
-     * @param mixed[] $values
-     */
-    public function setVariableValues(array $values);
-
-    /**
-     * Receive the keys of the current XSLT template in execution.
-     *
-     * @param Key[] $values
-     * @param array $keys
-     */
-    public function setKeys(array $keys);
 
     /**
      * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
@@ -77,18 +57,11 @@ interface ExpressionInterface
      */
     public function query($context);
 
-    /**
-     * Receives an array of namespaces where the key is the prefix and the value is the namespace URI, so the classes
-     * can be aware of the namespaces in the document.
-     *
-     * @param array $namespaces
-     */
-    public function setNamespaces(array $namespaces);
+    public function setGlobalContext(GlobalContext $context);
 
-    /**
-     * Returns the set of namespaces that the xPath expressions are aware of.
-     *
-     * @return array $namespaces
-     */
-    public function getNamespaces();
+    public function setTemplateContext(TemplateContext $context);
+
+    public function getGlobalContext();
+
+    public function getTemplateContext();
 }

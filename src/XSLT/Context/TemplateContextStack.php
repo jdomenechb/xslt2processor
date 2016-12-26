@@ -19,11 +19,8 @@ class TemplateContextStack extends \SplStack
         $this->push(new TemplateContext());
     }
 
-    /**
-     * @return TemplateContext
-     */
-    public function pop()
+    public function pushAClone()
     {
-        return parent::pop();
+        $this->push(clone $this->top());
     }
 }

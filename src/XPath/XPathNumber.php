@@ -12,6 +12,8 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
+use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
+use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Represents a number in an xPath.
@@ -40,22 +42,6 @@ class XPathNumber extends AbstractXPath
         $this->number = $xPath;
 
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setDefaultNamespacePrefix($prefix)
-    {
-        // The method does nothing in this context
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setVariableValues(array $values)
-    {
-        // The method does nothing in this context
     }
 
     /**
@@ -96,8 +82,17 @@ class XPathNumber extends AbstractXPath
         return (string) $this->getNumber();
     }
 
-    public function setKeys(array $keys)
+    public function setGlobalContext(GlobalContext $context)
     {
-        // The method does nothing in this context
+        try {
+            parent::setGlobalContext($context);
+        } catch (\RuntimeException $e) {}
+    }
+
+    public function setTemplateContext(TemplateContext $context)
+    {
+        try {
+            parent::setTemplateContext($context);
+        } catch (\RuntimeException $e) {}
     }
 }

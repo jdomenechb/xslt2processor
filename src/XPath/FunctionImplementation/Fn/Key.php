@@ -37,22 +37,22 @@ class Key extends AbstractFunctionImplementation
         $toSearch = $func->getParameters()[1]->evaluate($context);
         $toSearch = $this->valueAsString($toSearch);
 
-        if (!isset($func->getKeys()[$keyName])) {
+        if (!isset($func->getGlobalContext()->getKeys()[$keyName])) {
             throw new \RuntimeException('The key named "' . $keyName . '" does not exist');
         }
 
         /* @var $key \Jdomenechb\XSLT2Processor\XSLT\Template\Key */
-        $key = $func->getKeys()[$keyName];
+        $key = $func->getGlobalContext()->getKeys()[$keyName];
 
         // Get all possible nodes
         $factory = new Factory();
         $match = $factory->create($key->getMatch());
-        $match->setNamespaces($func->getNamespaces());
-        $match->setDefaultNamespacePrefix($func->getDefaultNamespacePrefix());
+        $match->setGlobalContext($func->getGlobalContext());
+        $match->setTemplateContext($func->getTemplateContext());
 
         $possible = $factory->create($key->getUse() . " = '" . $toSearch . "'");
-        $possible->setNamespaces($func->getNamespaces());
-        $possible->setDefaultNamespacePrefix($func->getDefaultNamespacePrefix());
+        $possible->setGlobalContext($func->getGlobalContext());
+        $possible->setTemplateContext($func->getTemplateContext());
 
         $possibleNodes = $match->evaluate($context);
         $result = new DOMNodeList();
