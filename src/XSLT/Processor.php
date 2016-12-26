@@ -486,6 +486,8 @@ class Processor
             return;
         }
 
+        $params = $this->getParamsFromXslWithParam($node, $context);
+
         // Select a template that match
         foreach ($this->getGlobalContext()->getTemplates() as $template) {
             if (!$fbPossibleTemplate) {
@@ -539,7 +541,7 @@ class Processor
                     $this->getDebug()->showTemplate($template);
                     $this->getTemplateContextStack()->pushAClone();
                     $this->getTemplateContextStack()->top()->setContextParent($nodesMatched);
-                    $this->processTemplate($template, $nodeMatched, $newContext);
+                    $this->processTemplate($template, $nodeMatched, $newContext, $params);
                     $this->getTemplateContextStack()->pop();
                 }
 
@@ -563,7 +565,7 @@ class Processor
         foreach ($nodes as $contextNode) {
             $this->getTemplateContextStack()->pushAClone();
             $this->getTemplateContextStack()->top()->setContextParent($nodes);
-            $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext);
+            $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext, $params);
             $this->getTemplateContextStack()->pop();
         }
     }
@@ -618,13 +620,6 @@ class Processor
         // Set the properties the xPath need for working
         $xPathParsed->setGlobalContext($this->getGlobalContext());
         $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
-
-        // FIXME: remove
-//        $xPathParsed->setDefaultNamespacePrefix($this->getGlobalContext()->getDefaultNamespace());
-//        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
-//        $xPathParsed->setNamespaces($this->getGlobalContext()->getNamespaces()->getArrayCopy());
-//        $xPathParsed->setKeys($this->getGlobalContext()->getKeys()->getArrayCopy());
-
         $transformed = $xPathParsed->toString();
 
         // FIXME: Move somewhere else
@@ -641,12 +636,6 @@ class Processor
         $xPathParsed = $factory->createFromAttributeValue($attrValue);
         $xPathParsed->setGlobalContext($this->getGlobalContext());
         $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
-
-        // FIXME: remove
-//        $xPathParsed->setDefaultNamespacePrefix($this->getGlobalContext()->getDefaultNamespace());
-//        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
-//        $xPathParsed->setKeys($this->getGlobalContext()->getKeys()->getArrayCopy());
-//        $xPathParsed->setNamespaces($this->getGlobalContext()->getNamespaces()->getArrayCopy());
 
         return $xPathParsed->evaluate($context);
     }
@@ -910,6 +899,10 @@ class Processor
                         $xPathParsed->evaluate($b)->item(0)->nodeValue
                     );
                 });
+
+                $result = new DOMNodeList();
+                $result->setSortable(false);
+                $result->fromArray($newResults);
             }
 
             $this->getDebug()->endNodeLevel($this->newXml);
@@ -917,13 +910,14 @@ class Processor
             break;
         }
 
-        //$this->getTemplateContextStack()->push(clone $this->getTemplateContextStack()->top());
+        $this->getTemplateContextStack()->pushAClone();
+        $this->getTemplateContextStack()->top()->setContextParent($result);
 
         foreach ($result as $eachNode) {
             $this->processChildNodes($node, $eachNode, $newContext);
         }
 
-        //$this->getTemplateContextStack()->pop();
+        $this->getTemplateContextStack()->pop();
     }
 
     protected function xslFunction(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1082,10 +1076,9 @@ class Processor
         $newContext->appendChild($comment);
     }
 
-    protected function xslCallTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    protected function getParamsFromXslWithParam(DOMElement $node, DOMNode $context)
     {
         $params = [];
-        $name = $node->getAttribute('name');
 
         // Detect possible params
         foreach ($node->childNodes as $childNode) {
@@ -1099,8 +1092,6 @@ class Processor
 
             $this->getDebug()->startNodeLevel($this->newXml, $childNode);
 
-            $childName = $childNode->getAttribute('name');
-
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
                 $xPathParsed = $this->parseXPath($xPath);
@@ -1113,6 +1104,14 @@ class Processor
 
             $this->getDebug()->endNodeLevel($this->newXml);
         }
+
+        return $params;
+    }
+
+    protected function xslCallTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        $name = $node->getAttribute('name');
+        $params = $this->getParamsFromXslWithParam($node, $context);
 
         // Select the candidates to be processed
         $templates = $this->getGlobalContext()->getTemplates()->getByName($name);

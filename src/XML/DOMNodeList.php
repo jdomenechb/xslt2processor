@@ -40,6 +40,12 @@ class DOMNodeList implements ArrayAccess, Iterator
     protected $parent = false;
 
     /**
+     * Defines if the set has to be sorted.
+     * @var bool
+     */
+    protected $sortable = true;
+
+    /**
      * Constructor.
      *
      * @param mixed $items
@@ -107,7 +113,9 @@ class DOMNodeList implements ArrayAccess, Iterator
             $this->items[] = $value;
         }
 
-        $this->sort();
+        if ($this->isSortable()) {
+            $this->sort();
+        }
     }
 
     public function offsetUnset($offset)
@@ -128,7 +136,10 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromArray(array $items)
     {
         $this->items = $items;
-        $this->sort();
+
+        if ($this->isSortable()) {
+            $this->sort();
+        }
     }
 
     /**
@@ -163,7 +174,10 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromSelf(DOMNodeList $item)
     {
         $this->items = $item->toArray();
-        $this->sort();
+
+        if ($this->isSortable()) {
+            $this->sort();
+        }
     }
 
     public function merge(DOMNodeList ...$list)
@@ -176,7 +190,9 @@ class DOMNodeList implements ArrayAccess, Iterator
 
         $this->items = $result;
 
-        $this->sort();
+        if ($this->isSortable()) {
+            $this->sort();
+        }
     }
 
     /**
@@ -296,4 +312,21 @@ class DOMNodeList implements ArrayAccess, Iterator
             return 0;
         });
     }
+
+    /**
+     * @return bool
+     */
+    public function isSortable()
+    {
+        return $this->sortable;
+    }
+
+    /**
+     * @param bool $sortable
+     */
+    public function setSortable($sortable)
+    {
+        $this->sortable = $sortable;
+    }
+
 }
