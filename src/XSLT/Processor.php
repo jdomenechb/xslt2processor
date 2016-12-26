@@ -83,11 +83,6 @@ class Processor
     protected $decimalFormats = [];
 
     /**
-     * @var array
-     */
-    protected $templateParams = [];
-
-    /**
      * Determines if the the template being processed right now is imported/included or not.
      *
      * @var bool
@@ -469,15 +464,12 @@ class Processor
 
     protected function processTemplate(Template $template, DOMNode $context, DOMNode $newContext, $params = [])
     {
-        $this->getTemplateContextStack()->push(clone $this->getTemplateContextStack()->top());
+        $newTContext = clone $this->getTemplateContextStack()->top();
+        $newTContext->setVariables(new \ArrayObject(array_merge($newTContext->getVariables()->getArrayCopy(), $params)));
+        $newTContext->setVariablesDeclaredInContext(new \ArrayObject(array_keys($params)));
 
-        $currentParams = $this->templateParams;
-        $this->templateParams = $params;
-
+        $this->getTemplateContextStack()->push($newTContext);
         $this->processChildNodes($template->getNode(), $context, $newContext);
-
-        $this->templateParams = $currentParams;
-
         $this->getTemplateContextStack()->pop();
     }
 
@@ -622,7 +614,7 @@ class Processor
 
         // Set the properties the xPath need for working
         $xPathParsed->setDefaultNamespacePrefix($this->getBaseContext()->getDefaultNamespace());
-        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy(), $this->templateParams));
+        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
         $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
         $xPathParsed->setKeys($this->getBaseContext()->getKeys()->getArrayCopy());
 
@@ -641,7 +633,7 @@ class Processor
         $factory = new Factory();
         $xPathParsed = $factory->createFromAttributeValue($attrValue);
         $xPathParsed->setDefaultNamespacePrefix($this->getBaseContext()->getDefaultNamespace());
-        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy(), $this->templateParams));
+        $xPathParsed->setVariableValues(array_merge($this->getTemplateContextStack()->top()->getVariables()->getArrayCopy()));
         $xPathParsed->setKeys($this->getBaseContext()->getKeys()->getArrayCopy());
         $xPathParsed->setNamespaces($this->getBaseContext()->getNamespaces()->getArrayCopy());
 
@@ -1123,16 +1115,21 @@ class Processor
     {
         $name = $node->getAttribute('name');
 
-        if (!isset($this->templateParams[$name])) {
+        if (
+            !isset($this->getTemplateContextStack()->top()->getVariables()[$name])
+            || !in_array($name, $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->getArrayCopy())
+        ) {
             if ($node->hasAttribute('select')) {
                 $select = $node->getAttribute('select');
                 $selectParsed = $this->parseXPath($select);
                 $result = $selectParsed->evaluate($context);
 
-                $this->templateParams[$name] = $result;
+                $this->getTemplateContextStack()->top()->getVariables()[$name] = $result;
             } else {
-                $this->templateParams[$name] = null;
+                $this->getTemplateContextStack()->top()->getVariables()[$name] = null;
             }
+
+            $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
         }
     }
 
