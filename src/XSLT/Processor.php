@@ -910,14 +910,12 @@ class Processor
             break;
         }
 
-        $this->getTemplateContextStack()->pushAClone();
-        $this->getTemplateContextStack()->top()->setContextParent($result);
-
         foreach ($result as $eachNode) {
+            $this->getTemplateContextStack()->pushAClone();
+            $this->getTemplateContextStack()->top()->setContextParent($result);
             $this->processChildNodes($node, $eachNode, $newContext);
+            $this->getTemplateContextStack()->pop();
         }
-
-        $this->getTemplateContextStack()->pop();
     }
 
     protected function xslFunction(DOMElement $node, DOMNode $context, DOMNode $newContext)
