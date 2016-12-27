@@ -78,9 +78,7 @@ abstract class AbstractXPathLogic extends AbstractXPath
 
     public function setGlobalContext(GlobalContext $context)
     {
-        try {
-            parent::setGlobalContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setGlobalContext($context);
 
         array_map(
             function (ExpressionInterface $value) use ($context) {
@@ -92,9 +90,7 @@ abstract class AbstractXPathLogic extends AbstractXPath
 
     public function setTemplateContext(TemplateContext $context)
     {
-        try {
-            parent::setTemplateContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setTemplateContext($context);
 
         array_map(
             function (ExpressionInterface $value) use ($context) {

@@ -95,18 +95,9 @@ class XPathVariable extends AbstractXPath
         throw new \RuntimeException('Not implemented yet');
     }
 
-    public function setGlobalContext(GlobalContext $context)
-    {
-        try {
-            parent::setGlobalContext($context);
-        } catch (\RuntimeException $e) {}
-    }
-
     public function setTemplateContext(TemplateContext $context)
     {
-        try {
-            parent::setTemplateContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setTemplateContext($context);
 
         if (isset($context->getVariables()[$this->getName()])) {
             $this->setValue($context->getVariables()[$this->getName()]);

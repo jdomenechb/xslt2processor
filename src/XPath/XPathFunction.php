@@ -262,9 +262,7 @@ class XPathFunction extends AbstractXPath
 
     public function setGlobalContext(GlobalContext $context)
     {
-        try {
-            parent::setGlobalContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setGlobalContext($context);
 
         foreach ($this->getParameters() as $parameter) {
             $parameter->setGlobalContext($context);
@@ -277,9 +275,7 @@ class XPathFunction extends AbstractXPath
 
     public function setTemplateContext(TemplateContext $context)
     {
-        try {
-            parent::setTemplateContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setTemplateContext($context);
 
         foreach ($this->getParameters() as $parameter) {
             $parameter->setTemplateContext($context);

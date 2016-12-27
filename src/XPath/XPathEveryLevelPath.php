@@ -126,9 +126,7 @@ class XPathEveryLevelPath extends AbstractXPath
 
     public function setGlobalContext(GlobalContext $context)
     {
-        try {
-            parent::setGlobalContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setGlobalContext($context);
 
         $this->getLeftPart()->setGlobalContext($context);
         $this->getRightPart()->setGlobalContext($context);
@@ -136,9 +134,7 @@ class XPathEveryLevelPath extends AbstractXPath
 
     public function setTemplateContext(TemplateContext $context)
     {
-        try {
-            parent::setTemplateContext($context);
-        } catch (\RuntimeException $e) {}
+        parent::setTemplateContext($context);
 
         $this->getLeftPart()->setTemplateContext($context);
         $this->getRightPart()->setTemplateContext($context);

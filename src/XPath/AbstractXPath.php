@@ -66,15 +66,11 @@ abstract class AbstractXPath implements ExpressionInterface
     public function setGlobalContext(GlobalContext $context)
     {
         $this->globalContext = $context;
-
-        throw new \RuntimeException('Not implemented yet in ' . get_called_class());
     }
 
     public function setTemplateContext(TemplateContext $context)
     {
         $this->templateContext = $context;
-
-        throw new \RuntimeException('Not implemented yet in ' . get_called_class());
     }
 
     /**

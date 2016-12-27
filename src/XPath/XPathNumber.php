@@ -81,18 +81,4 @@ class XPathNumber extends AbstractXPath
     {
         return (string) $this->getNumber();
     }
-
-    public function setGlobalContext(GlobalContext $context)
-    {
-        try {
-            parent::setGlobalContext($context);
-        } catch (\RuntimeException $e) {}
-    }
-
-    public function setTemplateContext(TemplateContext $context)
-    {
-        try {
-            parent::setTemplateContext($context);
-        } catch (\RuntimeException $e) {}
-    }
 }
