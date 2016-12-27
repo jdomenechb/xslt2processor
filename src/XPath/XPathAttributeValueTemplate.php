@@ -33,8 +33,6 @@ class XPathAttributeValueTemplate extends AbstractXPath
             $string[$i] = $factory->create($string[$i]);
         }
 
-        //trigger_error('bleh');
-
         $this->setParts($string);
     }
 

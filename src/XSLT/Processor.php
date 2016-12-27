@@ -702,10 +702,15 @@ class Processor
 
         $results = $selectParsed->evaluate($context);
 
-        if ($results instanceof OriginalDOMNodeList) {
+        if ($results instanceof OriginalDOMNodeList || $results instanceof DOMNodeList) {
             foreach ($results as $result) {
-                foreach ($result->childNodes as $childNode) {
-                    $childNode = $this->newXml->importNode($childNode);
+                if ($result instanceof DOMElement) {
+                    foreach ($result->childNodes as $childNode) {
+                        $childNode = $this->newXml->importNode($childNode);
+                        $newContext->appendChild($childNode);
+                    }
+                } else {
+                    $childNode = $this->newXml->importNode($result);
                     $newContext->appendChild($childNode);
                 }
             }
@@ -734,6 +739,8 @@ class Processor
         }
 
         $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
+
+        $this->getDebug()->showVar($name, $this->getTemplateContextStack()->top()->getVariables()[$name]);
     }
 
     protected function xslChoose(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -914,6 +921,62 @@ class Processor
             $this->getTemplateContextStack()->pushAClone();
             $this->getTemplateContextStack()->top()->setContextParent($result);
             $this->processChildNodes($node, $eachNode, $newContext);
+            $this->getTemplateContextStack()->pop();
+        }
+    }
+
+    protected function xslForEachGroup(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        $xPath = $node->getAttribute('select');
+        $xPathParsed = $this->parseXPath($xPath);
+        $result = $xPathParsed->evaluate($context);
+
+        if (!$result->length) {
+            return;
+        }
+
+        $groups = [];
+        $criteria = null;
+        $lastMatchedCriteria = null;
+        $currentGroup = new DOMNodeList();
+        $currentGroup->setSortable(false);
+
+        foreach ($result as $resultSingle) {
+            if ($node->hasAttribute('group-adjacent')) {
+                if (!$criteria) {
+                    $criteria = $node->getAttribute('group-adjacent');
+                    $criteria = $this->parseXPath($criteria);
+                }
+
+                $criteriaExec = $criteria->evaluate($resultSingle);
+
+                if ($criteriaExec !== $lastMatchedCriteria) {
+                    if (count($currentGroup) > 1) {
+                        $groups[$lastMatchedCriteria] = $currentGroup;
+                    }
+
+                    $currentGroup = new DOMNodeList();
+                    $currentGroup->setSortable(false);
+                }
+
+                $currentGroup[] = $resultSingle;
+
+                $lastMatchedCriteria = $criteriaExec;
+            } else {
+                throw new \RuntimeException('Criteria for xsl:for-each-group not implemeted');
+            }
+        }
+
+        if ($currentGroup->count() > 1) {
+            $groups[$lastMatchedCriteria] = $currentGroup;
+        }
+
+        foreach ($groups as $groupName => $group) {
+            $this->getTemplateContextStack()->pushAClone();
+            //$this->getTemplateContextStack()->top()->setContextParent($group);
+            $this->getTemplateContextStack()->top()->setGroupingKey($groupName);
+            $this->getTemplateContextStack()->top()->setGroup($group);
+            $this->processChildNodes($node, $group->item(0), $newContext);
             $this->getTemplateContextStack()->pop();
         }
     }

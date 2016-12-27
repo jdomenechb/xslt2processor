@@ -9,15 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Exslt;
+namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
+use SebastianBergmann\CodeCoverage\RuntimeException;
 
 /**
- * Function node-set from EXSLT library.
+ * Function current-grouping-key() from XSLT standard library.
  */
-class NodeSet extends AbstractFunctionImplementation
+class CurrentGroupingKey extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -29,11 +30,10 @@ class NodeSet extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $property = $func->getParameters()[0]->evaluate($context);
-        //$property->setParent(true);
+        if (!$func->getTemplateContext()->getGroupingKey()) {
+            throw new \RuntimeException('No grouping key available');
+        }
 
-        $result = $property;
-
-        return $result;
+        return $func->getTemplateContext()->getGroupingKey();
     }
 }

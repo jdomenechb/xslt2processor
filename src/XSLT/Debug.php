@@ -122,6 +122,15 @@ class Debug
         }
     }
 
+    public function showVar($varName, $varValue)
+    {
+        if ($this->isEnabled()) {
+            echo '<p>Variable "' . $varName . '" content:</p>';
+
+            var_dump($varValue);
+        }
+    }
+
     /**
      * Get if the debug is enabled or not.
      *

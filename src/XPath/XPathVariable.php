@@ -80,7 +80,9 @@ class XPathVariable extends AbstractXPath
     public function evaluate($context)
     {
         if ($this->getValue() instanceof \DOMNodeList) {
-            return new DOMNodeList($this->getValue());
+            $tmp = new DOMNodeList($this->getValue());
+            $tmp->setParent(true);
+            return $tmp;
         }
 
         return $this->getValue();

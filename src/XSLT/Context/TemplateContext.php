@@ -34,6 +34,16 @@ class TemplateContext
      */
     protected $contextParent;
 
+    /**
+     * @var DOMNodeList
+     */
+    protected $group;
+
+    /**
+     * @var string
+     */
+    protected $groupingKey;
+
     public function __construct()
     {
         $this->variables = new \ArrayObject();
@@ -92,6 +102,38 @@ class TemplateContext
     public function setContextParent(DOMNodeList $contextParent = null)
     {
         $this->contextParent = $contextParent;
+    }
+
+    /**
+     * @return DOMNodeList
+     */
+    public function getGroup()
+    {
+        return $this->group;
+    }
+
+    /**
+     * @param DOMNodeList $group
+     */
+    public function setGroup($group)
+    {
+        $this->group = $group;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGroupingKey()
+    {
+        return $this->groupingKey;
+    }
+
+    /**
+     * @param string $groupingKey
+     */
+    public function setGroupingKey($groupingKey)
+    {
+        $this->groupingKey = $groupingKey;
     }
 
 

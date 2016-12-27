@@ -9,15 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Exslt;
+namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function node-set from EXSLT library.
+ * Function node() from XSLT standard library.
  */
-class NodeSet extends AbstractFunctionImplementation
+class Node extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -29,11 +30,6 @@ class NodeSet extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $property = $func->getParameters()[0]->evaluate($context);
-        //$property->setParent(true);
-
-        $result = $property;
-
-        return $result;
+        return new DOMNodeList($context->childNodes);
     }
 }
