@@ -41,11 +41,6 @@ class XPathFunction extends AbstractXPath
     protected $namespacePrefix = 'fn';
 
     /**
-     * @var ExpressionInterface
-     */
-    protected $selector;
-
-    /**
      * @var int
      */
     protected $position;
@@ -95,21 +90,6 @@ class XPathFunction extends AbstractXPath
         }, $parameters);
 
         $this->setParameters($parameters);
-
-        // Selector
-        $parts = $eph->parseFirstLevelSubExpressions(array_shift($parts), '[', ']');
-
-        foreach ($parts as $part) {
-            if (!$part) {
-                continue;
-            }
-
-            if (preg_match('#^\d+$#', $part)) {
-                $this->setPosition($part);
-            } else {
-                $this->setSelector($factory->create($part));
-            }
-        }
     }
 
     public function setFullName($name)
@@ -168,14 +148,6 @@ class XPathFunction extends AbstractXPath
         $toReturn .= implode(', ', $parameters);
         $toReturn .= ')';
 
-        if ($this->getSelector()) {
-            $toReturn .= '[' . $this->getSelector()->toString() . ']';
-        }
-
-        if ($this->getPosition()) {
-            $toReturn .= '[' . $this->getPosition() . ']';
-        }
-
         return  $toReturn;
     }
 
@@ -227,14 +199,6 @@ class XPathFunction extends AbstractXPath
             $this->getDebug()->showFunction($this->getFullName(), $result);
         }
 
-        if ($this->getPosition()) {
-            if (!$result instanceof \Jdomenechb\XSLT2Processor\XML\DOMNodeList) {
-                throw new \RuntimeException('Result of the function is not a node-set: position invalid');
-            }
-
-            return new \Jdomenechb\XSLT2Processor\XML\DOMNodeList($result->item(0));
-        }
-
         return $result;
     }
 
@@ -267,10 +231,6 @@ class XPathFunction extends AbstractXPath
         foreach ($this->getParameters() as $parameter) {
             $parameter->setGlobalContext($context);
         }
-
-        if ($this->getSelector()) {
-            $this->getSelector()->setGlobalContext($context);
-        }
     }
 
     public function setTemplateContext(TemplateContext $context)
@@ -280,34 +240,7 @@ class XPathFunction extends AbstractXPath
         foreach ($this->getParameters() as $parameter) {
             $parameter->setTemplateContext($context);
         }
-
-        if ($this->getSelector()) {
-            $this->getSelector()->setTemplateContext($context);
-        }
     }
-
-    public function getSelector()
-    {
-        return $this->selector;
-    }
-
-    public function setSelector(ExpressionInterface $selector)
-    {
-        throw new \RuntimeException('To implement selector in result of a function');
-        $this->selector = $selector;
-    }
-
-    public function getPosition()
-    {
-        return $this->position;
-    }
-
-    public function setPosition($position)
-    {
-        $this->position = $position;
-    }
-
-
 
     /**
      * @return Debug

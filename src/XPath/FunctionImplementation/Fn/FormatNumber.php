@@ -49,19 +49,26 @@ class FormatNumber extends AbstractFunctionImplementation
 
         if (count($formatParts) > 1) {
             throw new \RuntimeException('format-number function with decimal format not implemented yet');
+        } else {
+            $formatParts[1] = '';
         }
 
         $j = 1;
         $finalNumber = '';
 
+        if (mb_substr($formatParts[0], .1) === '%') {
+            $number *= 100;
+            $finalNumber = '%';
+        }
+
+        $number = round($number, mb_strlen($formatParts[1]));
+
+        $integerPart = (int) $number;
+        $decimalPart = $number - $integerPart;
+
         for ($i = mb_strlen($formatParts[0]) - 1; $i >= 0; --$i) {
             // Percent
             if ($i === mb_strlen($formatParts[0]) - 1 && $formatParts[0][$i] === '%') {
-                $number *= 100;
-                $integerPart = (int) $number;
-                $decimalPart = $number - $integerPart;
-
-                $finalNumber = '%';
                 continue;
             }
 

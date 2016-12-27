@@ -40,7 +40,7 @@ class Factory
         }
 
         // Analyze parentheses
-        if (preg_match('#\)(?:\[[^\]]+\])?$#', $expression)) {
+        if (preg_match('#\)$#', $expression)) {
             $history = $expressionParserHelper->subExpressionLevelAnalysis($expression, '(', ')');
 
             // Is a function?
@@ -50,7 +50,7 @@ class Factory
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
                 // It should match a function
-                && preg_match('#^[a-z:-]+\(.*\)(?:\[[^\]]+\])*?$#', $expression)
+                && preg_match('#^[a-z:-]+\(.*\)$#', $expression)
             ) {
                 return new XPathFunction($expression);
             }
@@ -62,7 +62,7 @@ class Factory
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
                 // It should match a sub
-                && preg_match('#^\(.*\)(?:\[[^\]]+\])*$#', $expression)
+                && preg_match('#^\(.*\)$#', $expression)
             ) {
                 return new XPathSub($expression);
             }
@@ -125,6 +125,13 @@ class Factory
             return $tmp;
         }
 
+        // Parse selector
+        $tmp = new XPathSelector();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
+        }
+
         // Parse every level path
         $tmp = new XPathEveryLevelPath();
 
@@ -139,6 +146,13 @@ class Factory
 
         // Parse attribute node
         $tmp = new XPathAttr();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
+        }
+
+        // Parse pseudoelement
+        $tmp = new XPathPseudoElement();
 
         if ($tmp->parse($expression)) {
             return $tmp;

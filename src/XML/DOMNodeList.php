@@ -277,14 +277,14 @@ class DOMNodeList implements ArrayAccess, Iterator
             // Determine all the levels
             $topParentA = $a;
 
-            while (!$topParentA->parentNode instanceof \DOMDocument) {
+            while ($topParentA !== null  && !$topParentA->parentNode instanceof \DOMDocument) {
                 $topParentA = $topParentA->parentNode;
                 array_unshift($levelsA, $topParentA);
             }
 
             $topParentB = $b;
 
-            while (!$topParentB->parentNode instanceof \DOMDocument) {
+            while ($topParentB !== null && !$topParentB->parentNode instanceof \DOMDocument) {
                 $topParentB = $topParentB->parentNode;
                 array_unshift($levelsB, $topParentB);
             }
