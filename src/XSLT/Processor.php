@@ -721,6 +721,21 @@ class Processor
         }
     }
 
+    protected function xslCopy(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        $childNode = $newContext->ownerDocument->importNode($context);
+
+        if ($childNode instanceof DOMElement) {
+            $utils = new DOMElementUtils();
+            $utils->removeAllAttributes($childNode);
+            $utils->removeAllChildren($childNode);
+        }
+
+        $childNode = $newContext->appendChild($childNode);
+
+        $this->processChildNodes($node, $context, $childNode);
+    }
+
     protected function xslVariable(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
@@ -950,10 +965,10 @@ class Processor
 
                 $criteriaExec = $criteria->evaluate($resultSingle);
 
-                if ($criteriaExec !== $lastMatchedCriteria) {
-                    if (count($currentGroup) > 1) {
+                if ($criteriaExec !== $lastMatchedCriteria && $lastMatchedCriteria !== null) {
+//                    if (count($currentGroup) > 1) {
                         $groups[$lastMatchedCriteria] = $currentGroup;
-                    }
+//                    }
 
                     $currentGroup = new DOMNodeList();
                     $currentGroup->setSortable(false);
@@ -963,13 +978,13 @@ class Processor
 
                 $lastMatchedCriteria = $criteriaExec;
             } else {
-                throw new \RuntimeException('Criteria for xsl:for-each-group not implemeted');
+                throw new \RuntimeException('Criteria for xsl:for-each-group not implemented');
             }
         }
 
-        if ($currentGroup->count() > 1) {
+//        if ($currentGroup->count() > 1) {
             $groups[$lastMatchedCriteria] = $currentGroup;
-        }
+//        }
 
         foreach ($groups as $groupName => $group) {
             $this->getTemplateContextStack()->pushAClone();

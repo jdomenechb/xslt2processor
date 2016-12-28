@@ -49,6 +49,10 @@ class XPathAttr extends AbstractXPath
             : $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()];
 
         foreach ($context as $contextNode) {
+            if (!$contextNode instanceof \DOMElement) {
+                continue;
+            }
+
             foreach ($contextNode->attributes as $attribute) {
                 /** @var $attribute \DOMAttr */
                 if (
@@ -65,6 +69,11 @@ class XPathAttr extends AbstractXPath
         return $results;
     }
 
+    public function query($context)
+    {
+        return $this->evaluate($context);
+    }
+
     /**
      * {@inheritdoc}
      *
@@ -72,7 +81,7 @@ class XPathAttr extends AbstractXPath
      */
     public function parse($xPath)
     {
-        if (!preg_match('#^@[a-z-:]+$#', $xPath)) {
+        if (!preg_match('#^@([a-z-:]+|\*)$#', $xPath)) {
             return false;
         }
 

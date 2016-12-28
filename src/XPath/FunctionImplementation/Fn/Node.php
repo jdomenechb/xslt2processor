@@ -30,6 +30,10 @@ class Node extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        return new DOMNodeList($context->childNodes);
+        if ($context instanceof \DOMElement) {
+            return new DOMNodeList($context->childNodes);
+        }
+
+        return new DOMNodeList();
     }
 }

@@ -37,7 +37,7 @@ class Text extends AbstractFunctionImplementation
             if (!$childNode instanceof \DOMCharacterData) {
                 continue;
             }
-            
+
             $result[] = $childNode;
         }
 

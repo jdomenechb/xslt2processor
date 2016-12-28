@@ -69,4 +69,30 @@ class DOMElementUtils
 
         return $node->appendChild($textNode);
     }
+
+    public function removeAllChildren(DOMElement $node)
+    {
+        $children = [];
+
+        foreach ($node->childNodes as $child) {
+            $children[] = $child;
+        }
+
+        foreach ($children as $child) {
+            $node->removeChild($child);
+        }
+    }
+
+    public function removeAllAttributes(DOMElement $node)
+    {
+        $attributes = [];
+
+        foreach ($node->attributes as $attribute) {
+            $attributes[] = $attribute->nodeName;
+        }
+
+        foreach ($attributes as $attribute) {
+            $node->removeAttribute($attribute);
+        }
+    }
 }
