@@ -48,7 +48,6 @@ class XPathPathNode extends AbstractXPath
 
     public function parse($string)
     {
-        $factory = new Factory();
         $expressionParserHelper = new ExpressionParserHelper();
 
         if (mb_strpos($string, '[') === false) {
@@ -59,29 +58,11 @@ class XPathPathNode extends AbstractXPath
 
         $pieces = $expressionParserHelper->parseFirstLevelSubExpressions($string, '[', ']');
         $this->setNode(array_shift($pieces));
-
-        // Remove the last empty part
-        array_pop($pieces);
-
-        foreach ($pieces as $piece) {
-            if ($piece == '') {
-                continue;
-            }
-
-            if (is_numeric($piece)) {
-                $this->setPosition($piece);
-                continue;
-            }
-
-            $this->setSelector($factory->create($piece));
-        }
     }
 
     public function toString()
     {
-        return $this->getNode()
-            . ($this->getSelector() !== null ? '[' . $this->getSelector()->toString() . ']' : '')
-            . ($this->getPosition() !== null ? '[' . $this->getPosition() . ']' : '');
+        return $this->getNode();
     }
 
     public function setDefaultNamespacePrefix($prefix)
@@ -127,25 +108,6 @@ class XPathPathNode extends AbstractXPath
         $this->node = $node;
     }
 
-    public function getPosition()
-    {
-        return $this->position;
-    }
-
-    public function getSelector()
-    {
-        return $this->selector;
-    }
-
-    public function setPosition($position)
-    {
-        $this->position = $position;
-    }
-
-    public function setSelector(ExpressionInterface $selector)
-    {
-        $this->selector = $selector;
-    }
 
     public function query($context)
     {
@@ -211,8 +173,6 @@ class XPathPathNode extends AbstractXPath
             }
         }
 
-        $i = 1;
-
         foreach ($contextChilds as $childNode) {
             /* @var $childNode DOMNode */
             if (
@@ -225,45 +185,11 @@ class XPathPathNode extends AbstractXPath
                         && $childNode->namespaceURI == $this->getGlobalContext()->getNamespaces()[$namespacePrefix]
                     ) || $localName === '*'
                 )
-                && (
-                    !$this->getSelector()
-                    || (
-                        ($evaluateResult = $this->getSelector()->evaluate($childNode))
-                        && (
-                            !$evaluateResult instanceof DOMNodeList
-                            || $evaluateResult instanceof DOMNodeList && $evaluateResult->count()
-                        )
-                    )
-                )
             ) {
                 $result[] = $childNode;
-
-                if ($this->getPosition() == $i) {
-                    break;
-                }
-
-                ++$i;
             }
         }
 
         return $result;
-    }
-
-    public function setGlobalContext(GlobalContext $context)
-    {
-        parent::setGlobalContext($context);
-
-        if (!is_null($this->getSelector())) {
-            $this->getSelector()->setGlobalContext($context);
-        }
-    }
-
-    public function setTemplateContext(TemplateContext $context)
-    {
-        parent::setTemplateContext($context);
-
-        if (!is_null($this->getSelector())) {
-            $this->getSelector()->setTemplateContext($context);
-        }
     }
 }
