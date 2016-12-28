@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\FunctionImplementationInterface;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -273,5 +274,16 @@ class XPathFunction extends AbstractXPath
         }
 
         return $this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()];
+    }
+
+    public function query($context)
+    {
+        $result = $this->evaluate($context);
+
+        if (!$result instanceof DOMNodeList) {
+            throw new \RuntimeException('Query must return a NodeSet: your xPath does not return a NodeSet');
+        }
+
+        return $result;
     }
 }
