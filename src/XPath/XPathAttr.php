@@ -12,8 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Class that represents an attribute in an xPath expression.
@@ -30,6 +28,13 @@ class XPathAttr extends AbstractXPath
     protected $name;
 
     /**
+     * Namespace of the attribute.
+     *
+     * @var string
+     */
+    protected $namespace;
+
+    /**
      * {@inheritdoc}
      */
     public function evaluate($context)
@@ -39,10 +44,19 @@ class XPathAttr extends AbstractXPath
         }
 
         $results = new DOMNodeList();
+        $namespace = $this->getNamespace()?
+            $this->getGlobalContext()->getNamespaces()[$this->getNamespace()]
+            : $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()];
 
         foreach ($context as $contextNode) {
             foreach ($contextNode->attributes as $attribute) {
-                if ($attribute->nodeName == $this->getName()) {
+                /** @var $attribute \DOMAttr */
+                if (
+                    (
+                        $attribute->localName == $this->getName()
+                        && $attribute->namespaceURI == $namespace
+                    ) || $this->getName() == '*'
+                ) {
                     $results->merge(new DOMNodeList($attribute));
                 }
             }
@@ -58,11 +72,18 @@ class XPathAttr extends AbstractXPath
      */
     public function parse($xPath)
     {
-        if (!preg_match('#^@[a-z-]+$#', $xPath)) {
+        if (!preg_match('#^@[a-z-:]+$#', $xPath)) {
             return false;
         }
 
-        $this->setName(substr($xPath, 1));
+        $parts = explode(':', substr($xPath, 1));
+
+        if (count($parts) > 1) {
+            $this->setNamespace($parts[0]);
+            $this->setName($parts[1]);
+        } else {
+            $this->setName($parts[0]);
+        }
 
         return true;
     }
@@ -75,7 +96,7 @@ class XPathAttr extends AbstractXPath
      */
     public function toString()
     {
-        return '@' . $this->getName();
+        return '@' . ($this->getNamespace()? $this->getNamespace() . ':': '') . $this->getName();
     }
 
     /**
@@ -97,4 +118,21 @@ class XPathAttr extends AbstractXPath
     {
         $this->name = $name;
     }
+
+    /**
+     * @return string
+     */
+    public function getNamespace()
+    {
+        return $this->namespace;
+    }
+
+    /**
+     * @param string $namespace
+     */
+    public function setNamespace($namespace)
+    {
+        $this->namespace = $namespace;
+    }
+
 }
