@@ -1312,4 +1312,9 @@ class Processor
             throw new MessageTerminatedException();
         }
     }
+
+    protected function xslResultDocument(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        trigger_error('xsl:result-document not supported yet');
+    }
 }
