@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Template;
 
 /**
@@ -128,6 +129,14 @@ class Debug
             echo '<p>Variable "' . $varName . '" content:</p>';
 
             var_dump($varValue);
+
+            if ($varValue instanceof DOMNodeList || $varValue instanceof \DOMNodeList) {
+                foreach ($varValue as $node) {
+                    echo '<pre>' . htmlentities($this->getOutput()->getMethod() == Output::METHOD_XML ?
+                        $node->ownerDocument->saveXML($node) :
+                        $node->ownerDocument->saveHTML($node)) . '</pre>';
+                }
+            }
         }
     }
 

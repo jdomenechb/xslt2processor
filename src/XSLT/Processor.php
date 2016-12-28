@@ -493,70 +493,73 @@ class Processor
         }
 
         $params = $this->getParamsFromXslWithParam($node, $context);
+        $executed = false;
 
-        // Select a template that match
-        foreach ($this->getGlobalContext()->getTemplates() as $template) {
-            if (!$fbPossibleTemplate) {
-                $fbPossibleTemplate = $template;
-            }
+        foreach ($nodesMatched as $nodeMatched) {
+            // Select a template that match
+            foreach ($this->getGlobalContext()->getTemplates() as $template) {
+                if (!$fbPossibleTemplate) {
+                    $fbPossibleTemplate = $template;
+                }
 
-            $xPath = $template->getMatch();
+                $xPath = $template->getMatch();
 
-            if (!$xPath) {
-                continue;
-            }
+                if (!$xPath) {
+                    continue;
+                }
 
-            // Check that the mode matches
-            $mode = $template->getMode();
+                // Check that the mode matches
+                $mode = $template->getMode();
 
-            if (
-                ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode'))
-                || (!$node->hasAttribute('mode') && $mode != null)
-            ) {
-                continue;
-            }
+                if (
+                    ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode'))
+                    || (!$node->hasAttribute('mode') && $mode != null)
+                ) {
+                    continue;
+                }
 
-            $xPathParsed = $this->parseXPath($xPath);
-            $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument ? $nodesMatched->item(0)->parentNode : $nodesMatched->item(0));
 
-            if ($results === false) {
-                continue;
-            }
+                $xPathParsed = $this->parseXPath($xPath);
+                $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument ? $nodeMatched->parentNode : $nodesMatched);
 
-            if (!$results instanceof OriginalDOMNodeList && !$results instanceof DOMNodeList) {
-                throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
-            }
+                if ($results === false) {
+                    continue;
+                }
 
-            if (!$results->count()) {
-                continue;
-            }
+                if (!$results instanceof OriginalDOMNodeList && !$results instanceof DOMNodeList) {
+                    throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
+                }
 
-            $isMatch = false;
+                if (!$results->count()) {
+                    continue;
+                }
 
-            foreach ($results as $possible) {
-                foreach ($nodesMatched as $nodeMatched) {
+                $isMatch = false;
+
+                foreach ($results as $possible) {
                     if ($possible->isSameNode($nodeMatched)) {
                         $isMatch = true;
-                        break 2;
+                        break;
                     }
-                }
-            }
 
-            if ($isMatch) {
-                foreach ($nodesMatched as $nodeMatched) {
+                }
+
+                if ($isMatch) {
                     $this->getDebug()->showTemplate($template);
                     $this->getTemplateContextStack()->pushAClone();
                     $this->getTemplateContextStack()->top()->setContextParent($nodesMatched);
                     $this->processTemplate($template, $nodeMatched, $newContext, $params);
                     $this->getTemplateContextStack()->pop();
-                }
 
-                return;
+                    $executed = true;
+
+                    break;
+                }
             }
         }
 
         // No matched templates: if first, select the most prioritary one
-        if (!$first/* || $executed*/) {
+        if (!$first || $executed) {
             return;
         }
 
@@ -569,6 +572,7 @@ class Processor
         $nodes = $xPathProcessed->query($context);
 
         foreach ($nodes as $contextNode) {
+            $this->getDebug()->showTemplate($template);
             $this->getTemplateContextStack()->pushAClone();
             $this->getTemplateContextStack()->top()->setContextParent($nodes);
             $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext, $params);
@@ -710,15 +714,15 @@ class Processor
 
         if ($results instanceof OriginalDOMNodeList || $results instanceof DOMNodeList) {
             foreach ($results as $result) {
-                if ($result instanceof DOMElement) {
-                    foreach ($result->childNodes as $childNode) {
-                        $childNode = $this->newXml->importNode($childNode);
-                        $newContext->appendChild($childNode);
-                    }
-                } else {
-                    $childNode = $this->newXml->importNode($result);
+//                if ($result instanceof DOMElement) {
+//                    foreach ($result->childNodes as $childNode) {
+//                        $childNode = $this->newXml->importNode($childNode);
+//                        $newContext->appendChild($childNode);
+//                    }
+//                } else {
+                    $childNode = $this->newXml->importNode($result, true);
                     $newContext->appendChild($childNode);
-                }
+//                }
             }
         } else {
             $domElementUtils = new DOMElementUtils();
@@ -1025,6 +1029,7 @@ class Processor
         $name = $node->getAttribute('name');
 
         $namespace = $this->evaluateAttrValueTemplates($namespace, $context);
+        $name = $this->evaluateAttrValueTemplates($name, $context);
 
         $document = $newContext;
 
@@ -1038,7 +1043,7 @@ class Processor
             $newNode = $document->createElement($name);
         }
 
-        $newContext->appendChild($newNode);
+        $newNode = $newContext->appendChild($newNode);
 
         $this->processChildNodes($node, $context, $newNode);
     }
