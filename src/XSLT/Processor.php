@@ -27,6 +27,7 @@ use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContextStack;
+use Jdomenechb\XSLT2Processor\XSLT\Exception\MessageTerminatedException;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Template;
 use Psr\Cache\CacheItemPoolInterface;
@@ -181,7 +182,12 @@ class Processor
         $node = $this->stylesheet->createElement('init-template');
         $node->setAttribute('select', '/');
 
-        $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
+        try {
+
+            $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
+        } catch (MessageTerminatedException $ex) {
+            trigger_error('Template execution was terminated because of an xsl:message');
+        }
 
         // Restore back the error handler we had
         restore_error_handler();
@@ -1285,5 +1291,20 @@ class Processor
     public function setTemplateContextStack($templateContextStack)
     {
         $this->templateContextStack = $templateContextStack;
+    }
+
+    protected function xslMessage(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        if ($node->hasAttribute('terminate')) {
+            $terminate = $node->getAttribute();
+        } else {
+            $terminate = 'no';
+        }
+
+        $this->processChildNodes($node, $context, $newContext);
+
+        if ($terminate === 'yes') {
+            throw new MessageTerminatedException();
+        }
     }
 }
