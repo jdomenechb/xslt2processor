@@ -188,7 +188,6 @@ class Processor
         $node->setAttribute('select', '/');
 
         try {
-
             $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
@@ -684,7 +683,6 @@ class Processor
             $result = 'false';
         }
 
-        //echo $toEvaluate . "<br/>\n";
         $domElementUtils = new DOMElementUtils();
         $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
 
@@ -754,14 +752,31 @@ class Processor
 
     protected function xslCopy(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        $childNode = $newContext->ownerDocument->importNode($context);
-
-        if ($childNode instanceof DOMElement) {
-            $utils = new DOMElementUtils();
-            $utils->removeAllAttributes($childNode);
-            $utils->removeAllChildren($childNode);
+        if ($newContext instanceof DOMDocument) {
+            $doc = $newContext;
+        } else {
+            $doc = $newContext->ownerDocument;
         }
 
+        if ($context instanceof DOMText) {
+            $childNode = $doc->createTextNode('');
+            $childNode->nodeValue = $context->nodeValue;
+        } else if ($context instanceof DOMElement) {
+            $childNode = $doc->importNode($context);
+        } else if ($context instanceof \DOMAttr) {
+            $newContext->setAttribute($context->nodeName, $context->nodeValue);
+            return;
+        } else {
+            var_dump($newContext);
+            throw new \RuntimeException('Class ' . get_class($context) . ' not supported in xsl:copy');
+        }
+
+
+//        if ($childNode instanceof DOMElement) {
+//            $utils = new DOMElementUtils();
+//            $utils->removeAllAttributes($childNode);
+//            $utils->removeAllChildren($childNode);
+//        }
         $childNode = $newContext->appendChild($childNode);
 
         $this->processChildNodes($node, $context, $childNode);
@@ -1328,6 +1343,7 @@ class Processor
         }
 
         $message = $this->evaluateBody($node, $context, $newContext);
+
         $this->messages[] = $message;
 
         if ($terminate === 'yes') {
