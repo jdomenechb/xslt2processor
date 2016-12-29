@@ -55,13 +55,14 @@ class XPathAttr extends AbstractXPath
 
             foreach ($contextNode->attributes as $attribute) {
                 /** @var $attribute \DOMAttr */
-                if (
-                    (
-                        $attribute->localName == $this->getName()
-                        && $attribute->namespaceURI == $namespace
-                    ) || $this->getName() == '*'
+                if ($this->getName() == '*') {
+                    $results->merge(new DOMNodeList($attribute));
+                } else if  (
+                    $attribute->localName == $this->getName()
+                    && $attribute->namespaceURI == $namespace
                 ) {
                     $results->merge(new DOMNodeList($attribute));
+                    break;
                 }
             }
         }

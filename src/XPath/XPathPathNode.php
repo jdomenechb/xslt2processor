@@ -129,7 +129,10 @@ class XPathPathNode extends AbstractXPath
         }
 
         if (!$this->getNode()) {
-            if ($context instanceof DOMNodeList || $context instanceof \DOMNodeList) {
+            if (
+                $context instanceof DOMNodeList
+                || $context instanceof \DOMNodeList
+            ) {
                 $item = $context->item(0);
             } else {
                 $item = $context;

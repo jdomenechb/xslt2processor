@@ -43,7 +43,7 @@ class DOMNodeList implements ArrayAccess, Iterator
      * Defines if the set has to be sorted.
      * @var bool
      */
-    protected $sortable = true;
+    protected $sortable = false;
 
     /**
      * Constructor.
@@ -52,16 +52,16 @@ class DOMNodeList implements ArrayAccess, Iterator
      */
     public function __construct($items = [])
     {
-        if ($items instanceof OriginalDOMNodeList) {
+        if (is_array($items)) {
+            $this->fromArray($items);
+        } elseif ($items instanceof OriginalDOMNodeList) {
             $this->fromDOMNodeList($items);
         } elseif ($items instanceof DOMNode) {
             $this->fromDOMNode($items);
         } elseif ($items instanceof self) {
             $this->fromSelf($items);
-        } elseif (is_array($items)) {
-            $this->fromArray($items);
         } else {
-            $this->items = [];
+            throw new RuntimeException('Given parameter not recognized');
         }
     }
 
@@ -277,17 +277,20 @@ class DOMNodeList implements ArrayAccess, Iterator
             // Determine all the levels
             $topParentA = $a;
 
-            while ($topParentA !== null  && !$topParentA->parentNode instanceof \DOMDocument) {
+            while ($topParentA !== null && !$topParentA->parentNode instanceof \DOMDocument) {
                 $topParentA = $topParentA->parentNode;
-                array_unshift($levelsA, $topParentA);
+                $levelsA[] = $topParentA;
             }
 
             $topParentB = $b;
 
             while ($topParentB !== null && !$topParentB->parentNode instanceof \DOMDocument) {
                 $topParentB = $topParentB->parentNode;
-                array_unshift($levelsB, $topParentB);
+                $levelsB[] = $topParentB;
             }
+
+            $levelsA = array_reverse($levelsA);
+            $levelsB = array_reverse($levelsB);
 
             // Check where is the difference
             $min = min(count($levelsA), count($levelsB));
