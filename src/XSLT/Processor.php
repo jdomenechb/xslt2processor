@@ -25,7 +25,6 @@ use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContextStack;
 use Jdomenechb\XSLT2Processor\XSLT\Exception\MessageTerminatedException;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
@@ -115,6 +114,11 @@ class Processor
     protected $templateContextStack;
 
     /**
+     * @var \ArrayObject
+     */
+    protected $messages;
+
+    /**
      * Constructor.
      *
      * @param string|\DOMDocument $xslt path of the XSLT file or DOMDocument containing the XSL stylesheet
@@ -168,6 +172,7 @@ class Processor
         // Set the basic things needed
         $this->globalContext = new GlobalContext();
         $this->newXml = new DOMDocument();
+        $this->messages = new \ArrayObject();
 
         // TODO: Move to Factory xPath class
         // Prepare the xPath log in case it is desired to save xPaths
@@ -1317,12 +1322,13 @@ class Processor
     protected function xslMessage(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if ($node->hasAttribute('terminate')) {
-            $terminate = $node->getAttribute();
+            $terminate = $node->getAttribute('terminate');
         } else {
             $terminate = 'no';
         }
 
-        $this->processChildNodes($node, $context, $newContext);
+        $message = $this->evaluateBody($node, $context, $newContext);
+        $this->messages[] = $message;
 
         if ($terminate === 'yes') {
             throw new MessageTerminatedException();
@@ -1333,4 +1339,14 @@ class Processor
     {
         trigger_error('xsl:result-document not supported yet');
     }
+
+    /**
+     * @return \ArrayObject
+     */
+    public function getMessages()
+    {
+        return $this->messages;
+    }
+
+
 }
