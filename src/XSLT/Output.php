@@ -228,4 +228,22 @@ class Output
 
         return $doctype . '>';
     }
+
+    public function getMetaCharsetTag(\DOMDocument $doc)
+    {
+        if ($this->getMethod() !== static::METHOD_HTML) {
+            throw new \RuntimeException('Non HTML output methods are not supported for charset meta');
+        }
+
+        $meta = $doc->createElement('meta');
+
+        if ($this->getVersion() == 5) {
+            $meta->setAttribute('charset', $doc->encoding);
+        } else {
+            $meta->setAttribute('http-equiv', 'Content-Type');
+            $meta->setAttribute('content', 'text/html; charset=' . $doc->encoding);
+        }
+
+        return $meta;
+    }
 }

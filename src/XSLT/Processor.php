@@ -199,7 +199,23 @@ class Processor
                 $this->newXml->saveXML();
         }
 
+        // Add missing HTML default tags
         $content = $this->getOutput()->getDoctype() . "\n";
+
+        $headerXPath = $this->parseXPath('/html/head');
+        $header = $headerXPath->query($this->newXml);
+
+        if ($header->count()) {
+            $meta = $this->getOutput()->getMetaCharsetTag($this->newXml);
+
+            if ($header->item(0)->hasChildNodes()) {
+                $header->item(0)->insertBefore($meta, $header->item(0)->childNodes->item(0));
+            } else {
+                $header->item(0)->appendChild($meta);
+            }
+        } else {
+            throw new \RuntimeException('If the HTML does not implement the head tag, the output cannot be shown');
+        }
 
         return $content . $this->newXml->saveHTML();
     }
