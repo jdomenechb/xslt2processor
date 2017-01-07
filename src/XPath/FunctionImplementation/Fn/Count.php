@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
@@ -31,6 +32,10 @@ class Count extends AbstractFunctionImplementation
     {
         $property = $func->getParameters()[0]->evaluate($context);
 
-        return $property->count();
+        if ($property instanceof DOMNodeList) {
+            return $property->count();
+        }
+
+        return 1;
     }
 }
