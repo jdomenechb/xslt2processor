@@ -16,9 +16,9 @@ use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImple
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function text() from XSLT standard library.
+ * Function comment() from XSLT standard library.
  */
-class Text extends AbstractFunctionImplementation
+class Comment extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -39,7 +39,7 @@ class Text extends AbstractFunctionImplementation
 
         foreach ($context as $contextNode) {
             foreach ($contextNode->childNodes as $childNode) {
-                if (!$childNode instanceof \DOMCharacterData) {
+                if (!$childNode instanceof \DOMComment) {
                     continue;
                 }
 

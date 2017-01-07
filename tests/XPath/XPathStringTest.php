@@ -63,29 +63,7 @@ class XPathStringTest extends TestCase
     }
 
     /**
-     * Test that the method setDefaultNamespacePrefix is useless in this context.
-     */
-    public function testUselessSetDefaultNamespacePrefix()
-    {
-        $obj = new XPathString("'a'");
-        $obj2 = new XPathString("'a'");
-        $obj2->setDefaultNamespacePrefix('something');
-        $this->assertEquals($obj, $obj2);
-    }
-
-    /**
-     * Test that the method setVariableValues is useless in this context.
-     */
-    public function testUselessSetVariableValues()
-    {
-        $obj = new XPathString("'a'");
-        $obj2 = new XPathString("'a'");
-        $obj2->setVariableValues(['something' => 'somethingElse']);
-        $this->assertEquals($obj, $obj2);
-    }
-
-    /**
-     * Tests the evaluation of a number returns the xPath given.
+     * Tests the evaluation of a string returns the xPath given.
      *
      * @dataProvider basicValuesProvider
      *
@@ -109,6 +87,10 @@ class XPathStringTest extends TestCase
             ["'abcde'", 'abcde'],
             ["'abc def'", 'abc def'],
             ["'abc '' def'", "abc ' def"],
+            ['"a"', 'a'],
+            ['"abcde"', 'abcde'],
+            ['"abc def"', 'abc def'],
+            ['"abc "" def"', 'abc " def'],
         ];
     }
 

@@ -12,13 +12,14 @@
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XPath\Exception\ParameterNotValid;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function text() from XSLT standard library.
+ * Function node-name() from XSLT standard library.
  */
-class Text extends AbstractFunctionImplementation
+class NodeName extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -30,23 +31,24 @@ class Text extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $result = new DOMNodeList();
-        $result->setSortable(false);
+        $argument = $func->getParameters()[0]->evaluate($context);
 
-        if (!$context instanceof DOMNodeList) {
-            $context = new DOMNodeList($context);
+        if (!$argument instanceof DOMNodeList || $argument->count() > 1) {
+            throw new ParameterNotValid(
+                1,
+                static::class,
+                [ParameterNotValid::TYPE_EMPTY_SEQUENCE, ParameterNotValid::TYPE_NODE]
+            );
         }
 
-        foreach ($context as $contextNode) {
-            foreach ($contextNode->childNodes as $childNode) {
-                if (!$childNode instanceof \DOMCharacterData) {
-                    continue;
-                }
-
-                $result[] = $childNode;
-            }
+        if (!$argument->count()) {
+            return new DOMNodeList();
         }
 
-        return $result;
+        if ($argument->item(0)->nodeName[0] !== '#') {
+            return $argument->item(0)->nodeName;
+        }
+
+        return new DOMNodeList();
     }
 }

@@ -59,18 +59,14 @@ class XPathFunction extends AbstractXPath
      */
     protected $debug;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string)
-    {
-        $this->parse($string);
-    }
-
     public function parse($string)
     {
         $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->parseFirstLevelSubExpressions($string, '(', ')');
+
+        if (count($parts) !== 3) {
+            return false;
+        }
 
         // Extract name
         $this->setFullName(array_shift($parts));
@@ -81,7 +77,7 @@ class XPathFunction extends AbstractXPath
         $parametersRaw = array_shift($parts);
 
         if ($parametersRaw === '') {
-            return;
+            return true;
         }
 
         $parameters = $eph->explodeRootLevel(',', $parametersRaw);
@@ -91,13 +87,15 @@ class XPathFunction extends AbstractXPath
         }, $parameters);
 
         $this->setParameters($parameters);
+
+        return true;
     }
 
     public function setFullName($name)
     {
         $parts = explode(':', $name);
 
-        if (count($parts) == 1) {
+        if (count($parts) === 1) {
             $this->setName($name);
         } else {
             $this->setNamespacePrefix($parts[0]);
@@ -196,7 +194,7 @@ class XPathFunction extends AbstractXPath
         $obj = new $className();
         $result = $obj->evaluate($this, $context);
 
-        if ($this->getDebug()->isEnabled() && $this->getNamespacePrefix() != 'exsl') {
+        if ($this->getDebug()->isEnabled() && $this->getNamespacePrefix() !== 'exsl') {
             $this->getDebug()->showFunction($this->getFullName(), $result);
         }
 
@@ -265,7 +263,7 @@ class XPathFunction extends AbstractXPath
 
     protected function getNamespace()
     {
-        if ($this->getNamespacePrefix() == 'fn') {
+        if ($this->getNamespacePrefix() === 'fn') {
             return 'fn';
         }
 

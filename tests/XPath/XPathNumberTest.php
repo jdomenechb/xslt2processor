@@ -63,28 +63,6 @@ class XPathNumberTest extends TestCase
     }
 
     /**
-     * Test that the method setDefaultNamespacePrefix is useless in this context.
-     */
-    public function testUselessSetDefaultNamespacePrefix()
-    {
-        $obj = new XPathNumber(2);
-        $obj2 = new XPathNumber(2);
-        $obj2->setDefaultNamespacePrefix('something');
-        $this->assertEquals($obj, $obj2);
-    }
-
-    /**
-     * Test that the method setVariableValues is useless in this context.
-     */
-    public function testUselessSetVariableValues()
-    {
-        $obj = new XPathNumber(2);
-        $obj2 = new XPathNumber(2);
-        $obj2->setVariableValues(['something' => 'somethingElse']);
-        $this->assertEquals($obj, $obj2);
-    }
-
-    /**
      * Tests the evaluation of a number returns the xPath given.
      *
      * @dataProvider basicValuesProvider
