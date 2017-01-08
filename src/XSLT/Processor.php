@@ -733,15 +733,8 @@ class Processor
 
         if ($results instanceof OriginalDOMNodeList || $results instanceof DOMNodeList) {
             foreach ($results as $result) {
-//                if ($result instanceof DOMElement) {
-//                    foreach ($result->childNodes as $childNode) {
-//                        $childNode = $this->newXml->importNode($childNode);
-//                        $newContext->appendChild($childNode);
-//                    }
-//                } else {
-                    $childNode = $this->newXml->importNode($result, true);
-                    $newContext->appendChild($childNode);
-//                }
+                $childNode = $this->newXml->importNode($result, true);
+                $newContext->appendChild($childNode);
             }
         } else {
             $domElementUtils = new DOMElementUtils();
@@ -767,10 +760,16 @@ class Processor
             $newContext->setAttribute($context->nodeName, $context->nodeValue);
             return;
         } else {
-            var_dump($newContext);
             throw new \RuntimeException('Class ' . get_class($context) . ' not supported in xsl:copy');
         }
 
+        foreach ($this->getGlobalContext()->getNamespaces() as $prefix => $namespace) {
+            if ($prefix === 'default' || $prefix == 'xsl' || $prefix == 'xml') {
+                continue;
+            }
+
+            $newContext->setAttribute('xmlns:' . $prefix, $namespace);
+        }
 
 //        if ($childNode instanceof DOMElement) {
 //            $utils = new DOMElementUtils();

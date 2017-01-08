@@ -14,8 +14,6 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMNode;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
-use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathPathNode extends AbstractXPath
 {
