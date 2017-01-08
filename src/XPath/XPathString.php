@@ -10,8 +10,6 @@
  */
 
 namespace Jdomenechb\XSLT2Processor\XPath;
-use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Represents a xPath string.
@@ -24,6 +22,11 @@ class XPathString extends AbstractXPath
      * @var string
      */
     protected $string;
+
+    /**
+     * @var bool
+     */
+    protected $doubleQuoted;
 
     /**
      * {@inheritdoc}
@@ -55,10 +58,12 @@ class XPathString extends AbstractXPath
             return false;
         }
 
-        if (mb_substr($xPath, 1, 1) == "'") {
+        if ($xPath[0] === "'") {
             $this->string = (string) str_replace("''", "'", mb_substr($xPath, 1, -1));
+            $this->setDoubleQuoted(false);
         } else {
             $this->string = (string) str_replace('""', '"', mb_substr($xPath, 1, -1));
+            $this->setDoubleQuoted(true);
         }
 
         return true;
@@ -69,7 +74,9 @@ class XPathString extends AbstractXPath
      */
     public function toString()
     {
-        return "'" . str_replace("'", "''", $this->getString()) . "'";
+        return $this->isDoubleQuoted() ?
+            '"' . str_replace('"', '""', $this->getString()) . '"':
+            "'" . str_replace("'", "''", $this->getString()) . "'";
     }
 
     /**
@@ -87,4 +94,21 @@ class XPathString extends AbstractXPath
     {
         return $this->string;
     }
+
+    /**
+     * @return bool
+     */
+    public function isDoubleQuoted()
+    {
+        return $this->doubleQuoted;
+    }
+
+    /**
+     * @param bool $doubleQuoted
+     */
+    public function setDoubleQuoted($doubleQuoted)
+    {
+        $this->doubleQuoted = $doubleQuoted;
+    }
+
 }

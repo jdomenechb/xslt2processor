@@ -156,6 +156,10 @@ class XPathPathNode extends AbstractXPath
             $namespacePrefix = $this->getGlobalContext()->getDefaultNamespace();
         }
 
+        if (!$this->getGlobalContext()->getNamespaces()->offsetExists($namespacePrefix)) {
+            throw new \RuntimeException('Namespace with prefix "' . $namespacePrefix . '" is not defined in context');
+        }
+
         // Detect the nodes we are interested in
         $result = new DOMNodeList();
 

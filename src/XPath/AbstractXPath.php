@@ -78,6 +78,10 @@ abstract class AbstractXPath implements ExpressionInterface
      */
     public function getGlobalContext()
     {
+        if (!$this->globalContext) {
+            $this->setGlobalContext(new GlobalContext());
+        }
+
         return $this->globalContext;
     }
 

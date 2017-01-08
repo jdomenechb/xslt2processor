@@ -382,7 +382,7 @@ class Processor
 
     protected function processXsltNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        $methodName = 'xsl' . implode('', array_map('ucfirst', explode('-', substr($node->nodeName, 4))));
+        $methodName = 'xsl' . implode('', array_map('ucfirst', explode('-', $node->localName)));
 
         $this->getDebug()->startNodeLevel($this->newXml, $node);
 
@@ -1355,6 +1355,16 @@ class Processor
         trigger_error('xsl:result-document not supported yet');
     }
 
+    protected function xslProcessingInstruction(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        $name = $node->getAttribute('name');
+        $content = $this->evaluateBody($node, $context);
+
+        $doc = ($context instanceof DOMDocument? $context: $context->ownerDocument);
+
+        $doc->appendChild($doc->createProcessingInstruction($name, $content));
+    }
+
     /**
      * @return \ArrayObject
      */
@@ -1362,6 +1372,5 @@ class Processor
     {
         return $this->messages;
     }
-
 
 }

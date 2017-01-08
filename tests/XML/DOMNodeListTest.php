@@ -119,7 +119,7 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     public function testCount(array $items)
     {
         $newDOMNodeList = new DOMNodeList($items);
-        $this->assertCount($newDOMNodeList->count(), count($items));
+        $this->assertCount($newDOMNodeList->count(), $items);
     }
 
     /**
@@ -132,7 +132,7 @@ class DOMNodeListTest extends \PHPUnit_Framework_TestCase
     public function testLength(array $items)
     {
         $newDOMNodeList = new DOMNodeList($items);
-        $this->assertCount($newDOMNodeList->length, count($items));
+        $this->assertCount($newDOMNodeList->length, $items);
     }
 
     /**

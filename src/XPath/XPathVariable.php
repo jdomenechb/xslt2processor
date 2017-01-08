@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathVariable extends AbstractXPath
@@ -27,17 +26,15 @@ class XPathVariable extends AbstractXPath
      */
     protected $value;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string)
-    {
-        $this->parse($string);
-    }
-
     public function parse($string)
     {
+        if (!preg_match('#^\$[a-z0-9_-]+$#i', $string)) {
+            return false;
+        }
+
         $this->setName(substr($string, 1));
+
+        return true;
     }
 
     public function toString()
