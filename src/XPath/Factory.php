@@ -35,8 +35,10 @@ class Factory
         }
 
         // Parse var
-        if (preg_match('#^\$[a-z0-9_]+$#i', $expression)) {
-            return new XPathVariable($expression);
+        $tmp = new XPathVariable();
+
+        if ($tmp->parse($expression)) {
+            return $tmp;
         }
 
         // Analyze parentheses

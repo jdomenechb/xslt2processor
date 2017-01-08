@@ -29,8 +29,14 @@ class Contains extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $property = $func->getParameters()[0]->evaluate($context);
+        $haystack = $func->getParameters()[0]->evaluate($context);
+        $haystack = $this->valueAsString($haystack);
 
-        return $property->count();
+        $needle = $func->getParameters()[1]->evaluate($context);
+        $needle = $this->valueAsString($needle);
+
+        $result = mb_strpos($haystack, $needle) !== false;
+
+        return $result;
     }
 }

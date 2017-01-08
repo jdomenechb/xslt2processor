@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 

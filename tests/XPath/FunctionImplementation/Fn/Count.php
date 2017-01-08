@@ -55,7 +55,7 @@ class Count extends TestCase
      * @param $parameter
      * @dataProvider dataProvider
      */
-    public function testNotValidParameter(ExpressionInterface $parameter)
+    public function testValidResult(ExpressionInterface $parameter)
     {
         $func = new XPathFunction();
         $func->setParameters([$parameter]);
