@@ -75,7 +75,7 @@ class XPathString extends AbstractXPath
     public function toString()
     {
         return $this->isDoubleQuoted() ?
-            '"' . str_replace('"', '""', $this->getString()) . '"':
+            '"' . str_replace('"', '""', $this->getString()) . '"' :
             "'" . str_replace("'", "''", $this->getString()) . "'";
     }
 
@@ -110,5 +110,4 @@ class XPathString extends AbstractXPath
     {
         $this->doubleQuoted = $doubleQuoted;
     }
-
 }

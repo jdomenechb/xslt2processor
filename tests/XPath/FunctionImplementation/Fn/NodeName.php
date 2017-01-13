@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\Tests\XPath\FunctionImplementation\Fn;
 
-
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\AbstractXPath;
 use Jdomenechb\XSLT2Processor\XPath\Exception\ParameterNotValid;
@@ -23,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the XPath node-name() function.
+ *
  * @author jdomenechb
  */
 class NodeName extends TestCase
@@ -57,6 +57,7 @@ class NodeName extends TestCase
 
     /**
      * Tests that we throw an exception in case the parameter provided is invalid.
+     *
      * @param $invalidParameter
      * @dataProvider invalidParameterProvider
      */
@@ -69,11 +70,11 @@ class NodeName extends TestCase
 
         $funcImpl = new \Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\NodeName();
         $funcImpl->evaluate($func, $this->xml);
-
     }
 
     /**
      * Tests that the empty sequence is returned when the element is not named.
+     *
      * @param $parameter
      * @dataProvider notNamedParameterProvider
      */
@@ -90,6 +91,7 @@ class NodeName extends TestCase
 
     /**
      * Tests that the correct name is returned when the element is named.
+     *
      * @param $parameter
      * @param $expected
      * @dataProvider namedParameterProvider
@@ -105,7 +107,6 @@ class NodeName extends TestCase
 
         $this->assertSame($expected, $result);
     }
-
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 

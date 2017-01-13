@@ -16,9 +16,9 @@ use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImple
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function name() from XSLT standard library.
+ * Function number() from XSLT standard library.
  */
-class Name extends AbstractFunctionImplementation
+class Number extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -30,20 +30,28 @@ class Name extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        if (!count($func->getParameters())) {
-            $property = new DOMNodeList($context);
+        if (count($func->getParameters()) === 0) {
+            $toEvaluate = $context;
         } else {
-            $property = $func->getParameters()[0]->evaluate($context);
+            $toEvaluate = $func->getParameters()[0]->evaluate($context);
         }
 
-        if (!$property instanceof DOMNodeList) {
-            $property = new DOMNodeList($property);
+        if ($toEvaluate instanceof DOMNodeList) {
+            if (!$toEvaluate->count()) {
+                return NAN;
+            }
+
+            $toEvaluate = $toEvaluate->item(0);
         }
 
-        if (!$property->count()) {
-            return null;
+        if ($toEvaluate instanceof DOMNode) {
+            $toEvaluate = $toEvaluate->nodeValue;
         }
 
-        return $property->item(0)->nodeName;
+        if (!is_string($toEvaluate) || $toEvaluate !== '' || is_numeric($toEvaluate)) {
+            return floatval($toEvaluate);
+        }
+
+        return NAN;
     }
 }

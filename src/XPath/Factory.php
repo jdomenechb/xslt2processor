@@ -52,7 +52,7 @@ class Factory
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
                 // It should match a function
-                && preg_match('#^[a-z:-]+\(.*\)$#s', $expression)
+                && preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $expression)
             ) {
                 return new XPathFunction($expression);
             }

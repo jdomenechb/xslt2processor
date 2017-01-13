@@ -12,8 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
-use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 /**
  * Represents a number in an xPath.

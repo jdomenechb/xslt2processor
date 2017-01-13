@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the XPath count() function.
+ *
  * @author jdomenechb
  */
 class Count extends TestCase
@@ -52,6 +53,7 @@ class Count extends TestCase
 
     /**
      * Tests that the count works correctly for every case.
+     *
      * @param $parameter
      * @dataProvider dataProvider
      */
@@ -64,9 +66,7 @@ class Count extends TestCase
         $funcImpl->evaluate($func, $this->xml);
     }
 
-
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
-
 
     public function dataProvider()
     {

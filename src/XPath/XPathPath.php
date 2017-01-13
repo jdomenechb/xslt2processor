@@ -16,7 +16,6 @@ use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
-use \RuntimeException;
 
 class XPathPath extends AbstractXPath
 {
@@ -56,7 +55,6 @@ class XPathPath extends AbstractXPath
 
         return implode('/', $parts);
     }
-
 
     /**
      * @param DOMElement $node
@@ -177,6 +175,4 @@ class XPathPath extends AbstractXPath
             $part->setTemplateContext($context);
         }
     }
-
-
 }

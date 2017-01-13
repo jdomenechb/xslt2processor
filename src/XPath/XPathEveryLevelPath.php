@@ -61,7 +61,6 @@ class XPathEveryLevelPath extends AbstractXPath
         return $this->getLeftPart()->toString() . '//' . $this->getRightPart()->toString();
     }
 
-
     /**
      * @return ExpressionInterface
      */
@@ -111,19 +110,6 @@ class XPathEveryLevelPath extends AbstractXPath
         return $results;
     }
 
-    protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
-    {
-        $results->merge($this->getRightPart()->evaluate($node));
-
-        foreach ($node->childNodes as $childNode) {
-            if (!$childNode instanceof DOMElement) {
-                continue;
-            }
-
-            $this->deepEvaluation($results, $childNode);
-        }
-    }
-
     public function setGlobalContext(GlobalContext $context)
     {
         parent::setGlobalContext($context);
@@ -138,5 +124,18 @@ class XPathEveryLevelPath extends AbstractXPath
 
         $this->getLeftPart()->setTemplateContext($context);
         $this->getRightPart()->setTemplateContext($context);
+    }
+
+    protected function deepEvaluation(DOMNodeList $results, \DOMNode $node)
+    {
+        $results->merge($this->getRightPart()->evaluate($node));
+
+        foreach ($node->childNodes as $childNode) {
+            if (!$childNode instanceof DOMElement) {
+                continue;
+            }
+
+            $this->deepEvaluation($results, $childNode);
+        }
     }
 }

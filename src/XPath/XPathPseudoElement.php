@@ -39,7 +39,6 @@ class XPathPseudoElement extends AbstractXPath
         return true;
     }
 
-
     public function toString()
     {
         return $this->getName() . '::' . $this->getNode();
@@ -85,6 +84,98 @@ class XPathPseudoElement extends AbstractXPath
                 }
                 break;
 
+            case 'self':
+                switch ($this->getNode()) {
+                    case 'comment()':
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            if (!$contextNode instanceof \DOMComment) {
+                                continue;
+                            }
+
+                            $result[] = $contextNode;
+                        }
+
+                        return $result;
+
+                    case '*':
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            if (!$contextNode instanceof \DOMElement) {
+                                continue;
+                            }
+
+                            $result[] = $contextNode;
+                        }
+
+                        return $result;
+
+                    case 'processing-instruction()':
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            if (!$contextNode instanceof \DOMProcessingInstruction) {
+                                continue;
+                            }
+
+                            $result[] = $contextNode;
+                        }
+
+                        return $result;
+
+                    case 'text()':
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            if (!$contextNode instanceof \DOMCharacterData) {
+                                continue;
+                            }
+
+                            $result[] = $contextNode;
+                        }
+
+                        return $result;
+
+                    default:
+                        throw new \RuntimeException('Second parameter of self:: not recognised: ' . $this->getNode());
+                }
+                break;
+
+            case 'namespace':
+                switch ($this->getNode()) {
+                    case '*':
+                        // Result DOMXPath
+                        foreach ($context as $contextNode) {
+                            $xPathClass = new \DOMXPath($contextNode instanceof \DOMDocument ? $contextNode : $contextNode->ownerDocument);
+                            $results1 = $xPathClass->query('namespace::*', $contextNode);
+                        }
+
+                        return new DOMNodeList($results1);
+
+                    default:
+                        throw new \RuntimeException('Second parameter of namespace:: not recognised: ' . $this->getNode());
+                }
+                break;
+
+            case 'attribute':
+                switch ($this->getNode()) {
+                    case '*':
+                        // Result DOMXPath
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            $result->merge(new DOMNodeList($contextNode->attributes));
+                        }
+
+                        return $result;
+
+                    default:
+                        throw new \RuntimeException('Second parameter of attribute:: not recognised: ' . $this->getNode());
+                }
+                break;
+
             case 'following-sibling':
                 switch ($this->getNode()) {
                     case '*':
@@ -101,7 +192,32 @@ class XPathPseudoElement extends AbstractXPath
                         while ($context->nextSibling !== null) {
                             $result[] = $context->nextSibling;
                             $context = $context->nextSibling;
+                        }
 
+                        return $result;
+
+                    default:
+                        throw new \RuntimeException('Second parameter of following-sibling:: not recognised');
+                }
+                break;
+
+            case 'preceding-sibling':
+                switch ($this->getNode()) {
+                    case '*':
+                        if ($context instanceof DOMNodeList) {
+                            if ($context->count() > 1 || $context->count() < 1) {
+                                throw new \RuntimeException('preceding-sibling only needs 1 context node');
+                            }
+
+                            $context = $context->item(0);
+                        }
+
+                        $result = new DOMNodeList();
+                        $result->setSortable(true);
+
+                        while ($context->previousSibling !== null) {
+                            $result[] = $context->previousSibling;
+                            $context = $context->previousSibling;
                         }
 
                         return $result;
@@ -137,7 +253,7 @@ class XPathPseudoElement extends AbstractXPath
                 break;
 
             default:
-                $msg = 'Pseudoelement ' . $this->getName() . '::' . $this->getNode() . 'not recognised';
+                $msg = 'Pseudoelement ' . $this->getName() . '::' . $this->getNode() . ' not recognised';
                 throw new \RuntimeException($msg);
         }
     }
@@ -157,5 +273,4 @@ class XPathPseudoElement extends AbstractXPath
     {
         $this->name = $name;
     }
-
 }

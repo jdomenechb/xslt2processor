@@ -44,7 +44,7 @@ class XPathAttr extends AbstractXPath
         }
 
         $results = new DOMNodeList();
-        $namespace = $this->getNamespace()?
+        $namespace = $this->getNamespace() ?
             $this->getGlobalContext()->getNamespaces()[$this->getNamespace()]
             : $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()];
 
@@ -54,10 +54,10 @@ class XPathAttr extends AbstractXPath
             }
 
             foreach ($contextNode->attributes as $attribute) {
-                /** @var $attribute \DOMAttr */
+                /* @var $attribute \DOMAttr */
                 if ($this->getName() == '*') {
                     $results->merge(new DOMNodeList($attribute));
-                } else if  (
+                } elseif (
                     $attribute->localName == $this->getName()
                     && $attribute->namespaceURI == $namespace
                 ) {
@@ -98,7 +98,6 @@ class XPathAttr extends AbstractXPath
         return true;
     }
 
-
     /**
      * {@inheritdoc}
      *
@@ -106,7 +105,7 @@ class XPathAttr extends AbstractXPath
      */
     public function toString()
     {
-        return '@' . ($this->getNamespace()? $this->getNamespace() . ':': '') . $this->getName();
+        return '@' . ($this->getNamespace() ? $this->getNamespace() . ':' : '') . $this->getName();
     }
 
     /**
@@ -144,5 +143,4 @@ class XPathAttr extends AbstractXPath
     {
         $this->namespace = $namespace;
     }
-
 }

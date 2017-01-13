@@ -84,7 +84,6 @@ class XPathPathNode extends AbstractXPath
         $this->setNode($toSet);
     }
 
-
     public function evaluate($context)
     {
         return $this->query($context);
@@ -106,7 +105,6 @@ class XPathPathNode extends AbstractXPath
         $this->node = $node;
     }
 
-
     public function query($context)
     {
         // Direct cases
@@ -123,7 +121,7 @@ class XPathPathNode extends AbstractXPath
                 $context = $context->item(0);
             }
 
-            return new DOMNodeList($context->parentNode);
+            return new DOMNodeList(($context->parentNode ?: $context));
         }
 
         if (!$this->getNode()) {

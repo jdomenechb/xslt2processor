@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the XSLT2processor package.
+ * This file is part of the XSLT2Processor package.
  *
  * (c) Jordi Domènech Bonilla
  *
@@ -15,6 +15,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 /**
  * Defines the context for a template, a var body, etc.
+ *
  * @author jdomemechb
  */
 class TemplateContext
@@ -50,6 +51,12 @@ class TemplateContext
         $this->variablesDeclaredInContext = new \ArrayObject();
     }
 
+    public function __clone()
+    {
+        $this->setVariablesDeclaredInContext(new \ArrayObject());
+        $this->setContextParent(null);
+    }
+
     /**
      * @return \ArrayObject
      */
@@ -64,12 +71,6 @@ class TemplateContext
     public function setVariables($variables)
     {
         $this->variables = $variables;
-    }
-
-    public function __clone()
-    {
-        $this->setVariablesDeclaredInContext(new \ArrayObject());
-        $this->setContextParent(null);
     }
 
     /**
@@ -135,6 +136,4 @@ class TemplateContext
     {
         $this->groupingKey = $groupingKey;
     }
-
-
 }

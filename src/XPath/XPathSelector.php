@@ -12,12 +12,12 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Current;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathSelector extends AbstractXPath
 {
-
     /**
      * @var ExpressionInterface
      */
@@ -50,7 +50,7 @@ class XPathSelector extends AbstractXPath
         $this->setSelector($factory->create($selectorString));
 
         // Strip the selector from the original string
-        $string = substr($string, 0, - strlen($selectorString) - 2);
+        $string = substr($string, 0, -strlen($selectorString) - 2);
 
         $this->setExpression($factory->create($string));
 
@@ -71,6 +71,8 @@ class XPathSelector extends AbstractXPath
             $newResult[] = $result->item($this->getSelector()->toString() - 1);
         } else {
             foreach ($result as $resultElement) {
+                Current::getStack()->push($resultElement);
+
                 $evaluation = $this->getSelector()->evaluate($resultElement);
                 if (
                     ($evaluation instanceof DOMNodeList && $evaluation->count())
@@ -78,6 +80,8 @@ class XPathSelector extends AbstractXPath
                 ) {
                     $newResult[] = $resultElement;
                 }
+
+                Current::getStack()->pop();
             }
         }
 

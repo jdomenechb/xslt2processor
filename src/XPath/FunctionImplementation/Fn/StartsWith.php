@@ -35,6 +35,10 @@ class StartsWith extends AbstractFunctionImplementation
         $needle = $func->getParameters()[1]->evaluate($context);
         $needle = $this->valueAsString($needle);
 
+        if ($needle === '') {
+            return true;
+        }
+
         return mb_strpos($haystack, $needle) === 0;
     }
 }

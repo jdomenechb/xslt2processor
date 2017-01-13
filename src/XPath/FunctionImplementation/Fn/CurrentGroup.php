@@ -13,7 +13,6 @@ namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
-use SebastianBergmann\CodeCoverage\RuntimeException;
 
 /**
  * Function current-group() from XSLT standard library.

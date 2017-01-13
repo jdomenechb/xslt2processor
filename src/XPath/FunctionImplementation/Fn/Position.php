@@ -34,7 +34,7 @@ class Position extends AbstractFunctionImplementation
             $i = 0;
 
             foreach ($parent as $childNode) {
-                if ($childNode instanceof \DOMElement) {
+                if ($childNode instanceof \DOMNode) {
                     ++$i;
 
                     if ($childNode->isSameNode($context)) {

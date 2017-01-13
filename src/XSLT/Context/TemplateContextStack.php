@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the XSLT2processor package.
+ * This file is part of the XSLT2Processor package.
  *
  * (c) Jordi Domènech Bonilla
  *
@@ -10,7 +10,6 @@
  */
 
 namespace Jdomenechb\XSLT2Processor\XSLT\Context;
-
 
 class TemplateContextStack extends \SplStack
 {

@@ -33,6 +33,10 @@ class Debug
      */
     protected $enabled = false;
 
+    protected $includeBefore = true;
+
+    protected $includeAfter = true;
+
     /**
      * Output class of the processor, to determine the format of output debug.
      *
@@ -56,8 +60,12 @@ class Debug
     {
         if ($this->isEnabled()) {
             echo '<h3>&lt;/evaluation&gt;</h3>';
-            echo '<h3>After</h3>';
-            echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+
+            if ($this->isIncludeAfter()) {
+                echo '<h3>After</h3>';
+                echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+            }
+
             echo '</div>';
         }
     }
@@ -86,8 +94,11 @@ class Debug
                 echo '<br>';
             }
 
-            echo '<h3>Before</h3>';
-            echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+            if ($this->isIncludeBefore()) {
+                echo '<h3>Before</h3>';
+                echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+            }
+
             echo '<h3>&lt;evaluation&gt;</h3>';
         }
     }
@@ -118,7 +129,7 @@ class Debug
         if ($this->isEnabled()) {
             echo '<p>Function ' . $name . ' result:</p>';
 
-            /** @noinspection ForgottenDebugOutputInspection */
+            /* @noinspection ForgottenDebugOutputInspection */
             var_dump($result);
         }
     }
@@ -137,6 +148,13 @@ class Debug
                         $node->ownerDocument->saveHTML($node)) . '</pre>';
                 }
             }
+        }
+    }
+
+    public function printTexT($text)
+    {
+        if ($this->isEnabled()) {
+            echo '<p>' . $text . '</p>';
         }
     }
 
@@ -191,6 +209,38 @@ class Debug
         }
 
         return self::$instance;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIncludeBefore()
+    {
+        return $this->includeBefore;
+    }
+
+    /**
+     * @param bool $includeBefore
+     */
+    public function setIncludeBefore($includeBefore)
+    {
+        $this->includeBefore = $includeBefore;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIncludeAfter()
+    {
+        return $this->includeAfter;
+    }
+
+    /**
+     * @param bool $includeAfter
+     */
+    public function setIncludeAfter($includeAfter)
+    {
+        $this->includeAfter = $includeAfter;
     }
 
     /**

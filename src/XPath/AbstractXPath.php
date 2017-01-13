@@ -62,7 +62,6 @@ abstract class AbstractXPath implements ExpressionInterface
         $this->namespaces = $namespaces;
     }
 
-
     public function setGlobalContext(GlobalContext $context)
     {
         $this->globalContext = $context;
@@ -92,6 +91,4 @@ abstract class AbstractXPath implements ExpressionInterface
     {
         return $this->templateContext;
     }
-
-
 }

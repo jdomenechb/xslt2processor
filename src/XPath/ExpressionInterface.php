@@ -39,7 +39,6 @@ interface ExpressionInterface
      */
     public function toString();
 
-
     /**
      * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
      *

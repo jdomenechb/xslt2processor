@@ -222,7 +222,6 @@ class XPathFunction extends AbstractXPath
         self::$customFunctions[$function->getName()] = $function;
     }
 
-
     public function setGlobalContext(GlobalContext $context)
     {
         parent::setGlobalContext($context);
@@ -261,6 +260,17 @@ class XPathFunction extends AbstractXPath
         $this->debug = $debug;
     }
 
+    public function query($context)
+    {
+        $result = $this->evaluate($context);
+
+        if (!$result instanceof DOMNodeList) {
+            throw new \RuntimeException('Query must return a NodeSet: your xPath does not return a NodeSet');
+        }
+
+        return $result;
+    }
+
     protected function getNamespace()
     {
         if ($this->getNamespacePrefix() === 'fn') {
@@ -272,16 +282,5 @@ class XPathFunction extends AbstractXPath
         }
 
         return $this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()];
-    }
-
-    public function query($context)
-    {
-        $result = $this->evaluate($context);
-
-        if (!$result instanceof DOMNodeList) {
-            throw new \RuntimeException('Query must return a NodeSet: your xPath does not return a NodeSet');
-        }
-
-        return $result;
     }
 }

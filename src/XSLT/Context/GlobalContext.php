@@ -16,6 +16,7 @@ use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
 
 /**
  * Defines the base context shared between templates.
+ *
  * @author jdomenechb
  */
 class GlobalContext
@@ -25,6 +26,7 @@ class GlobalContext
 
     /**
      * Namespaces available throughout the XSL documents.
+     *
      * @var \ArrayObject
      */
     protected $namespaces;
@@ -64,6 +66,7 @@ class GlobalContext
 
     /**
      * @todo Support other namespaces when the prefix "default" is used
+     *
      * @return string
      */
     public function getDefaultNamespace()
@@ -81,6 +84,7 @@ class GlobalContext
 
     /**
      * @param Key[]
+     * @param mixed $keys
      */
     public function setKeys($keys)
     {
@@ -102,6 +106,4 @@ class GlobalContext
     {
         $this->templates = $templates;
     }
-
-
 }

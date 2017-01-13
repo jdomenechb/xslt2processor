@@ -48,8 +48,10 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $operators = array_keys(static::getOperators());
 
         foreach ($operators as $operator) {
-            if (in_array($operator, ['-', '*'])) {
+            if (in_array($operator, ['-', 'mod'])) {
                 $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator, $operator . ' '];
+            } elseif (in_array($operator, ['*'])) {
+                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator];
             } else {
                 $opWithSpaces = [$operator];
             }
@@ -178,7 +180,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
         );
     }
 
-    public abstract static function getOperators();
+    abstract public static function getOperators();
 
     public function setGlobalContext(GlobalContext $context)
     {

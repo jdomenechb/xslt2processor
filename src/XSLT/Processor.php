@@ -191,6 +191,9 @@ class Processor
             $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
+        } catch (\Exception $exception) {
+            echo htmlentities($this->newXml->saveXML());
+            throw $exception;
         }
 
         // Restore back the error handler we had
@@ -221,7 +224,9 @@ class Processor
             throw new \RuntimeException('If the HTML does not implement the head tag, the output cannot be shown');
         }
 
-        return $content . $this->newXml->saveHTML();
+        $result = $content . $this->newXml->saveHTML();
+
+        return $result;
     }
 
     /**
@@ -282,6 +287,42 @@ class Processor
         $this->debug = $debug;
     }
 
+    /**
+     * @return GlobalContext
+     */
+    public function getGlobalContext()
+    {
+        return $this->globalContext;
+    }
+
+    /**
+     * @return TemplateContextStack
+     */
+    public function getTemplateContextStack()
+    {
+        if (is_null($this->templateContextStack)) {
+            $this->templateContextStack = new TemplateContextStack();
+        }
+
+        return $this->templateContextStack;
+    }
+
+    /**
+     * @param TemplateContextStack $templateContextStack
+     */
+    public function setTemplateContextStack($templateContextStack)
+    {
+        $this->templateContextStack = $templateContextStack;
+    }
+
+    /**
+     * @return \ArrayObject
+     */
+    public function getMessages()
+    {
+        return $this->messages;
+    }
+
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $this->getGlobalContext()->getNamespaces()[GlobalContext::NAMESPACE_XSL] = $node->namespaceURI;
@@ -306,7 +347,6 @@ class Processor
 
         foreach ($xpath->query('namespace::*', $node) as $nsNode) {
             $this->getGlobalContext()->getNamespaces()[$nsNode->localName] = $nsNode->namespaceURI;
-
         }
 
         // Start processing the template
@@ -348,34 +388,38 @@ class Processor
     {
         $this->getDebug()->startNodeLevel($this->newXml, $node);
 
-        // Copy the node to the new document
-        $doc = $newContext->ownerDocument ?: $newContext;
-        $newNode = $doc->importNode($node);
+        if ($this->getTemplateContextStack()->count() === 1) {
+            $this->getDebug()->printText('Node ignored due to being executed in xsl:stylesheet');
+        } else {
+            // Copy the node to the new document
+            $doc = $newContext->ownerDocument ?: $newContext;
+            $newNode = $doc->importNode($node);
 
-        $nodesToDelete = [];
+            $nodesToDelete = [];
 
-        $newNode = $newContext->appendChild($newNode);
+            $newNode = $newContext->appendChild($newNode);
 
-        foreach ($newNode->childNodes as $child) {
-            $nodesToDelete[] = $child;
+            foreach ($newNode->childNodes as $child) {
+                $nodesToDelete[] = $child;
+            }
+
+            foreach ($nodesToDelete as $child) {
+                $newNode->removeChild($child);
+            }
+
+            // Process attributes
+            $newAttr = [];
+
+            foreach ($newNode->attributes as $attribute) {
+                $newAttr[$attribute->nodeName] = $this->evaluateAttrValueTemplates($attribute->nodeValue, $context);
+            }
+
+            foreach ($newAttr as $attrName => $attr) {
+                $newNode->setAttribute($attrName, $attr);
+            }
+
+            $this->processChildNodes($node, $context, $newNode);
         }
-
-        foreach ($nodesToDelete as $child) {
-            $newNode->removeChild($child);
-        }
-
-        // Process attributes
-        $newAttr = [];
-
-        foreach ($newNode->attributes as $attribute) {
-            $newAttr[$attribute->nodeName] = $this->evaluateAttrValueTemplates($attribute->nodeValue, $context);
-        }
-
-        foreach ($newAttr as $attrName => $attr) {
-            $newNode->setAttribute($attrName, $attr);
-        }
-
-        $this->processChildNodes($node, $context, $newNode);
 
         $this->getDebug()->endNodeLevel($this->newXml);
     }
@@ -538,7 +582,6 @@ class Processor
                     continue;
                 }
 
-
                 $xPathParsed = $this->parseXPath($xPath);
                 $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument ? $nodeMatched->parentNode : $nodesMatched);
 
@@ -561,7 +604,6 @@ class Processor
                         $isMatch = true;
                         break;
                     }
-
                 }
 
                 if ($isMatch) {
@@ -677,6 +719,8 @@ class Processor
         $toEvaluate = $this->parseXPath($toEvaluateXPath);
         $result = $toEvaluate->evaluate($context);
 
+        $this->getDebug()->showVar('result', $result);
+
         if ($result === true) {
             $result = 'true';
         } elseif ($result === false) {
@@ -754,10 +798,11 @@ class Processor
         if ($context instanceof DOMText) {
             $childNode = $doc->createTextNode('');
             $childNode->nodeValue = $context->nodeValue;
-        } else if ($context instanceof DOMElement) {
+        } elseif ($context instanceof DOMElement) {
             $childNode = $doc->importNode($context);
-        } else if ($context instanceof \DOMAttr) {
+        } elseif ($context instanceof \DOMAttr) {
             $newContext->setAttribute($context->nodeName, $context->nodeValue);
+
             return;
         } else {
             throw new \RuntimeException('Class ' . get_class($context) . ' not supported in xsl:copy');
@@ -789,15 +834,19 @@ class Processor
             throw new \RuntimeException('Variables cannot be redeclared');
         }
 
+        $this->getTemplateContextStack()->pushAClone();
+
         if ($node->hasAttribute('select')) {
             $selectXPath = $node->getAttribute('select');
             $results = $this->parseXPath($selectXPath)->evaluate($context);
-
-            $this->getTemplateContextStack()->top()->getVariables()[$name] = $results;
+            $value = $results;
         } else {
-            $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext);
+            $value = $this->evaluateBody($node, $context, $newContext);
         }
 
+        $this->getTemplateContextStack()->pop();
+
+        $this->getTemplateContextStack()->top()->getVariables()[$name] = $value;
         $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
 
         $this->getDebug()->showVar($name, $this->getTemplateContextStack()->top()->getVariables()[$name]);
@@ -1011,7 +1060,7 @@ class Processor
                 $criteriaExec = $criteria->evaluate($resultSingle);
 
                 if ($criteriaExec !== $lastMatchedCriteria && $lastMatchedCriteria !== null) {
-//                    if (count($currentGroup) > 1) {
+                    //                    if (count($currentGroup) > 1) {
                         $groups[$lastMatchedCriteria] = $currentGroup;
 //                    }
 
@@ -1265,6 +1314,11 @@ class Processor
                 $result = $selectParsed->evaluate($context);
 
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = $result;
+            } elseif ($node->childNodes->length > 0) {
+                $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext);
+//            } else {
+//                $value = $this->evaluateBody($node, $context, $newContext);
+//                $this->getTemplateContextStack()->top()->getVariables()[$name] = $value;
             } else {
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = null;
             }
@@ -1305,34 +1359,6 @@ class Processor
         }
     }
 
-    /**
-     * @return GlobalContext
-     */
-    public function getGlobalContext()
-    {
-        return $this->globalContext;
-    }
-
-    /**
-     * @return TemplateContextStack
-     */
-    public function getTemplateContextStack()
-    {
-        if (is_null($this->templateContextStack)) {
-            $this->templateContextStack = new TemplateContextStack();
-        }
-
-        return $this->templateContextStack;
-    }
-
-    /**
-     * @param TemplateContextStack $templateContextStack
-     */
-    public function setTemplateContextStack($templateContextStack)
-    {
-        $this->templateContextStack = $templateContextStack;
-    }
-
     protected function xslMessage(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if ($node->hasAttribute('terminate')) {
@@ -1360,17 +1386,8 @@ class Processor
         $name = $node->getAttribute('name');
         $content = $this->evaluateBody($node, $context);
 
-        $doc = ($context instanceof DOMDocument? $context: $context->ownerDocument);
+        $doc = ($context instanceof DOMDocument ? $context : $context->ownerDocument);
 
         $doc->appendChild($doc->createProcessingInstruction($name, $content));
     }
-
-    /**
-     * @return \ArrayObject
-     */
-    public function getMessages()
-    {
-        return $this->messages;
-    }
-
 }

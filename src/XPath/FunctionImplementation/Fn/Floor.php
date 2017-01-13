@@ -15,9 +15,9 @@ use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImple
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function translate() from XSLT standard library.
+ * Function floor() from XSLT standard library.
  */
-class Translate extends AbstractFunctionImplementation
+class Floor extends AbstractFunctionImplementation
 {
     /**
      * {@inheritdoc}
@@ -29,15 +29,8 @@ class Translate extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $value = $func->getParameters()[0]->evaluate($context);
-        $value = $this->valueAsString($value);
+        $property = $func->getParameters()[0]->evaluate($context);
 
-        $from = $func->getParameters()[1]->evaluate($context);
-        $from = $this->valueAsString($from);
-
-        $to = $func->getParameters()[2]->evaluate($context);
-        $to = $this->valueAsString($to);
-
-        return str_replace(preg_split('//u', $from, -1, PREG_SPLIT_NO_EMPTY), preg_split('//u', $to, -1, PREG_SPLIT_NO_EMPTY), $value);
+        return floor($property);
     }
 }

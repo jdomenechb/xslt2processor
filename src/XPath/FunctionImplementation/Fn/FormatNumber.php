@@ -49,9 +49,8 @@ class FormatNumber extends AbstractFunctionImplementation
 
         if (count($formatParts) > 1) {
             throw new \RuntimeException('format-number function with decimal format not implemented yet');
-        } else {
-            $formatParts[1] = '';
         }
+        $formatParts[1] = '';
 
         $j = 1;
         $finalNumber = '';

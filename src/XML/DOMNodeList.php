@@ -41,6 +41,7 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     /**
      * Defines if the set has to be sorted.
+     *
      * @var bool
      */
     protected $sortable = false;
@@ -56,12 +57,16 @@ class DOMNodeList implements ArrayAccess, Iterator
             $this->fromArray($items);
         } elseif ($items instanceof OriginalDOMNodeList) {
             $this->fromDOMNodeList($items);
+        } elseif ($items instanceof \DOMNamedNodeMap) {
+            $this->fromDOMNamedNodeMap($items);
         } elseif ($items instanceof DOMNode) {
             $this->fromDOMNode($items);
         } elseif ($items instanceof self) {
             $this->fromSelf($items);
+        } elseif (is_null($items)) {
+            $this->fromArray([]);
         } else {
-            throw new RuntimeException('Given parameter not recognized');
+            throw new RuntimeException('Given parameter not recognized: type ' . gettype($items));
         }
     }
 
@@ -148,6 +153,20 @@ class DOMNodeList implements ArrayAccess, Iterator
      * @param OriginalDOMNodeList $items
      */
     public function fromDOMNodeList(OriginalDOMNodeList $items)
+    {
+        $this->items = [];
+
+        foreach ($items as $item) {
+            $this->items[] = $item;
+        }
+    }
+
+    /**
+     * Fills the object with the items in the given OriginalDOMNodeList.
+     *
+     * @param \DOMNamedNodeMap $items
+     */
+    public function fromDOMNamedNodeMap(\DOMNamedNodeMap $items)
     {
         $this->items = [];
 
@@ -252,6 +271,22 @@ class DOMNodeList implements ArrayAccess, Iterator
         $this->parent = $parent;
     }
 
+    /**
+     * @return bool
+     */
+    public function isSortable()
+    {
+        return $this->sortable;
+    }
+
+    /**
+     * @param bool $sortable
+     */
+    public function setSortable($sortable)
+    {
+        $this->sortable = $sortable;
+    }
+
     protected function sort()
     {
         if (count($this->items) <= 1) {
@@ -315,21 +350,4 @@ class DOMNodeList implements ArrayAccess, Iterator
             return 0;
         });
     }
-
-    /**
-     * @return bool
-     */
-    public function isSortable()
-    {
-        return $this->sortable;
-    }
-
-    /**
-     * @param bool $sortable
-     */
-    public function setSortable($sortable)
-    {
-        $this->sortable = $sortable;
-    }
-
 }

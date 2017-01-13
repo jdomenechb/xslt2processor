@@ -15,10 +15,15 @@ use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImple
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function translate() from XSLT standard library.
+ * Function current() from XSLT standard library.
  */
-class Translate extends AbstractFunctionImplementation
+class Current extends AbstractFunctionImplementation
 {
+    /**
+     * @var \SplStack
+     */
+    protected static $stack;
+
     /**
      * {@inheritdoc}
      *
@@ -29,15 +34,19 @@ class Translate extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        $value = $func->getParameters()[0]->evaluate($context);
-        $value = $this->valueAsString($value);
+        if (static::getStack()->isEmpty()) {
+            return $context;
+        }
 
-        $from = $func->getParameters()[1]->evaluate($context);
-        $from = $this->valueAsString($from);
+        return static::getStack()->top();
+    }
 
-        $to = $func->getParameters()[2]->evaluate($context);
-        $to = $this->valueAsString($to);
+    public static function getStack()
+    {
+        if (!static::$stack) {
+            static::$stack = new \SplStack();
+        }
 
-        return str_replace(preg_split('//u', $from, -1, PREG_SPLIT_NO_EMPTY), preg_split('//u', $to, -1, PREG_SPLIT_NO_EMPTY), $value);
+        return static::$stack;
     }
 }

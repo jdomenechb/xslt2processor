@@ -76,14 +76,12 @@ class XPathSub extends AbstractXPath
     {
         parent::setGlobalContext($context);
 
-
         $this->getSubExpression()->setGlobalContext($context);
     }
 
     public function setTemplateContext(TemplateContext $context)
     {
         parent::setTemplateContext($context);
-
 
         $this->getSubExpression()->setTemplateContext($context);
     }
