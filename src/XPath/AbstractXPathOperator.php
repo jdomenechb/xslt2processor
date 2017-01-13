@@ -101,9 +101,9 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
             if (count($results) > 1) {
                 $this->setOperator($operator);
-                    $this->setRightPart($factory->create(array_pop($results)));
-                    $this->setLeftPart($factory->create(implode($opWithSpaces[0], $results)));
-                }
+                $this->setRightPart($factory->create(array_pop($results)));
+                $this->setLeftPart($factory->create(implode($opWithSpaces[0], $results)));
+
 
                 return true;
             }
