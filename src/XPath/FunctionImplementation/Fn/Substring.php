@@ -33,13 +33,18 @@ class Substring extends AbstractFunctionImplementation
         $value = $this->valueAsString($value);
 
         $start = $func->getParameters()[1]->evaluate($context) - 1;
+        $origStart = $start;
 
-        if ($start < 0) {
+        if ($origStart < 0) {
             $start = 0;
         }
 
         if (isset($func->getParameters()[2])) {
             $len = $func->getParameters()[2]->evaluate($context);
+
+            if ($origStart < 0) {
+                $len += $origStart;
+            }
 
             return mb_substr($value, $start, $len);
         }

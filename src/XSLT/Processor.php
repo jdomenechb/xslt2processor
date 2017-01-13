@@ -838,7 +838,8 @@ class Processor
 
         if ($node->hasAttribute('select')) {
             $selectXPath = $node->getAttribute('select');
-            $results = $this->parseXPath($selectXPath)->evaluate($context);
+            $selectXPathParsed = $this->parseXPath($selectXPath);
+            $results = $selectXPathParsed->evaluate($context);
             $value = $results;
         } else {
             $value = $this->evaluateBody($node, $context, $newContext);

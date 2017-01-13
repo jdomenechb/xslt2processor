@@ -39,6 +39,6 @@ class SubstringAfter extends AbstractFunctionImplementation
             return '';
         }
 
-        return mb_substr($haystack, $pos + 1);
+        return mb_substr($haystack, $pos + mb_strlen($needle));
     }
 }
