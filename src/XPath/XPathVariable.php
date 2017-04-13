@@ -17,15 +17,22 @@ use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 class XPathVariable extends AbstractXPath
 {
     /**
+     * Name of the variable.
      * @var string
      */
     protected $name;
 
     /**
+     * Value of the variable.
      * @var mixed
      */
     protected $value;
 
+    /**
+     * @inheritdoc
+     * @param string $string
+     * @return bool
+     */
     public function parse($string)
     {
         if (!preg_match('#^\$[a-z0-9_-]+$#i', $string)) {
@@ -37,6 +44,10 @@ class XPathVariable extends AbstractXPath
         return true;
     }
 
+    /**
+     * @inheritdoc
+     * @return string
+     */
     public function toString()
     {
         return '$' . $this->getName();
@@ -74,6 +85,11 @@ class XPathVariable extends AbstractXPath
         $this->value = $value;
     }
 
+    /**
+     * @inheritdoc
+     * @param \DOMNode $context
+     * @return DOMNodeList|mixed
+     */
     public function evaluate($context)
     {
         if ($this->getValue() instanceof \DOMNodeList) {
@@ -86,6 +102,11 @@ class XPathVariable extends AbstractXPath
         return $this->getValue();
     }
 
+    /**
+     * @inherit
+     * @param \DOMNode $context
+     * @return mixed
+     */
     public function query($context)
     {
         if ($this->getValue() instanceof DOMNodeList) {
@@ -95,6 +116,10 @@ class XPathVariable extends AbstractXPath
         throw new \RuntimeException('Not implemented yet');
     }
 
+    /**
+     * @inheritdoc
+     * @param TemplateContext $context
+     */
     public function setTemplateContext(TemplateContext $context)
     {
         parent::setTemplateContext($context);
