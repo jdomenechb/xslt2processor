@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
 use DOMDocument;
+use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use PHPUnit\Framework\TestCase;
@@ -87,6 +88,20 @@ class XPathNumberTest extends TestCase
         $obj = new XPathNumber('NaN');
         $this->assertNan($obj->evaluate($document));
     }
+
+    /**
+     * Test that the evaluation correctly throws an exception for an invalid value.
+     */
+    public function testInvalidEvaluate()
+    {
+        $this->expectException(InvalidEvaluation::class);
+
+        $document = new DOMDocument();
+        $obj = new XPathNumber();
+
+        $obj->evaluate($document);
+    }
+
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 

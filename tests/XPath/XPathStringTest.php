@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
 use DOMDocument;
+use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathString;
 use PHPUnit\Framework\TestCase;
@@ -76,6 +77,18 @@ class XPathStringTest extends TestCase
 
         $obj = new XPathString($xPath);
         $this->assertSame($evaluated, $obj->evaluate($document));
+    }
+
+    /**
+     * Tests the evaluation correctly throws an InvalidEvaluation exception.
+     */
+    public function testInvalidEvaluate()
+    {
+        $this->expectException(InvalidEvaluation::class);
+        $document = new DOMDocument();
+
+        $obj = new XPathString();
+        $obj->evaluate($document);
     }
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------

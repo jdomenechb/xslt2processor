@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
+
 /**
  * Represents a xPath string.
  *
@@ -81,9 +83,14 @@ class XPathString extends AbstractXPath
 
     /**
      * {@inheritdoc}
+     * @throws InvalidEvaluation
      */
     public function evaluate($context)
     {
+        if ($this->getString() === null) {
+            throw new InvalidEvaluation('Not a valid string evaluation');
+        }
+
         return (string) $this->getString();
     }
 
@@ -106,7 +113,7 @@ class XPathString extends AbstractXPath
     /**
      * @param bool $doubleQuoted
      */
-    public function setDoubleQuoted($doubleQuoted)
+    protected function setDoubleQuoted($doubleQuoted)
     {
         $this->doubleQuoted = $doubleQuoted;
     }

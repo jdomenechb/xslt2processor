@@ -44,6 +44,7 @@ class XPathNumber extends AbstractXPath
 
     /**
      * {@inheritdoc}
+     * @throws InvalidEvaluation
      */
     public function evaluate($context)
     {
@@ -58,7 +59,7 @@ class XPathNumber extends AbstractXPath
         }
 
         // NaN
-        if ($this->getNumber() == 'NaN') {
+        if ($this->getNumber() === 'NaN') {
             return NAN;
         }
 
@@ -75,6 +76,10 @@ class XPathNumber extends AbstractXPath
         return $this->number;
     }
 
+    /**
+     * @inheritdoc
+     * @return string
+     */
     public function toString()
     {
         return (string) $this->getNumber();
