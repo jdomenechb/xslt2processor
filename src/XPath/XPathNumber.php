@@ -48,14 +48,9 @@ class XPathNumber extends AbstractXPath
      */
     public function evaluate($context)
     {
-        // Integer
-        if (preg_match('#^-?\d+$#', $this->getNumber())) {
-            return (int) $this->getNumber();
-        }
-
-        // Float
-        if (preg_match('#^-?\d+\.\d+$#', $this->getNumber())) {
-            return (float) $this->getNumber();
+        // If it has decimal part, it's a float, otherwise, it's an integer
+        if (preg_match('#^-?\d+(\.\d+)?$#', $this->getNumber(), $matches)) {
+            return isset($matches[1])? (float) $this->getNumber() : (int) $this->getNumber();
         }
 
         // NaN
