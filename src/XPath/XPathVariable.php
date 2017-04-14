@@ -103,7 +103,7 @@ class XPathVariable extends AbstractXPath
     }
 
     /**
-     * @inherit
+     * @inheritdoc
      * @param \DOMNode $context
      * @return mixed
      */
@@ -113,7 +113,7 @@ class XPathVariable extends AbstractXPath
             return $this->getValue();
         }
 
-        throw new \RuntimeException('Not implemented yet');
+        return new DOMNodeList();
     }
 
     /**
