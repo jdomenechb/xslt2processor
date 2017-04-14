@@ -50,18 +50,17 @@ class XPathVariableTest extends TestCase
     }
 
     /**
-     * Test if the representation of the given xPath remains the same when casting.
+     * Test if the name of the variable has been correctly parsed.
      *
      * @dataProvider basicValuesProvider
      *
      * @param mixed $xPath
      */
-    public function testToStringCast($xPath)
+    public function testName($xPath)
     {
         $obj = new XPathVariable($xPath);
-        $this->assertSame((string) $xPath, (string) $obj);
+        $this->assertSame(substr($xPath, 1), $obj->getName());
     }
-
 
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------

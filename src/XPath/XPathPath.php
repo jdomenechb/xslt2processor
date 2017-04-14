@@ -99,8 +99,7 @@ class XPathPath extends AbstractXPath
                     $evaluation = new DOMNodeList($evaluation);
                 }
 
-                $newEvaluation = new DOMNodeList();
-                $newEvaluation->merge($part->evaluate($evaluation));
+                $newEvaluation = new DOMNodeList($part->evaluate($evaluation));
 
                 $evaluation = $newEvaluation;
             } else {

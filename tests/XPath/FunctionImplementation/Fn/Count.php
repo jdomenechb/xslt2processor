@@ -57,14 +57,17 @@ class Count extends TestCase
      * @param $parameter
      * @dataProvider dataProvider
      */
-    public function testValidResult(ExpressionInterface $parameter)
+    public function testValidResult(ExpressionInterface $parameter, $expectedCount)
     {
         $func = new XPathFunction();
         $func->setParameters([$parameter]);
 
         $funcImpl = new \Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Count();
-        $funcImpl->evaluate($func, $this->xml);
+        $count = $funcImpl->evaluate($func, $this->xml);
+
+        $this->assertSame($count, $expectedCount);
     }
+
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
