@@ -1,5 +1,5 @@
-#XSLT2Processor
-
+XSLT2Processor
+==============
 
 ***WARNING:** This project is in **alpha** state, and as such, does not have any stable release and partial support. Use at your own risk, but feel free to contribute via pull requests, bug issues or feature requests.*
 
@@ -35,7 +35,6 @@ To use XSLT2Processor in your code:
 ```
 $processor = new Jdomenechb\XSLT2Processor\XSLT\Processor($xslt, $xml);
 $result = $processor->transformXML();
-
 ```
 
 `$xslt` and `$xml` are `DOMDocument` objects, each one containing the XSLT stylesheet and the XML to be transformed, respectivelly.
@@ -53,19 +52,16 @@ The full list of available XPath classes can be found under [the XPath src folde
 ```
 $factory = new Jdomenechb\XSLT2Processor\XPath\Factory;
 $xPath = $factory->create('/*/some/x-path[representation = 1]');
-
 ```
 
 Once you have parsed or build your xPath, you can evaluate or query the expression by executing:
 
 ```
-
 // Evaluates the expression
 $evaluationResult = $xPath->evaluate($context);
 
 // Queries the nodes represented by the expression
 $queryResult = $xPath->query($context);
-
 ```
 
 `$content` can be any element extending the PHP class `DOMNode`  (http://php.net/manual/en/class.domnode.php).
