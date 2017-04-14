@@ -12,13 +12,15 @@
 namespace Jdomenechb\XSLT2Processor\Tests\XML;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use PHPUnit\Framework\TestCase;
+
 
 /**
  * Class DOMNodeListTest for testing DOMNodeList.
  *
  * @author jdomemechb
  */
-class DOMNodeListTest extends \PHPUnit_Framework_TestCase
+class DOMNodeListTest extends TestCase
 {
     /**
      * Tests that importing a DOMNodeList is possible.
