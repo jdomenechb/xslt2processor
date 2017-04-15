@@ -300,7 +300,7 @@ class Processor
      */
     public function getTemplateContextStack()
     {
-        if (is_null($this->templateContextStack)) {
+        if ($this->templateContextStack === null) {
             $this->templateContextStack = new TemplateContextStack();
         }
 
@@ -454,12 +454,12 @@ class Processor
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
                 case 'omit-xml-declaration':
-                    $this->getOutput()->setRemoveXmlDeclaration($attribute->nodeValue == 'yes');
+                    $this->getOutput()->setRemoveXmlDeclaration($attribute->nodeValue === 'yes');
                     break;
 
                 case 'indent':
-                    $this->newXml->formatOutput = $attribute->nodeValue == 'yes';
-                    $this->newXml->preserveWhiteSpace = $attribute->nodeValue != 'yes';
+                    $this->newXml->formatOutput = $attribute->nodeValue === 'yes';
+                    $this->newXml->preserveWhiteSpace = $attribute->nodeValue !== 'yes';
                     break;
 
                 case 'method':
@@ -576,7 +576,7 @@ class Processor
                 $mode = $template->getMode();
 
                 if (
-                    ($node->hasAttribute('mode') && $mode != $node->getAttribute('mode'))
+                    ($node->hasAttribute('mode') && $mode !== $node->getAttribute('mode'))
                     || (!$node->hasAttribute('mode') && $mode != null)
                 ) {
                     continue;
@@ -863,7 +863,7 @@ class Processor
 
             $this->getDebug()->startNodeLevel($this->newXml, $childNode);
 
-            if ($childNode->nodeName == 'xsl:when') {
+            if ($childNode->nodeName === 'xsl:when') {
                 if ($this->xslIf($childNode, $context, $newContext)) {
                     $this->getDebug()->endNodeLevel($this->newXml);
                     break;
@@ -872,7 +872,7 @@ class Processor
                 $this->getDebug()->endNodeLevel($this->newXml);
             }
 
-            if ($childNode->nodeName == 'xsl:otherwise') {
+            if ($childNode->nodeName === 'xsl:otherwise') {
                 $this->processChildNodes($childNode, $context, $newContext);
                 $this->getDebug()->endNodeLevel($this->newXml);
             }
@@ -998,7 +998,7 @@ class Processor
                 continue;
             }
 
-            if ($childNode->nodeName != 'xsl:sort') {
+            if ($childNode->nodeName !== 'xsl:sort') {
                 continue;
             }
 
@@ -1077,13 +1077,10 @@ class Processor
             }
         }
 
-//        if ($currentGroup->count() > 1) {
-            $groups[$lastMatchedCriteria] = $currentGroup;
-//        }
+        $groups[$lastMatchedCriteria] = $currentGroup;
 
         foreach ($groups as $groupName => $group) {
             $this->getTemplateContextStack()->pushAClone();
-            //$this->getTemplateContextStack()->top()->setContextParent($group);
             $this->getTemplateContextStack()->top()->setGroupingKey($groupName);
             $this->getTemplateContextStack()->top()->setGroup($group);
             $this->processChildNodes($node, $group->item(0), $newContext);
@@ -1151,9 +1148,9 @@ class Processor
         $nonMatchingNode = null;
 
         foreach ($node->childNodes as $childNode) {
-            if ($childNode instanceof DOMElement && $childNode->nodeName == 'xsl:matching-substring') {
+            if ($childNode instanceof DOMElement && $childNode->nodeName === 'xsl:matching-substring') {
                 $matchingNode = $childNode;
-            } elseif ($childNode instanceof DOMElement && $childNode->nodeName == 'xsl:non-matching-substring') {
+            } elseif ($childNode instanceof DOMElement && $childNode->nodeName === 'xsl:non-matching-substring') {
                 $nonMatchingNode = $childNode;
             }
         }
@@ -1258,7 +1255,7 @@ class Processor
                 continue;
             }
 
-            if ($childNode->nodeName != 'xsl:with-param') {
+            if ($childNode->nodeName !== 'xsl:with-param') {
                 throw new RuntimeException('Found not recognized "' . $childNode->nodeName . '" inside xsl:call-template');
             }
 
@@ -1280,6 +1277,12 @@ class Processor
         return $params;
     }
 
+    /**
+     * xsl:call-template.
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslCallTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
