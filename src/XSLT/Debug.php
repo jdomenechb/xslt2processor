@@ -45,10 +45,17 @@ class Debug
     protected $output;
 
     /**
+     * Stream to direct the output to.
+     * @var resource $stream
+     */
+    protected $stream;
+
+    /**
      * Debug constructor.
      */
     protected function __construct()
     {
+        $this->setStream(fopen('php://output', 'wb'));
     }
 
     /**
@@ -59,14 +66,14 @@ class Debug
     public function endNodeLevel(\DOMDocument $xml)
     {
         if ($this->isEnabled()) {
-            echo '<h3>&lt;/evaluation&gt;</h3>';
+            fwrite($this->getStream(), '<h3>&lt;/evaluation&gt;</h3>');
 
             if ($this->isIncludeAfter()) {
-                echo '<h3>After</h3>';
-                echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+                fwrite($this->getStream(), '<h3>After</h3>');
+                fwrite($this->getStream(), '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>');
             }
 
-            echo '</div>';
+            fwrite($this->getStream(), '</div>');
         }
     }
 
@@ -79,9 +86,9 @@ class Debug
     public function startNodeLevel(\DOMDocument $xml, \DOMNode $node)
     {
         if ($this->isEnabled()) {
-            echo '<div style="border-left: 1px solid #555; border-top: 1px solid #555; border-bottom: 1px solid #555; '
-                . 'padding-left: 2px; margin-left: 20px">';
-            echo "<h2 style='font-family: monospace;'>$node->nodeName</h2>";
+            fwrite($this->getStream(), '<div style="border-left: 1px solid #555; border-top: 1px solid #555; '
+                . 'border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">');
+            fwrite($this->getStream(), "<h2 style='font-family: monospace;'>$node->nodeName</h2>");
 
             $attr = [];
 
@@ -90,16 +97,19 @@ class Debug
             }
 
             if (count($attr)) {
-                echo '<span style="font-family: monospace; font-size: 1.5em;">' . implode(' ### ', $attr) . '</span>';
-                echo '<br>';
+                fwrite(
+                    $this->getStream(),
+                    '<span style="font-family: monospace; font-size: 1.5em;">' . implode(' ### ', $attr) . '</span>'
+                );
+                fwrite($this->getStream(), '<br>');
             }
 
             if ($this->isIncludeBefore()) {
-                echo '<h3>Before</h3>';
-                echo '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>';
+                fwrite($this->getStream(), '<h3>Before</h3>');
+                fwrite($this->getStream(), '<pre>' . htmlspecialchars($this->getXml($xml)) . '</pre>');
             }
 
-            echo '<h3>&lt;evaluation&gt;</h3>';
+            fwrite($this->getStream(), '<h3>&lt;evaluation&gt;</h3>');
         }
     }
 
@@ -111,10 +121,10 @@ class Debug
     public function showTemplate(Template $template)
     {
         if ($this->isEnabled()) {
-            echo '<p>Template: ';
-            echo '@name="' . $template->getName() . '"';
-            echo ' ### @match="' . $template->getMatch() . '"';
-            echo '</p>';
+            fwrite($this->getStream(), '<p>Template: ');
+            fwrite($this->getStream(), '@name="' . $template->getName() . '"');
+            fwrite($this->getStream(), ' ### @match="' . $template->getMatch() . '"');
+            fwrite($this->getStream(), '</p>');
         }
     }
 
@@ -127,34 +137,45 @@ class Debug
     public function showFunction($name, $result)
     {
         if ($this->isEnabled()) {
-            echo '<p>Function ' . $name . ' result:</p>';
+            fwrite($this->getStream(), '<p>Function ' . $name . ' result:</p>');
 
             /* @noinspection ForgottenDebugOutputInspection */
+            ob_start();
             var_dump($result);
+            $toDisplay = ob_get_clean();
+
+            fwrite($this->getStream(), $toDisplay);
         }
     }
 
     public function showVar($varName, $varValue)
     {
         if ($this->isEnabled()) {
-            echo '<p>Variable "' . $varName . '" content:</p>';
+            fwrite($this->getStream(), '<p>Variable "' . $varName . '" content:</p>');
 
+            /* @noinspection ForgottenDebugOutputInspection */
+            ob_start();
             var_dump($varValue);
+            $toDisplay = ob_get_clean();
+
+            fwrite($this->getStream(), $toDisplay);
 
             if ($varValue instanceof DOMNodeList || $varValue instanceof \DOMNodeList) {
                 foreach ($varValue as $node) {
-                    echo '<pre>' . htmlentities($this->getOutput()->getMethod() == Output::METHOD_XML ?
+                    fwrite($this->getStream(), '<pre>' . htmlentities(
+                        $this->getOutput()->getMethod() == Output::METHOD_XML ?
                         $node->ownerDocument->saveXML($node) :
-                        $node->ownerDocument->saveHTML($node)) . '</pre>';
+                        $node->ownerDocument->saveHTML($node)
+                    ) . '</pre>');
                 }
             }
         }
     }
 
-    public function printTexT($text)
+    public function printText($text)
     {
         if ($this->isEnabled()) {
-            echo '<p>' . $text . '</p>';
+            fwrite($this->getStream(), '<p>' . $text . '</p>');
         }
     }
 
@@ -256,4 +277,22 @@ class Debug
             $xml->saveXML() :
             $xml->saveHTML();
     }
+
+    /**
+     * @return resource
+     */
+    public function getStream()
+    {
+        return $this->stream;
+    }
+
+    /**
+     * @param resource $stream
+     */
+    public function setStream($stream)
+    {
+        $this->stream = $stream;
+    }
+
+
 }
