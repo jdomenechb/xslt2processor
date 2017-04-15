@@ -32,7 +32,7 @@ class XPathUnionOperator extends AbstractXPathOperator
                     $result[] = $node;
                 }
 
-                return $result;
+                return new DOMNodeList($result);
             };
 
             static::$operators = [

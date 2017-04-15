@@ -190,7 +190,10 @@ class XPathPseudoElement extends AbstractXPath
                         $result = new DOMNodeList();
 
                         while ($context->nextSibling !== null) {
-                            $result[] = $context->nextSibling;
+                            if ($context->nextSibling instanceof \DOMElement) {
+                                $result[] = $context->nextSibling;
+                            }
+
                             $context = $context->nextSibling;
                         }
 
@@ -216,7 +219,10 @@ class XPathPseudoElement extends AbstractXPath
                         $result->setSortable(true);
 
                         while ($context->previousSibling !== null) {
-                            $result[] = $context->previousSibling;
+                            if ($context->previousSibling instanceof \DOMElement) {
+                                $result[] = $context->previousSibling;
+                            }
+
                             $context = $context->previousSibling;
                         }
 
@@ -238,7 +244,13 @@ class XPathPseudoElement extends AbstractXPath
                             $context = $context->item(0);
                         }
 
-                        $items = new DOMNodeList($context);
+                        if (!$context instanceof \DOMDocument) {
+                            $items = new DOMNodeList($context);
+                        } else {
+                            $items = new DOMNodeList();
+                        }
+
+                        $items->setSortable(true);
 
                         while ($context->parentNode instanceof \DOMElement) {
                             $items[] = $context->parentNode;

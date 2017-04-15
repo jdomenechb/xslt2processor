@@ -347,6 +347,14 @@ class DOMNodeList implements ArrayAccess, Iterator
                 }
             }
 
+            if (count($levelsA) < count($levelsB)) {
+                return -1;
+            }
+
+            if (count($levelsA) > count($levelsB)) {
+                return 1;
+            }
+
             return 0;
         });
     }
