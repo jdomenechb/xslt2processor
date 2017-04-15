@@ -108,7 +108,7 @@ class XPathPathNode extends AbstractXPath
     public function query($context)
     {
         // Direct cases
-        if ($this->getNode() == '.') {
+        if ($this->getNode() === '.') {
             if (!$context instanceof DOMNodeList) {
                 return new DOMNodeList($context);
             }
@@ -116,12 +116,12 @@ class XPathPathNode extends AbstractXPath
             return $context;
         }
 
-        if ($this->getNode() == '..') {
+        if ($this->getNode() === '..') {
             if ($context instanceof DOMNodeList) {
                 $context = $context->item(0);
             }
 
-            return new DOMNodeList(($context->parentNode ?: $context));
+            return new DOMNodeList(($context->parentNode ?: null));
         }
 
         if (!$this->getNode()) {
