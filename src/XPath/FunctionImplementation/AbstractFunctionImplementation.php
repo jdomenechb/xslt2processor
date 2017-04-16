@@ -53,6 +53,10 @@ abstract class AbstractFunctionImplementation implements FunctionImplementationI
             return $value->length !== 0;
         }
 
+        if ($value instanceof DOMResultTree) {
+            return (bool) $value->getBaseNode();
+        }
+
         return (bool) $value;
     }
 
