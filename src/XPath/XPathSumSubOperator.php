@@ -20,9 +20,17 @@ class XPathSumSubOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '+' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return NAN;
+                    }
+
                     return $left + $right;
                 },
                 '-' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return NAN;
+                    }
+
                     return $left - $right;
                 },
             ];

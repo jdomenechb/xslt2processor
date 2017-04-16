@@ -33,9 +33,9 @@ class Debug
      */
     protected $enabled = false;
 
-    protected $includeBefore = true;
+    protected $includeBefore = false;
 
-    protected $includeAfter = true;
+    protected $includeAfter = false;
 
     /**
      * Output class of the processor, to determine the format of output debug.

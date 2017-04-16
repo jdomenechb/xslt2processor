@@ -23,15 +23,34 @@ class XPathCompareOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '<=' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return false;
+                    }
+
                     return $left <= $right;
                 },
+
                 '>=' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return false;
+                    }
+
                     return $left >= $right;
                 },
+
                 '>' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return false;
+                    }
+
                     return $left > $right;
                 },
+
                 '<' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return false;
+                    }
+
                     return $left < $right;
                 },
             ];

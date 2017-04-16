@@ -20,12 +20,24 @@ class XPathMulDivOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '*' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return NAN;
+                    }
+
                     return $left * $right;
                 },
                 'div' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return NAN;
+                    }
+
                     return $left / $right;
                 },
                 'mod' => function ($left, $right) {
+                    if (!is_numeric($left) || !is_numeric($right)) {
+                        return NAN;
+                    }
+
                     return $left % $right;
                 },
             ];
