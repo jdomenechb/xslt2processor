@@ -22,6 +22,7 @@ use ErrorException;
 use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
+use Jdomenechb\XSLT2Processor\XPath\ExpressionInterface;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
@@ -656,12 +657,15 @@ class Processor
         $xPathParsed = $this->parseXPath($toEvaluate);
         $result = $xPathParsed->evaluate($context);
 
+        $this->getDebug()->printText('Evaluated condition');
+        $this->getDebug()->show($result);
+
         if (
             $result === true
             || ((is_string($result) || is_float($result) || is_int($result)) && $result)
-            || $result instanceof OriginalDOMNodeList && $result->length
-            || $result instanceof DOMNodeList && $result->count()
-            || $result instanceof DOMResultTree && $result->getBaseNode()
+            || ($result instanceof OriginalDOMNodeList && $result->length)
+            || ($result instanceof DOMNodeList && $result->count())
+            || ($result instanceof DOMResultTree && $result->getBaseNode())
         ) {
             $this->processChildNodes($node, $context, $newContext);
 
@@ -671,6 +675,11 @@ class Processor
         return false;
     }
 
+    /**
+     * Given a string xPath, returns a chain of ExpressionInterface objects representing the XPath.
+     * @param string $xPath
+     * @return ExpressionInterface
+     */
     protected function parseXPath($xPath)
     {
         $xPathParsed = null;
@@ -765,7 +774,7 @@ class Processor
         $domElementUtils = new DOMElementUtils();
         $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
 
-        if ($adoe != 'yes') {
+        if ($adoe !== 'yes') {
             $wNode->nodeValue .= $text;
         } else {
             if ($wNode instanceof DOMText) {
@@ -776,14 +785,25 @@ class Processor
                 $wNode->nodeValue .= $text;
             }
         }
+
+        $this->getDebug()->show($text);
     }
 
+    /**
+     * xsl:copy-of
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslCopyOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $selectXPath = $node->getAttribute('select');
         $selectParsed = $this->parseXPath($selectXPath);
 
         $results = $selectParsed->evaluate($context);
+
+        $this->getDebug()->printText('Before copy:');
+        $this->getDebug()->show($results);
 
         if ($results instanceof DOMResultTree) {
             $results = $results->evaluate();
@@ -799,6 +819,9 @@ class Processor
             $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
             $wNode->nodeValue .= $results;
         }
+
+        $this->getDebug()->printText('After copy:');
+        $this->getDebug()->show($results);
     }
 
     protected function xslCopy(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1246,6 +1269,11 @@ class Processor
 
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
+
+                if ($xPath === '$nodes[position() > 1]') {
+                    $meh = null;
+                }
+
                 $xPathParsed = $this->parseXPath($xPath);
                 $result = $xPathParsed->evaluate($context);
 
@@ -1253,6 +1281,9 @@ class Processor
             } else {
                 $params[$childNode->getAttribute('name')] = $this->evaluateBody($childNode, $context);
             }
+
+            $this->getDebug()->printText('Result:');
+            $this->getDebug()->show($params[$childNode->getAttribute('name')]);
 
             $this->getDebug()->endNodeLevel($this->newXml);
         }
@@ -1303,14 +1334,16 @@ class Processor
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = $result;
             } elseif ($node->childNodes->length > 0) {
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext)->evaluate();
-//            } else {
-//                $value = $this->evaluateBody($node, $context, $newContext);
-//                $this->getTemplateContextStack()->top()->getVariables()[$name] = $value;
             } else {
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = null;
             }
 
             $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
+
+            $this->getDebug()->printText('Result:');
+            $this->getDebug()->show($this->getTemplateContextStack()->top()->getVariables()[$name]);
+        } else {
+            $this->getDebug()->printText('Parameter already defined');
         }
     }
 

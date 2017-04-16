@@ -180,6 +180,22 @@ class Debug
     }
 
     /**
+     * Displays verbosely the given parameter.
+     * @param $content
+     */
+    public function show($content)
+    {
+        if ($this->isEnabled()) {
+            ob_start();
+            var_dump($content);
+            $toDisplay = ob_get_clean();
+
+            fwrite($this->getStream(), '<p>' . $toDisplay . '</p>');
+        }
+    }
+
+
+    /**
      * Get if the debug is enabled or not.
      *
      * @return bool
