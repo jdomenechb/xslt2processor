@@ -14,6 +14,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMElement;
 use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -95,15 +96,15 @@ class XPathPath extends AbstractXPath
 
         foreach ($this->getParts() as $part) {
             if ($evaluation instanceof DOMNodeList || $evaluation instanceof \DOMNodeList) {
-                if ($evaluation instanceof \DOMNodeList) {
-                    $evaluation = new DOMNodeList($evaluation);
-                }
-
                 $newEvaluation = new DOMNodeList($part->evaluate($evaluation));
 
                 $evaluation = $newEvaluation;
             } else {
                 $evaluation = $part->evaluate($evaluation);
+            }
+
+            if ($evaluation instanceof \DOMNodeList) {
+                $evaluation = new DOMNodeList($evaluation);
             }
         }
 

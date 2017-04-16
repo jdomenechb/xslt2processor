@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
 
-use DOMCharacterData;
 use DOMComment;
 use DOMDocument;
 use DOMElement;
@@ -22,6 +21,7 @@ use DOMXPath;
 use ErrorException;
 use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
@@ -642,6 +642,13 @@ class Processor
         }
     }
 
+    /**
+     * xsl:if
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @return bool
+     */
     protected function xslIf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Evaluate the if
@@ -654,6 +661,7 @@ class Processor
             || ((is_string($result) || is_float($result) || is_int($result)) && $result)
             || $result instanceof OriginalDOMNodeList && $result->length
             || $result instanceof DOMNodeList && $result->count()
+            || $result instanceof DOMResultTree && $result->getBaseNode()
         ) {
             $this->processChildNodes($node, $context, $newContext);
 
@@ -734,6 +742,8 @@ class Processor
             foreach ($result as $subResult) {
                 $wNode->nodeValue .= $subResult->nodeValue;
             }
+        } elseif ($result instanceof DOMResultTree) {
+            $wNode->nodeValue .= $result->evaluate();
         } else {
             $wNode->nodeValue .= $result;
         }
@@ -775,6 +785,10 @@ class Processor
 
         $results = $selectParsed->evaluate($context);
 
+        if ($results instanceof DOMResultTree) {
+            $results = $results->evaluate();
+        }
+
         if ($results instanceof OriginalDOMNodeList || $results instanceof DOMNodeList) {
             foreach ($results as $result) {
                 $childNode = $this->newXml->importNode($result, true);
@@ -809,18 +823,13 @@ class Processor
         }
 
         foreach ($this->getGlobalContext()->getNamespaces() as $prefix => $namespace) {
-            if ($prefix === 'default' || $prefix == 'xsl' || $prefix == 'xml') {
+            if ($prefix === 'default' || $prefix === 'xsl' || $prefix === 'xml') {
                 continue;
             }
 
             $newContext->setAttribute('xmlns:' . $prefix, $namespace);
         }
 
-//        if ($childNode instanceof DOMElement) {
-//            $utils = new DOMElementUtils();
-//            $utils->removeAllAttributes($childNode);
-//            $utils->removeAllChildren($childNode);
-//        }
         $childNode = $newContext->appendChild($childNode);
 
         $this->processChildNodes($node, $context, $childNode);
@@ -940,7 +949,7 @@ class Processor
 
             $value = $results;
         } else {
-            $value = $this->evaluateBody($node, $context, $newContext);
+            $value = $this->evaluateBody($node, $context, $newContext)->evaluate();
         }
 
         $newContext->setAttribute($name, $value);
@@ -949,37 +958,11 @@ class Processor
     protected function evaluateBody(DOMElement $node, DOMNode $context, DOMNode $newContext = null)
     {
         // Create temporal context
-        $tmpContext = $this->xml->createElement('tmptmptmptmptmpevaluateBody' . mt_rand(0, 9999999));
+        $tmpContext = new DOMResultTree($this->xml);
 
-        $this->processChildNodes($node, $context, $tmpContext);
+        $this->processChildNodes($node, $context, $tmpContext->getBaseNode());
 
-        if ($tmpContext->childNodes->length == 1) {
-            if ($tmpContext->childNodes->item(0) instanceof DOMText) {
-                return $tmpContext->childNodes->item(0)->nodeValue;
-            }
-
-            return new DOMNodeList($tmpContext->childNodes->item(0));
-        } elseif ($tmpContext->childNodes->length > 1) {
-            $allText = true;
-            $result = '';
-
-            foreach ($tmpContext->childNodes as $childNode) {
-                if (!$childNode instanceof DOMCharacterData) {
-                    $allText = false;
-                    break;
-                }
-
-                $result .= $childNode->nodeValue;
-            }
-
-            if ($allText) {
-                return $result;
-            }
-
-            return $tmpContext->childNodes;
-        }
-
-        return null;
+        return $tmpContext;
     }
 
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1237,7 +1220,7 @@ class Processor
 
     protected function xslComment(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        $value = $this->evaluateBody($node, $context, $newContext);
+        $value = $this->evaluateBody($node, $context, $newContext)->evaluate();
         /* @var $doc DOMDocument */
         $doc = $newContext->ownerDocument ?: $newContext;
 
@@ -1319,7 +1302,7 @@ class Processor
 
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = $result;
             } elseif ($node->childNodes->length > 0) {
-                $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext);
+                $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext)->evaluate();
 //            } else {
 //                $value = $this->evaluateBody($node, $context, $newContext);
 //                $this->getTemplateContextStack()->top()->getVariables()[$name] = $value;
@@ -1371,7 +1354,7 @@ class Processor
             $terminate = 'no';
         }
 
-        $message = $this->evaluateBody($node, $context, $newContext);
+        $message = $this->evaluateBody($node, $context, $newContext)->evaluate();
 
         $this->messages[] = $message;
 
@@ -1388,7 +1371,7 @@ class Processor
     protected function xslProcessingInstruction(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
-        $content = $this->evaluateBody($node, $context);
+        $content = $this->evaluateBody($node, $context)->evaluate();
 
         $doc = ($context instanceof DOMDocument ? $context : $context->ownerDocument);
 

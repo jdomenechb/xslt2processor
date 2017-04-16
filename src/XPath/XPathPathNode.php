@@ -13,6 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 
 class XPathPathNode extends AbstractXPath
@@ -166,8 +167,10 @@ class XPathPathNode extends AbstractXPath
             || $context instanceof \DOMDocument
         ) {
             $contextChilds = new DOMNodeList($context->childNodes);
-        } elseif ($context instanceof DOMNodeList && $context->isParent()) {
+        } elseif (($context instanceof DOMNodeList && $context->isParent())) {
             $contextChilds = $context;
+        } elseif ($context instanceof DOMResultTree) {
+            $contextChilds = new DOMNodeList($context->getBaseNode()->childNodes);
         } else {
             $contextChilds = new DOMNodeList();
 

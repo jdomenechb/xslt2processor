@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 
 abstract class AbstractFunctionImplementation implements FunctionImplementationInterface
 {
@@ -24,8 +25,12 @@ abstract class AbstractFunctionImplementation implements FunctionImplementationI
      */
     protected function valueAsString($value)
     {
+        if ($value instanceof DOMResultTree) {
+            $value = $value->evaluate();
+        }
+
         if ($value instanceof \DOMNodeList || $value instanceof DOMNodeList) {
-            if ($value->length == 0) {
+            if ($value->length === 0) {
                 return '';
             }
 
@@ -49,5 +54,17 @@ abstract class AbstractFunctionImplementation implements FunctionImplementationI
         }
 
         return (bool) $value;
+    }
+
+    /**
+     * Converts the given value into a int.
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    protected function valueAsInt($value)
+    {
+        return (int) $this->valueAsString($value);
     }
 }

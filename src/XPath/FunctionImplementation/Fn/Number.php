@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
@@ -44,12 +45,16 @@ class Number extends AbstractFunctionImplementation
             $toEvaluate = $toEvaluate->item(0);
         }
 
-        if ($toEvaluate instanceof DOMNode) {
+        if ($toEvaluate instanceof \DOMNode) {
             $toEvaluate = $toEvaluate->nodeValue;
         }
 
+        if ($toEvaluate instanceof DOMResultTree) {
+            $toEvaluate = $toEvaluate->evaluate();
+        }
+
         if (!is_string($toEvaluate) || $toEvaluate !== '' || is_numeric($toEvaluate)) {
-            return floatval($toEvaluate);
+            return (float) $toEvaluate;
         }
 
         return NAN;

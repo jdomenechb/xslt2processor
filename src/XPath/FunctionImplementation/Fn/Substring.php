@@ -32,7 +32,8 @@ class Substring extends AbstractFunctionImplementation
         $value = $func->getParameters()[0]->evaluate($context);
         $value = $this->valueAsString($value);
 
-        $start = $func->getParameters()[1]->evaluate($context) - 1;
+        $start = $func->getParameters()[1]->evaluate($context);
+        $start = $this->valueAsInt($start) - 1;
         $origStart = $start;
 
         if ($origStart < 0) {
@@ -41,6 +42,7 @@ class Substring extends AbstractFunctionImplementation
 
         if (isset($func->getParameters()[2])) {
             $len = $func->getParameters()[2]->evaluate($context);
+            $len = $this->valueAsInt($len);
 
             if ($origStart < 0) {
                 $len += $origStart;

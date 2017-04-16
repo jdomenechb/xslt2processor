@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Exslt;
 
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
@@ -30,10 +31,11 @@ class NodeSet extends AbstractFunctionImplementation
     public function evaluate(XPathFunction $func, $context)
     {
         $property = $func->getParameters()[0]->evaluate($context);
-        //$property->setParent(true);
 
-        $result = $property;
+//        if ($property instanceof DOMResultTree) {
+//            $property = $property->evaluate();
+//        }
 
-        return $result;
+        return $property;
     }
 }

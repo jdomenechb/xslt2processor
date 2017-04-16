@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -65,6 +66,8 @@ class XPathAttributeValueTemplate extends AbstractXPath
 
                 if ($tmp instanceof DOMNodeList) {
                     $tmp = $tmp->item(0)->nodeValue;
+                } elseif ($tmp instanceof DOMResultTree) {
+                    $tmp = $tmp->evaluate();
                 }
 
                 $result .= $tmp;

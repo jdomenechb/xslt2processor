@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathOperator;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -95,7 +96,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
             $results = $factory->parseByOperator($opWithSpaces[$keyFound], $string);
 
-            if (count($results) == 1) {
+            if (count($results) === 1) {
                 continue;
             }
 
@@ -175,10 +176,19 @@ abstract class AbstractXPathOperator extends AbstractXPath
     {
         $func = static::getOperators()[$this->operator];
 
-        return $func(
-            $this->getLeftPart()->evaluate($context),
-            $this->getRightPart()->evaluate($context)
-        );
+        $leftPart = $this->getLeftPart()->evaluate($context);
+        $rightPart = $this->getRightPart()->evaluate($context);
+
+        if ($leftPart instanceof DOMResultTree) {
+            $leftPart = $leftPart->evaluate();
+        }
+
+        if ($rightPart instanceof DOMResultTree) {
+            $rightPart = $rightPart->evaluate();
+        }
+
+
+        return $func($leftPart, $rightPart);
     }
 
     abstract public static function getOperators();
