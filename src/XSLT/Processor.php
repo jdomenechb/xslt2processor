@@ -153,6 +153,7 @@ class Processor
      * Main function to be called to transform the source XML with the XSL stylesheet defined.
      *
      * @return string
+     * @throws \RuntimeException
      */
     public function transformXML()
     {
@@ -201,7 +202,7 @@ class Processor
         restore_error_handler();
 
         // Return the result according to the output parameters
-        if ($this->getOutput()->getMethod() == Output::METHOD_XML) {
+        if ($this->getOutput()->getMethod() === Output::METHOD_XML) {
             return $this->getOutput()->getRemoveXmlDeclaration() && $this->newXml->documentElement ?
                 $this->newXml->saveXML($this->newXml->documentElement) :
                 $this->newXml->saveXML();
@@ -729,6 +730,12 @@ class Processor
         return $xPathParsed->evaluate($context);
     }
 
+    /**
+     * xsl:value-of
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslValueOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Evaluate the value
@@ -738,6 +745,7 @@ class Processor
 
         $this->getDebug()->showVar('result', $result);
 
+        // Bools must be shown as string
         if ($result === true) {
             $result = 'true';
         } elseif ($result === false) {
@@ -758,6 +766,12 @@ class Processor
         }
     }
 
+    /**
+     * xsl:text
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslText(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         // Get the text
