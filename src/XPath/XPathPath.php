@@ -15,6 +15,7 @@ use DOMElement;
 use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
+use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -25,25 +26,27 @@ class XPathPath extends AbstractXPath
      */
     protected $parts;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string)
+    public static function parseXPath($string)
     {
-        $this->parse($string);
-    }
+        $expressionParserHelper = new ExpressionParserHelper();
 
-    public function parse($string)
-    {
+        if (!isset($expressionParserHelper->explodeRootLevel('/', $string)[1])) {
+            return false;
+        }
+
         $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->explodeRootLevel('/', $string);
+
         $factory = new Factory();
 
         foreach ($parts as &$part) {
             $part = $factory->create($part);
         }
 
-        $this->setParts($parts);
+        $obj = new self();
+        $obj->setParts($parts);
+
+        return $obj;
     }
 
     public function toString()

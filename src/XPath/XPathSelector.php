@@ -28,14 +28,13 @@ class XPathSelector extends AbstractXPath
      */
     protected $expression;
 
-    public function parse($string)
+    public static function parseXPath($string)
     {
-        $eph = new Expression\ExpressionParserHelper();
-
         if (substr($string, -1) !== ']') {
             return false;
         }
 
+        $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->parseFirstLevelSubExpressions($string, '[', ']');
 
         if (count($parts) <= 1) {
@@ -47,14 +46,16 @@ class XPathSelector extends AbstractXPath
         $selectorString = array_pop($parts);
 
         $factory = new Factory();
-        $this->setSelector($factory->create($selectorString));
+        $obj = new self;
+
+        $obj->setSelector($factory->create($selectorString));
 
         // Strip the selector from the original string
         $string = substr($string, 0, -strlen($selectorString) - 2);
 
-        $this->setExpression($factory->create($string));
+        $obj->setExpression($factory->create($string));
 
-        return true;
+        return $obj;
     }
 
     public function toString()

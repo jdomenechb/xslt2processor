@@ -33,20 +33,8 @@ abstract class AbstractXPathOperator extends AbstractXPath
      */
     protected $operator;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string = null)
-    {
-        if ($string) {
-            $this->parse($string, true);
-        }
-    }
 
-    /**
-     * @inheritdoc
-     */
-    public function parse($string, $constructed = false)
+    public static function parseXPath($string)
     {
         $factory = new Factory();
 
@@ -82,6 +70,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
             }
 
             $keyFound = false;
+            $opPos = false;
 
             // First do a fast search to determine the real operator we are dealing with
             foreach ($opWithSpaces as $key => $opWithSpacesSingle) {
@@ -112,22 +101,22 @@ abstract class AbstractXPathOperator extends AbstractXPath
             }
 
             if (count($results) > 1) {
-                $this->setOperator($operator);
-                $this->setRightPart($factory->create(array_pop($results)));
-                $this->setLeftPart($factory->create(implode($opWithSpaces[0], $results)));
+                /** @var AbstractXPathOperator $obj */
+                $obj = get_called_class();
+                $obj = new $obj;
+
+                $obj->setOperator($operator);
+                $obj->setRightPart($factory->create(array_pop($results)));
+                $obj->setLeftPart($factory->create(implode($opWithSpaces[0], $results)));
 
 
-                return true;
+                return $obj;
             }
 
             throw new \RuntimeException('More than one part with operator');
         }
 
-        if (!$constructed) {
-            return false;
-        }
-
-        throw new NotXPathOperator();
+        return false;
     }
 
     public function toString()
@@ -202,6 +191,9 @@ abstract class AbstractXPathOperator extends AbstractXPath
         return $func($leftPart, $rightPart);
     }
 
+    /**
+     * @return array
+     */
     abstract public static function getOperators();
 
     public function setGlobalContext(GlobalContext $context)

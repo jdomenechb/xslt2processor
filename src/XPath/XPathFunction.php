@@ -59,8 +59,12 @@ class XPathFunction extends AbstractXPath
      */
     protected $debug;
 
-    public function parse($string)
+    public static function parseXPath($string)
     {
+        if (!preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $string)) {
+            return false;
+        }
+
         $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->parseFirstLevelSubExpressions($string, '(', ')');
 
@@ -69,7 +73,8 @@ class XPathFunction extends AbstractXPath
         }
 
         // Extract name
-        $this->setFullName(array_shift($parts));
+        $obj = new self;
+        $obj->setFullName(array_shift($parts));
 
         // Parse parameters
         $factory = new Factory();
@@ -77,7 +82,7 @@ class XPathFunction extends AbstractXPath
         $parametersRaw = array_shift($parts);
 
         if ($parametersRaw === '') {
-            return true;
+            return $obj;
         }
 
         $parameters = $eph->explodeRootLevel(',', $parametersRaw);
@@ -86,9 +91,9 @@ class XPathFunction extends AbstractXPath
             return $factory->create($value);
         }, $parameters);
 
-        $this->setParameters($parameters);
+        $obj->setParameters($parameters);
 
-        return true;
+        return $obj;
     }
 
     public function setFullName($name)

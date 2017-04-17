@@ -29,17 +29,8 @@ class XPathEveryLevelPath extends AbstractXPath
      */
     protected $rightPart;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string = null)
-    {
-        if ($string && !$this->parse($string)) {
-            throw new NotValidXPathElement($string, static::class);
-        }
-    }
 
-    public function parse($string)
+    public static function parseXPath($string)
     {
         $eph = new Expression\ExpressionParserHelper();
         $parts = $eph->explodeRootLevel('//', $string);
@@ -49,11 +40,12 @@ class XPathEveryLevelPath extends AbstractXPath
         }
 
         $factory = new Factory();
+        $obj = new self;
 
-        $this->setLeftPart($factory->create(array_shift($parts)));
-        $this->setRightPart($factory->create(implode('//', $parts)));
+        $obj->setLeftPart($factory->create(array_shift($parts)));
+        $obj->setRightPart($factory->create(implode('//', $parts)));
 
-        return true;
+        return $obj;
     }
 
     public function toString()

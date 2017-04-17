@@ -27,19 +27,6 @@ abstract class AbstractXPath implements ExpressionInterface
     protected $templateContext;
 
     /**
-     * Constructor.
-     *
-     * @param mixed $xPath
-     */
-    public function __construct($xPath = null)
-    {
-        // If the xPath has been given, parse the xPath
-        if (!is_null($xPath) && !$this->parse($xPath)) {
-            throw new NotValidXPathElement($xPath, get_called_class());
-        }
-    }
-
-    /**
      * Returns the xPath representation of the object.
      *
      * @return string

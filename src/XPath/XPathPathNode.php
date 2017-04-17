@@ -37,26 +37,22 @@ class XPathPathNode extends AbstractXPath
      */
     protected $selector;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct($string)
-    {
-        $this->parse($string);
-    }
 
-    public function parse($string)
+    public static function parseXPath($string)
     {
-        $expressionParserHelper = new ExpressionParserHelper();
+        $obj = new self;
 
         if (mb_strpos($string, '[') === false) {
-            $this->setNode($string);
+            $obj->setNode($string);
 
-            return;
+            return $obj;
         }
 
+        $expressionParserHelper = new ExpressionParserHelper();
         $pieces = $expressionParserHelper->parseFirstLevelSubExpressions($string, '[', ']');
-        $this->setNode(array_shift($pieces));
+        $obj->setNode(array_shift($pieces));
+
+        return $obj;
     }
 
     public function toString()
@@ -67,7 +63,7 @@ class XPathPathNode extends AbstractXPath
     public function setDefaultNamespacePrefix($prefix)
     {
         if (
-            trim($this->getNode()) == ''
+            trim($this->getNode()) === ''
             || strpos(trim($this->getNode()), '*') === 0
             || strpos(trim($this->getNode()), '.') === 0
         ) {

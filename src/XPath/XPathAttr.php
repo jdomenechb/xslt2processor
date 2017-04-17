@@ -75,27 +75,23 @@ class XPathAttr extends AbstractXPath
         return $this->evaluate($context);
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * @param string $xPath
-     */
-    public function parse($xPath)
+    public static function parseXPath($xPath)
     {
         if (!preg_match('#^@([a-z-:]+|\*)$#', $xPath)) {
             return false;
         }
 
         $parts = explode(':', substr($xPath, 1));
+        $obj = new self;
 
         if (count($parts) > 1) {
-            $this->setNamespace($parts[0]);
-            $this->setName($parts[1]);
+            $obj->setNamespace($parts[0]);
+            $obj->setName($parts[1]);
         } else {
-            $this->setName($parts[0]);
+            $obj->setName($parts[0]);
         }
 
-        return true;
+        return $obj;
     }
 
     /**

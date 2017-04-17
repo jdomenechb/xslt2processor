@@ -17,32 +17,26 @@ class Factory
 {
     public function create($expression)
     {
-        $expressionParserHelper = new ExpressionParserHelper();
         $expression = trim($expression);
 
         // Parse string
-        $tmp = new XPathString();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathString::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse number
-        $tmp = new XPathNumber();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathNumber::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse var
-        $tmp = new XPathVariable();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathVariable::parseXPath($expression)) {
             return $tmp;
         }
 
         // Analyze parentheses
         if (substr($expression, -1) === ')') {
+            $expressionParserHelper = new ExpressionParserHelper();
             $history = $expressionParserHelper->subExpressionLevelAnalysis($expression, '(', ')');
 
             if (
@@ -52,13 +46,13 @@ class Factory
                 && strpos(substr($history, 1, -1), '0') === false
             ) {
                 // Is a function?
-                if (preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $expression)) {
-                    return new XPathFunction($expression);
+                if ($tmp = XPathFunction::parseXPath($expression)) {
+                    return $tmp;
                 }
 
                 // Is a subexpression?
-                if (preg_match('#^\(.*\)$#s', $expression)) {
-                    return new XPathSub($expression);
+                if ($tmp = XPathSub::parseXPath($expression)) {
+                    return $tmp;
                 }
             }
         }
@@ -86,75 +80,57 @@ class Factory
         }
 
         // Parse boolean operator
-        $tmp = new XPathBooleanOperator();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathBooleanOperator::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse comparison operator
-        $tmp = new XPathCompareOperator();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathCompareOperator::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse add minus
-        $tmp = new XPathSumSubOperator();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathSumSubOperator::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse mul div
-        $tmp = new XPathMulDivOperator();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathMulDivOperator::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse union
-        $tmp = new XPathUnionOperator();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathUnionOperator::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse selector
-        $tmp = new XPathSelector();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathSelector::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse every level path
-        $tmp = new XPathEveryLevelPath();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathEveryLevelPath::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse path
-        if (count($expressionParserHelper->explodeRootLevel('/', $expression)) > 1) {
-            return new XPathPath($expression);
-        }
-
-        // Parse attribute node
-        $tmp = new XPathAttr();
-
-        if ($tmp->parse($expression)) {
+        if ($tmp = XPathPath::parseXPath($expression)) {
             return $tmp;
         }
 
-        // Parse pseudoelement
-        $tmp = new XPathPseudoElement();
+        // Parse attribute node
+        if ($tmp = XPathAttr::parseXPath($expression)) {
+            return $tmp;
+        }
 
-        if ($tmp->parse($expression)) {
+        // Parse axis
+        if ($tmp = XPathAxis::parseXPath($expression)) {
             return $tmp;
         }
 
         // Parse normal node
-        return new XPathPathNode($expression);
+        return XPathPathNode::parseXPath($expression);
     }
 
     public function parseByOperator($operator, $string)
@@ -256,10 +232,11 @@ class Factory
 
     public function createFromAttributeValue($attributeValue)
     {
+        // Move inside function
         $expressionParserHelper = new ExpressionParserHelper();
         $levels = $expressionParserHelper->parseFirstLevelSubExpressions($attributeValue, '{', '}');
 
-        $xPath = new XPathAttributeValueTemplate($levels);
+        $xPath = XPathAttributeValueTemplate::parseXPath($levels);
 
         return $xPath;
     }

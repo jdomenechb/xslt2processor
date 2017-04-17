@@ -29,6 +29,11 @@ abstract class AbstractXPathLogic extends AbstractXPath
         $this->parse($pieces);
     }
 
+    public static function parseXPath($xPath)
+    {
+        // TODO: Implement parseXPath() method.
+    }
+
     public function parse($pieces)
     {
         if (!is_array($pieces)) {

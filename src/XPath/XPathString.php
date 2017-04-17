@@ -35,7 +35,7 @@ class XPathString extends AbstractXPath
      *
      * The given xPath must be enclosed in simple quotes to be considered an string.
      */
-    public function parse($xPath)
+    public static function parseXPath($xPath)
     {
         $eph = new Expression\ExpressionParserHelper();
 
@@ -60,15 +60,18 @@ class XPathString extends AbstractXPath
             return false;
         }
 
+        $obj = new self;
+
+
         if ($xPath[0] === "'") {
-            $this->string = (string) str_replace("''", "'", mb_substr($xPath, 1, -1));
-            $this->setDoubleQuoted(false);
+            $obj->setString(str_replace("''", "'", mb_substr($xPath, 1, -1)));
+            $obj->setDoubleQuoted(false);
         } else {
-            $this->string = (string) str_replace('""', '"', mb_substr($xPath, 1, -1));
-            $this->setDoubleQuoted(true);
+            $obj->setString(str_replace('""', '"', mb_substr($xPath, 1, -1)));
+            $obj->setDoubleQuoted(true);
         }
 
-        return true;
+        return $obj;
     }
 
     /**
@@ -116,5 +119,13 @@ class XPathString extends AbstractXPath
     protected function setDoubleQuoted($doubleQuoted)
     {
         $this->doubleQuoted = $doubleQuoted;
+    }
+
+    /**
+     * @param string $string
+     */
+    public function setString($string)
+    {
+        $this->string = $string;
     }
 }

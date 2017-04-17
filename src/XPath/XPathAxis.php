@@ -13,7 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
-class XPathPseudoElement extends AbstractXPath
+class XPathAxis extends AbstractXPath
 {
     /**
      * @var string
@@ -25,18 +25,19 @@ class XPathPseudoElement extends AbstractXPath
      */
     protected $node;
 
-    public function parse($string)
+    public static function parseXPath($string)
     {
         if (strpos($string, '::') === false) {
             return false;
         }
 
         $parts = explode('::', $string);
+        $obj = new self;
 
-        $this->setName($parts[0]);
-        $this->setNode($parts[1]);
+        $obj->setName($parts[0]);
+        $obj->setNode($parts[1]);
 
-        return true;
+        return $obj;
     }
 
     public function toString()

@@ -28,9 +28,9 @@ interface ExpressionInterface
      *
      * @param string $xPath
      *
-     * @return bool false if the xPath is not an element of this type
+     * @return ExpressionInterface|bool false if the xPath is not an element of this type
      */
-    public function parse($xPath);
+    public static function parseXPath($xPath);
 
     /**
      * Returns the xPath representation of the object.

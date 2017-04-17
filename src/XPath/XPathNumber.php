@@ -28,7 +28,7 @@ class XPathNumber extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function parse($xPath)
+    public static function parseXPath($xPath)
     {
         $xPath = (string) $xPath;
 
@@ -37,9 +37,10 @@ class XPathNumber extends AbstractXPath
             return false;
         }
 
-        $this->number = $xPath;
+        $obj = new self;
+        $obj->setNumber($xPath);
 
-        return true;
+        return $obj;
     }
 
     /**
@@ -78,5 +79,13 @@ class XPathNumber extends AbstractXPath
     public function toString()
     {
         return (string) $this->getNumber();
+    }
+
+    /**
+     * @param mixed $number
+     */
+    public function setNumber($number)
+    {
+        $this->number = $number;
     }
 }

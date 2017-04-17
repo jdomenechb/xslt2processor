@@ -20,12 +20,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
 {
     protected $parts;
 
-    public function __construct($parts)
-    {
-        $this->parse($parts);
-    }
-
-    public function parse($string)
+    public static function parseXPath($string)
     {
         $factory = new Factory();
         $total = count($string);
@@ -34,7 +29,10 @@ class XPathAttributeValueTemplate extends AbstractXPath
             $string[$i] = $factory->create($string[$i]);
         }
 
-        $this->setParts($string);
+        $obj = new self;
+        $obj->setParts($string);
+
+        return $obj;
     }
 
     public function toString()

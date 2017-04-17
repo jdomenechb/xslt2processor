@@ -21,25 +21,22 @@ class XPathSub extends AbstractXPath
      */
     protected $subExpression;
 
-    /**
-     * XPathSub constructor.
-     *
-     * @param mixed $string
-     */
-    public function __construct($string)
+    public static function parseXPath($string)
     {
-        $this->parse($string);
-    }
+        if (!preg_match('#^\(.*\)$#s', $string)) {
+            return false;
+        }
 
-    public function parse($string)
-    {
         $eph = new Expression\ExpressionParserHelper();
-
         $parts = $eph->parseFirstLevelSubExpressions($string, '(', ')');
         array_shift($parts);
 
         $factory = new Factory();
-        $this->setSubExpression($factory->create($parts[0]));
+
+        $obj = new self;
+        $obj->setSubExpression($factory->create($parts[0]));
+
+        return $obj;
     }
 
     public function toString()

@@ -28,20 +28,16 @@ class XPathVariable extends AbstractXPath
      */
     protected $value;
 
-    /**
-     * @inheritdoc
-     * @param string $string
-     * @return bool
-     */
-    public function parse($string)
+    public static function parseXPath($string)
     {
         if (!preg_match('#^\$[a-z0-9_-]+$#i', $string)) {
             return false;
         }
 
-        $this->setName(substr($string, 1));
+        $obj = new self;
+        $obj->setName(substr($string, 1));
 
-        return true;
+        return $obj;
     }
 
     /**
