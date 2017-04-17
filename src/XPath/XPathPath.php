@@ -14,7 +14,6 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 use DOMElement;
 use DOMNodeList as OriginalDOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -28,6 +27,12 @@ class XPathPath extends AbstractXPath
 
     public static function parseXPath($string)
     {
+        // Check if can be exploded easily
+        if (!isset(explode('/', $string)[1])) {
+            return false;
+        }
+
+        // Explode it the correct way
         $expressionParserHelper = new ExpressionParserHelper();
 
         if (!isset($expressionParserHelper->explodeRootLevel('/', $string)[1])) {

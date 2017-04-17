@@ -151,10 +151,10 @@ class ExpressionParserHelper
      */
     public function subExpressionLevelAnalysis($expression, $start, $end)
     {
-        if ($start == '(') {
+        if ($start === '(') {
             $avoidL = '[';
             $avoidR = ']';
-        } elseif ($start == '[') {
+        } elseif ($start === '[') {
             $avoidL = '[';
             $avoidR = ']';
         } else {
