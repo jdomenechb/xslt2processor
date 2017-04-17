@@ -33,13 +33,6 @@ class DOMNodeList implements ArrayAccess, Iterator
     protected $items;
 
     /**
-     * Defines if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     *
-     * @var bool
-     */
-    protected $parent = false;
-
-    /**
      * Defines if the set has to be sorted.
      *
      * @var bool
@@ -201,13 +194,16 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     public function merge(DOMNodeList ...$list)
     {
-        $result = $this->items;
+        $this->mergeArray(...array_map(function(DOMNodeList $value) {
+            return $value->toArray();
+        }, $list));
+    }
 
-        foreach ($list as $arg) {
-            $result = array_merge($result, $arg->toArray());
-        }
+    public function mergeArray(array ...$list)
+    {
+        array_unshift($list, $this->items);
 
-        $this->items = $result;
+        $this->items = array_merge(...$list);
 
         if ($this->isSortable()) {
             $this->sort();
@@ -249,26 +245,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         $key = key($this->items);
 
         return $key !== null && $key !== false;
-    }
-
-    /**
-     * Returns if the list must be considered as a parent for processing (for example, when it's a set of variables).
-     *
-     * @return bool
-     */
-    public function isParent()
-    {
-        return $this->parent;
-    }
-
-    /**
-     * Sets if the list must be considered as a parent for processing (for example, when it's a set of variables).
-
-     * @param mixed $parent
-     */
-    public function setParent($parent)
-    {
-        $this->parent = $parent;
     }
 
     /**
