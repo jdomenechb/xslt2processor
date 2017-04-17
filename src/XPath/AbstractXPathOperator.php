@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotXPathOperator;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -40,7 +39,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
         foreach (static::getOperators() as $operator => $nothing) {
             // Guess the possibility of having the operator
-            if (mb_stripos($string, $operator) === false) {
+            if (strpos($string, $operator) === false) {
                 continue;
             }
 
@@ -74,7 +73,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
             // First do a fast search to determine the real operator we are dealing with
             foreach ($opWithSpaces as $key => $opWithSpacesSingle) {
-                if (($opPos = mb_stripos($string, $opWithSpacesSingle)) !== false) {
+                if (($opPos = stripos($string, $opWithSpacesSingle)) !== false) {
                     $keyFound = $key;
                     break;
                 }
