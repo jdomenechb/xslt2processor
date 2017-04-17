@@ -120,6 +120,11 @@ class Processor
     protected $messages;
 
     /**
+     * @var Factory
+     */
+    protected $xPathFactory;
+
+    /**
      * Constructor.
      *
      * @param string|\DOMDocument $xslt path of the XSLT file or DOMDocument containing the XSL stylesheet
@@ -147,6 +152,7 @@ class Processor
 
         $this->setDebug(Debug::getInstance());
         $this->getDebug()->setOutput($this->getOutput());
+        $this->xPathFactory = new Factory();
     }
 
     /**
@@ -684,10 +690,10 @@ class Processor
     protected function parseXPath($xPath)
     {
         $xPathParsed = null;
-        $key = sha1($xPath);
 
         // If cache defined, try to get it from there
-        if ($this->getCache()) {
+        if ($this->cache !== null) {
+            $key = sha1($xPath);
             $cacheItem = $this->getCache()->getItem($key);
 
             if ($cacheItem->isHit()) {
@@ -696,13 +702,12 @@ class Processor
         }
 
         // If no match from cache, parse the xPath
-        if (!$xPathParsed) {
-            $factory = new Factory();
-            $xPathParsed = $factory->create($xPath);
+        if ($xPathParsed === null) {
+            $xPathParsed = $this->xPathFactory->create($xPath);
         }
 
         // If was not in cache, save it if the cache is available
-        if ($this->getCache() && !$cacheItem->isHit()) {
+        if ($this->cache !== null && !$cacheItem->isHit()) {
             $cacheItem->set($xPathParsed);
             $this->getCache()->save($cacheItem);
         }
@@ -710,20 +715,20 @@ class Processor
         // Set the properties the xPath need for working
         $xPathParsed->setGlobalContext($this->getGlobalContext());
         $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
-        $transformed = $xPathParsed->toString();
+//        $transformed = $xPathParsed->toString();
 
         // FIXME: Move somewhere else
-        if ($this->logXPath) {
-            file_put_contents('xpath_log.txt', $xPath . ' =====> ' . $transformed . "\n", FILE_APPEND);
-        }
+//        if ($this->logXPath) {
+//            $transformed = $xPathParsed->toString();
+//            file_put_contents('xpath_log.txt', $xPath . ' =====> ' . $transformed . "\n", FILE_APPEND);
+//        }
 
         return $xPathParsed;
     }
 
     protected function evaluateAttrValueTemplates($attrValue, $context)
     {
-        $factory = new Factory();
-        $xPathParsed = $factory->createFromAttributeValue($attrValue);
+        $xPathParsed = $this->xPathFactory->createFromAttributeValue($attrValue);
         $xPathParsed->setGlobalContext($this->getGlobalContext());
         $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
 
