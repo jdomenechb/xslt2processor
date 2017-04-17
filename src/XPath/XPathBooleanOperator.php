@@ -71,7 +71,7 @@ class XPathBooleanOperator extends AbstractXPathOperator
                     foreach ($obj as $objNode) {
                         if ($other instanceof DOMNodeList) {
                             foreach ($other as $otherNode) {
-                                if ($objNode->nodeValue == $otherNode->nodeValue) {
+                                if ($objNode->nodeValue === $otherNode->nodeValue) {
                                     return true;
                                 }
                             }
