@@ -43,21 +43,20 @@ abstract class AbstractXPathOperator extends AbstractXPath
         }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function parse($string, $constructed = false)
     {
         $factory = new Factory();
-        $operators = array_keys(static::getOperators());
 
-        foreach ($operators as $operator) {
-            if (in_array($operator, ['-', 'mod'])) {
-                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator, $operator . ' '];
-            } elseif (in_array($operator, ['*'])) {
-                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator];
-            } else {
-                $opWithSpaces = [$operator];
+        foreach (static::getOperators() as $operator => $nothing) {
+            // Guess the possibility of having the operator
+            if (mb_stripos($string, $operator) === false) {
+                continue;
             }
 
-            // Consider possible minus mispellings
+            // Consider possible minus misspellings
             if ($operator === '-') {
                 $possibilities = [
                     ')' . $operator,
@@ -66,14 +65,25 @@ abstract class AbstractXPathOperator extends AbstractXPath
 
                 foreach ($possibilities as $possibility) {
                     if (mb_stripos($string, $possibility) !== false) {
-                        throw new \RuntimeException('Parse error: Operator "-" must have an space before at least');
+                        throw new \ParseError('Operator "-" must have an space before at least');
                     }
                 }
             }
 
+            // Prepare the possible cases for fast search
+            if (in_array($operator, ['-', 'mod'])) {
+                // These operators can only have space before, after, and both
+                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator, $operator . ' '];
+            } elseif (in_array($operator, ['*'])) {
+                // These operators can only have space before, both before & after
+                $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator];
+            } else {
+                $opWithSpaces = [$operator];
+            }
+
             $keyFound = false;
 
-            // First do a fast search
+            // First do a fast search to determine the real operator we are dealing with
             foreach ($opWithSpaces as $key => $opWithSpacesSingle) {
                 if (($opPos = mb_stripos($string, $opWithSpacesSingle)) !== false) {
                     $keyFound = $key;
@@ -85,15 +95,16 @@ abstract class AbstractXPathOperator extends AbstractXPath
                 continue;
             }
 
-            // Consider equal precedence
+            // Consider equal precedence against gt and lt
             if ($operator === '=' && $opPos > 0) {
-                $preOp = substr($string, $opPos - 1, 1);
+                $preOp = $string[$opPos - 1];
 
                 if ($preOp === '<' || $preOp === '>') {
                     continue;
                 }
             }
 
+            // Parse using the detected operator
             $results = $factory->parseByOperator($opWithSpaces[$keyFound], $string);
 
             if (count($results) === 1) {

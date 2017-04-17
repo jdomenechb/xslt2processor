@@ -42,31 +42,24 @@ class Factory
         }
 
         // Analyze parentheses
-        if (preg_match('#\)$#', $expression)) {
+        if (substr($expression, -1) === ')') {
             $history = $expressionParserHelper->subExpressionLevelAnalysis($expression, '(', ')');
 
-            // Is a function?
             if (
                 // Has more than one level
-                strlen($history) > 1
+                $history !== 0
                 // It should not return to the level 0 in any point inside
                 && strpos(substr($history, 1, -1), '0') === false
-                // It should match a function
-                && preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $expression)
             ) {
-                return new XPathFunction($expression);
-            }
+                // Is a function?
+                if (preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $expression)) {
+                    return new XPathFunction($expression);
+                }
 
-            // Is a subexpression?
-            if (
-                // Has more than one level
-                strlen($history) > 1
-                // It should not return to the level 0 in any point inside
-                && strpos(substr($history, 1, -1), '0') === false
-                // It should match a sub
-                && preg_match('#^\(.*\)$#s', $expression)
-            ) {
-                return new XPathSub($expression);
+                // Is a subexpression?
+                if (preg_match('#^\(.*\)$#s', $expression)) {
+                    return new XPathSub($expression);
+                }
             }
         }
 

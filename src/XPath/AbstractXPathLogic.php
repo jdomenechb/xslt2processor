@@ -35,13 +35,13 @@ abstract class AbstractXPathLogic extends AbstractXPath
             $pieces = [$pieces];
         }
 
+        $factory = new Factory();
+
         $pieces = array_map(
-            function ($value) {
+            function ($value) use ($factory) {
                 if ($value instanceof ExpressionInterface) {
                     return $value;
                 }
-
-                $factory = new Factory();
 
                 return $factory->create($value);
             },

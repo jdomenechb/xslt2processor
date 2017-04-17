@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XML;
 
-use DOMCdataSection;
 use DOMCharacterData;
 use DOMElement;
 use DOMText;
@@ -39,10 +38,9 @@ class DOMElementUtils
         }
 
         // We try to get the last writable child node: the last or a new one
-        if (
-            $node->childNodes->item($node->childNodes->length - 1) instanceof DOMCdataSection
-            || $node->childNodes->item($node->childNodes->length - 1) instanceof DOMText
-        ) {
+        $latestNode = $node->childNodes->item($node->childNodes->length - 1);
+        
+        if ($latestNode instanceof DOMText) {
             $writableNode = $node->childNodes->item($node->childNodes->length - 1);
         } else {
             $writableNode = $this->addWritableNodeTo($node, $cdataSections);
@@ -57,7 +55,7 @@ class DOMElementUtils
      * @param DOMElement $node
      * @param array      $cDataSections
      *
-     * @return DOMCharacterData
+     * @return DOMText
      */
     public function addWritableNodeTo(DOMElement $node, array $cDataSections = [])
     {

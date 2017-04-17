@@ -108,8 +108,10 @@ class XPathPathNode extends AbstractXPath
 
     public function query($context)
     {
+        $nodeName = $this->getNode();
+
         // Direct cases
-        if ($this->getNode() === '.') {
+        if ($nodeName === '.') {
             if (!$context instanceof DOMNodeList) {
                 return new DOMNodeList($context);
             }
@@ -117,7 +119,7 @@ class XPathPathNode extends AbstractXPath
             return $context;
         }
 
-        if ($this->getNode() === '..') {
+        if ($nodeName === '..') {
             if ($context instanceof DOMNodeList) {
                 $context = $context->item(0);
             }
@@ -125,7 +127,7 @@ class XPathPathNode extends AbstractXPath
             return new DOMNodeList(($context->parentNode ?: null));
         }
 
-        if (!$this->getNode()) {
+        if (!$nodeName) {
             if (
                 $context instanceof DOMNodeList
                 || $context instanceof \DOMNodeList
@@ -145,7 +147,6 @@ class XPathPathNode extends AbstractXPath
         }
 
         $limitBy = static::LIMIT_BY_ELEMENT;
-        $nodeName = $this->getNode();
         $parts = explode(':', $nodeName);
 
         if (count($parts) > 1) {
