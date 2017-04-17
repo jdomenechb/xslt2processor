@@ -15,6 +15,7 @@ use DOMNode;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
+use Jdomenechb\XSLT2Processor\XSLT\Debug;
 
 class XPathPathNode extends AbstractXPath
 {
@@ -107,23 +108,8 @@ class XPathPathNode extends AbstractXPath
         $nodeName = $this->getNode();
 
         // Direct cases
-        if ($nodeName === '.') {
-            if (!$context instanceof DOMNodeList) {
-                return new DOMNodeList($context);
-            }
-
-            return $context;
-        }
-
-        if ($nodeName === '..') {
-            if ($context instanceof DOMNodeList) {
-                $context = $context->item(0);
-            }
-
-            return new DOMNodeList(($context->parentNode ?: null));
-        }
-
         if (!$nodeName) {
+            // Document
             if (
                 $context instanceof DOMNodeList
                 || $context instanceof \DOMNodeList
@@ -142,7 +128,22 @@ class XPathPathNode extends AbstractXPath
             return new DOMNodeList($doc);
         }
 
-        $limitBy = static::LIMIT_BY_ELEMENT;
+        if ($nodeName === '.') {
+            if (!$context instanceof DOMNodeList) {
+                return new DOMNodeList($context);
+            }
+
+            return $context;
+        }
+
+        if ($nodeName === '..') {
+            if ($context instanceof DOMNodeList) {
+                $context = $context->item(0);
+            }
+
+            return new DOMNodeList(($context->parentNode ?: null));
+        }
+
         $parts = explode(':', $nodeName);
 
         if (count($parts) > 1) {
@@ -152,47 +153,54 @@ class XPathPathNode extends AbstractXPath
             $namespacePrefix = $this->getGlobalContext()->getDefaultNamespace();
         }
 
+        $namespace = $this->getGlobalContext()->getNamespaces()[$namespacePrefix];
+
         if (!$this->getGlobalContext()->getNamespaces()->offsetExists($namespacePrefix)) {
             throw new \RuntimeException('Namespace with prefix "' . $namespacePrefix . '" is not defined in context');
         }
 
         // Detect the nodes we are interested in
-        $result = new DOMNodeList();
+        $result = [];
 
-        if (
-            $context instanceof \DOMElement
-            || $context instanceof \DOMDocument
-        ) {
-            $contextChilds = new DOMNodeList($context->childNodes);
-        } elseif (($context instanceof DOMNodeList && $context->isParent())) {
-            $contextChilds = $context;
-        } elseif ($context instanceof DOMResultTree) {
-            $contextChilds = new DOMNodeList($context->getBaseNode()->childNodes);
-        } else {
+        if ($context instanceof DOMNodeList) {
+            $contextArray = $context->toArray();
             $contextChilds = new DOMNodeList();
 
-            foreach ($context as $contextElement) {
-                $contextChilds->merge(new DOMNodeList($contextElement instanceof \DOMDocument ? $contextElement->documentElement : $contextElement->childNodes));
+            foreach ($contextArray as $contextElement) {
+                $contextChilds->merge(new DOMNodeList(
+                    $contextElement instanceof \DOMDocument ?
+                    $contextElement->documentElement :
+                    $contextElement->childNodes
+                ));
             }
+
+            $contextChilds = $contextChilds->toArray();
+        } elseif (
+            $context instanceof \DOMElement || $context instanceof \DOMDocument
+        ) {
+            $contextChilds = $context->childNodes;
+        } elseif ($context instanceof DOMResultTree) {
+            $contextChilds = $context->getBaseNode()->childNodes;
+        } else {
+            $contextChilds = [];
         }
 
         foreach ($contextChilds as $childNode) {
             /* @var $childNode DOMNode */
             if (
                 (
-                    $limitBy === static::LIMIT_BY_ELEMENT && $childNode instanceof \DOMElement
-                )
-                && (
-                    (
+                    $localName === '*'
+                    || (
                         $childNode->localName === $localName
-                        && $childNode->namespaceURI == $this->getGlobalContext()->getNamespaces()[$namespacePrefix]
-                    ) || $localName === '*'
+                        && $childNode->namespaceURI === $namespace
+                    )
                 )
+                && $childNode instanceof \DOMElement
             ) {
                 $result[] = $childNode;
             }
         }
 
-        return $result;
+        return new DOMNodeList($result);
     }
 }
