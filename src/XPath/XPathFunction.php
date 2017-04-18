@@ -77,14 +77,13 @@ class XPathFunction extends AbstractXPath
         $obj->setFullName(array_shift($parts));
 
         // Parse parameters
-        $factory = new Factory();
-
         $parametersRaw = array_shift($parts);
 
         if ($parametersRaw === '') {
             return $obj;
         }
 
+        $factory = new Factory();
         $parameters = $eph->explodeRootLevel(',', $parametersRaw);
 
         $parameters = array_map(function ($value) use ($factory) {

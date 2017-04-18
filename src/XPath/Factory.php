@@ -147,76 +147,75 @@ class Factory
         $operator = strtolower($operator);
 
         while ($offset < $stringLength) {
+            $min = $stringLength;
+
             // Position of the left parenthesis
             $lParPos = strpos($stringToLower, '(', $offset);
 
-            if ($lParPos === false) {
-                $lParPos = $stringLength;
+            if ($lParPos !== false && $lParPos < $min) {
+                $min = $lParPos;
             }
 
             // Position of the right parenthesis
             $rParPos = strpos($stringToLower, ')', $offset);
 
-            if ($rParPos === false) {
-                $rParPos = $stringLength;
+            if ($rParPos !== false && $rParPos < $min) {
+                $min = $rParPos;
             }
 
             // Position of the left square bracket
             $lSBPos = strpos($stringToLower, '[', $offset);
 
-            if ($lSBPos === false) {
-                $lSBPos = $stringLength;
+            if ($lSBPos !== false && $lSBPos < $min) {
+                $min = $lSBPos;
             }
 
             // Position of the right square bracket
             $rSBPos = strpos($stringToLower, ']', $offset);
 
-            if ($rSBPos === false) {
-                $rSBPos = $stringLength;
+            if ($rSBPos !== false && $rSBPos < $min) {
+                $min = $rSBPos;
             }
 
             // Position of the operator
             if ($level === 0) {
                 $opPos = strpos($stringToLower, $operator, $offset);
 
-                if ($opPos === false) {
-                    $opPos = $stringLength;
+                if ($opPos !== false && $opPos < $min) {
+                    $min = $opPos;
                 }
             } else {
                 $opPos = $stringLength;
             }
 
-            // Calculate min
-            $min = min($lParPos, $rParPos, $lSBPos, $rSBPos, $opPos);
-
             if ($min === $stringLength) {
                 $offset = $stringLength;
-            } elseif ($min == $lParPos) {
+            } elseif ($min === $lParPos) {
                 if ($sBLevel === 0) {
                     ++$level;
                 }
 
                 $offset = $min + 1;
-            } elseif ($min == $rParPos) {
+            } elseif ($min === $rParPos) {
                 if ($sBLevel === 0) {
                     --$level;
                 }
 
                 $offset = $min + 1;
-            } elseif ($min == $lSBPos) {
+            } elseif ($min === $lSBPos) {
                 if ($level === 0) {
                     ++$sBLevel;
                 }
 
                 $offset = $min + 1;
-            } elseif ($min == $rSBPos) {
+            } elseif ($min === $rSBPos) {
                 if ($level === 0) {
                     --$sBLevel;
                 }
 
                 $offset = $min + 1;
             } elseif ($min === $opPos) {
-                if ($level == 0 && $sBLevel === 0) {
+                if ($level === 0 && $sBLevel === 0) {
                     $matches[] = trim(substr($string, $offsetPiece, $opPos - $offsetPiece));
                     $offsetPiece = $min + $lengthOperator;
                 }
@@ -232,7 +231,7 @@ class Factory
 
     public function createFromAttributeValue($attributeValue)
     {
-        // Move inside function
+        // TODO: Move inside function
         $expressionParserHelper = new ExpressionParserHelper();
         $levels = $expressionParserHelper->parseFirstLevelSubExpressions($attributeValue, '{', '}');
 

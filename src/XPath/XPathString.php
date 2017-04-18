@@ -42,17 +42,17 @@ class XPathString extends AbstractXPath
         if (
             (
                 // Starts with single quote
-                mb_strpos($xPath, "'") !== 0
+                strpos($xPath, "'") !== 0
                 // Ends with single quote
-                || mb_substr($xPath, -1) !== "'"
+                || substr($xPath, -1) !== "'"
                 // Does not contain other quotes inside
                 || strpos(substr($eph->literalLevelAnalysis($xPath, "'", "''"), 1, -1), '0') !== false
             )
             && (
                 // Starts with double quote
-                mb_strpos($xPath, '"') !== 0
+                strpos($xPath, '"') !== 0
                 // Ends with double quote
-                || mb_substr($xPath, -1) !== '"'
+                || substr($xPath, -1) !== '"'
                 // Does not contain other quotes inside
                 || strpos(substr($eph->literalLevelAnalysis($xPath, '"', '""'), 1, -1), '0') !== false
             )
