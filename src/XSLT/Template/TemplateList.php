@@ -20,23 +20,7 @@ use ArrayObject;
  */
 class TemplateList extends ArrayObject
 {
-    /**
-     * Gets a list of templates that have the given match.
-     *
-     * @param mixed $match
-     *
-     * @return TemplateList
-     */
-    public function getByMatch($match)
-    {
-        $values = array_values(array_filter($this->getArrayCopy(), function (Template $value) use ($match) {
-            return $value->getMatch() == $match;
-        }));
-
-        $class = static::class;
-
-        return new $class($values);
-    }
+    protected $nameRelation = [];
 
     /**
      * Gets a list of templates that have the given name.
@@ -47,13 +31,7 @@ class TemplateList extends ArrayObject
      */
     public function getByName($name)
     {
-        $values = array_values(array_filter($this->getArrayCopy(), function (Template $value) use ($name) {
-            return $value->getName() == $name;
-        }));
-
-        $class = static::class;
-
-        return new $class($values);
+        return new self(isset($this->nameRelation[$name])? $this->nameRelation[$name]: []);
     }
 
     public function appendTemplate(Template $template)
@@ -69,12 +47,16 @@ class TemplateList extends ArrayObject
                 $newTemplates = array_merge($newTemplates, array_slice($this->getArrayCopy(), $i));
 
                 $this->exchangeArray($newTemplates);
+                $this->nameRelation[$template->getName()][] = $template;
 
                 return;
             }
         }
 
         parent::append($template);
+
+        $this->nameRelation[$template->getName()][] = $template;
+
     }
 
     public function append($template)

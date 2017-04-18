@@ -65,25 +65,27 @@ class XPathSelector extends AbstractXPath
 
     public function evaluate($context)
     {
-        $result = $this->getExpression()->evaluate($context);
-        $resultArray = $result->toArray();
+        $resultArray = $this->getExpression()->evaluate($context)->toArray();
         $newResult = [];
 
         if ($resultArray && $this->getSelector() instanceof XPathNumber) {
             $newResult[] = $resultArray[$this->getSelector()->toString() - 1];
         } else {
+            $stack = Current::getStack();
+
             foreach ($resultArray as $resultElement) {
-                Current::getStack()->push($resultElement);
+                $stack->push($resultElement);
 
                 $evaluation = $this->getSelector()->evaluate($resultElement);
+
                 if (
-                    ($evaluation instanceof DOMNodeList && $evaluation->count())
-                    || (!$evaluation instanceof DOMNodeList && $evaluation)
+                    (!$evaluation instanceof DOMNodeList && $evaluation)
+                    || ($evaluation instanceof DOMNodeList && $evaluation->count())
                 ) {
                     $newResult[] = $resultElement;
                 }
 
-                Current::getStack()->pop();
+                $stack->pop();
             }
         }
 

@@ -569,7 +569,7 @@ class Processor
 
         foreach ($nodesMatched as $nodeMatched) {
             // Select a template that match
-            foreach ($this->getGlobalContext()->getTemplates() as $template) {
+            foreach ($this->getGlobalContext()->getTemplates()->getArrayCopy() as $template) {
                 if (!$fbPossibleTemplate) {
                     $fbPossibleTemplate = $template;
                 }
