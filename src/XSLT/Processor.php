@@ -74,11 +74,6 @@ class Processor
     protected $filePath;
 
     /**
-     * @var bool
-     */
-    protected $logXPath = false;
-
-    /**
      * @var array
      */
     protected $decimalFormats = [];
@@ -183,12 +178,6 @@ class Processor
         $this->newXml = new DOMDocument();
         $this->messages = new \ArrayObject();
 
-        // TODO: Move to Factory xPath class
-        // Prepare the xPath log in case it is desired to save xPaths
-        if ($this->logXPath) {
-            file_put_contents('xpath_log.txt', '');
-        }
-
         // Process the base xslStylesheet node to be aware of everything the XSL stylesheet features
         $this->xslStylesheet($this->stylesheet->documentElement, $this->xml, $this->newXml);
 
@@ -249,11 +238,6 @@ class Processor
     public function setCache(CacheItemPoolInterface $cache)
     {
         $this->cache = $cache;
-    }
-
-    public function setLogXPath($value)
-    {
-        $this->logXPath = $value;
     }
 
     /**
@@ -435,12 +419,12 @@ class Processor
 
     protected function processXsltNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        $methodName = 'xsl' . implode('', array_map('ucfirst', explode('-', $node->localName)));
+        $methodName = 'xsl' . str_replace('-', '', ucwords($node->localName, '-'));
 
         $this->getDebug()->startNodeLevel($this->newXml, $node);
 
         if (method_exists($this, $methodName)) {
-            $this->$methodName($node, $context, $newContext);
+            call_user_func([$this, $methodName], $node, $context, $newContext);
         } else {
             throw new RuntimeException('The XSL tag  ' . $node->nodeName . ' is not supported yet');
         }
@@ -695,13 +679,14 @@ class Processor
     protected function parseXPath($xPath)
     {
         $xPathParsed = null;
+        $hasCache = $this->cache !== null;
 
         // If cache defined, try to get it from there
-        if ($this->cache !== null) {
-            $key = sha1($xPath);
-            $cacheItem = $this->getCache()->getItem($key);
+        if ($hasCache) {
+            $cacheItem = $this->getCache()->getItem(sha1($xPath));
+            $isHit = $cacheItem->isHit();
 
-            if ($cacheItem->isHit()) {
+            if ($isHit) {
                 $xPathParsed = $cacheItem->get();
             }
         }
@@ -712,7 +697,7 @@ class Processor
         }
 
         // If was not in cache, save it if the cache is available
-        if ($this->cache !== null && !$cacheItem->isHit()) {
+        if ($hasCache && !$isHit) {
             $cacheItem->set($xPathParsed);
             $this->getCache()->save($cacheItem);
         }
@@ -720,13 +705,6 @@ class Processor
         // Set the properties the xPath need for working
         $xPathParsed->setGlobalContext($this->getGlobalContext());
         $xPathParsed->setTemplateContext($this->getTemplateContextStack()->top());
-//        $transformed = $xPathParsed->toString();
-
-        // FIXME: Move somewhere else
-//        if ($this->logXPath) {
-//            $transformed = $xPathParsed->toString();
-//            file_put_contents('xpath_log.txt', $xPath . ' =====> ' . $transformed . "\n", FILE_APPEND);
-//        }
 
         return $xPathParsed;
     }

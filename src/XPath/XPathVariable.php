@@ -121,8 +121,11 @@ class XPathVariable extends AbstractXPath
     {
         parent::setTemplateContext($context);
 
-        if (isset($context->getVariables()[$this->getName()])) {
-            $this->setValue($context->getVariables()[$this->getName()]);
+        $name = $this->getName();
+        $vars = $context->getVariables();
+
+        if (isset($vars[$name])) {
+            $this->setValue($vars[$name]);
         }
     }
 }

@@ -11,6 +11,11 @@
 
 namespace Jdomenechb\XSLT2Processor\XML;
 
+/**
+ * Class NotANumber represents a NaN evaluation.
+ * @package Jdomenechb\XSLT2Processor\XML
+ * @author jdomemechb
+ */
 class NotANumber
 {
     public function __toString()
