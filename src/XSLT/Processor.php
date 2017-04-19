@@ -197,6 +197,9 @@ class Processor
         // Restore back the error handler we had
         restore_error_handler();
 
+        // Cleanup the factory cache
+        Factory::cleanXPathCache();
+
         // Return the result according to the output parameters
         if ($this->getOutput()->getMethod() === Output::METHOD_XML) {
             return $this->getOutput()->getRemoveXmlDeclaration() && $this->newXml->documentElement ?

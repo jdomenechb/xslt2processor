@@ -46,6 +46,8 @@ To speed up the transformation, a caching class following the [PSR-6 recommendat
 $processor->setCache($cacheItemPool);
 ```
 
+If no cache is provided anyway, the XPath factory has an internal memory-based cache to reuse XPaths already parsed in the current template.  
+
 ### XPath
 The full list of available XPath classes can be found under [the XPath src folder](src/XPath). But generally, a developer might be more interested in parsing a string that represents an XPath. For this goal, the `Factory` class may be more useful:
  
