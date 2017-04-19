@@ -39,7 +39,7 @@ class DOMElementUtils
 
         // We try to get the last writable child node: the last or a new one
         $latestNode = $node->childNodes->item($node->childNodes->length - 1);
-        
+
         if ($latestNode instanceof DOMText) {
             $writableNode = $node->childNodes->item($node->childNodes->length - 1);
         } else {

@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\NotANumber;
+
 class XPathSumSubOperator extends AbstractXPathOperator
 {
     protected static $operators;
@@ -21,14 +23,14 @@ class XPathSumSubOperator extends AbstractXPathOperator
             static::$operators = [
                 '+' => function ($left, $right) {
                     if (!is_numeric($left) || !is_numeric($right)) {
-                        return NAN;
+                        return new NotANumber();
                     }
 
                     return $left + $right;
                 },
                 '-' => function ($left, $right) {
                     if (!is_numeric($left) || !is_numeric($right)) {
-                        return NAN;
+                        return new NotANumber();
                     }
 
                     return $left - $right;

@@ -32,7 +32,7 @@ class XPathAxis extends AbstractXPath
         }
 
         $parts = explode('::', $string);
-        $obj = new self;
+        $obj = new self();
 
         $obj->setName($parts[0]);
         $obj->setNode($parts[1]);

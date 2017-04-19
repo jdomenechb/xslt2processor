@@ -60,8 +60,7 @@ class XPathString extends AbstractXPath
             return false;
         }
 
-        $obj = new self;
-
+        $obj = new self();
 
         if ($xPath[0] === "'") {
             $obj->setString(str_replace("''", "'", mb_substr($xPath, 1, -1)));
@@ -86,6 +85,7 @@ class XPathString extends AbstractXPath
 
     /**
      * {@inheritdoc}
+     *
      * @throws InvalidEvaluation
      */
     public function evaluate($context)
@@ -114,18 +114,18 @@ class XPathString extends AbstractXPath
     }
 
     /**
-     * @param bool $doubleQuoted
-     */
-    protected function setDoubleQuoted($doubleQuoted)
-    {
-        $this->doubleQuoted = $doubleQuoted;
-    }
-
-    /**
      * @param string $string
      */
     public function setString($string)
     {
         $this->string = $string;
+    }
+
+    /**
+     * @param bool $doubleQuoted
+     */
+    protected function setDoubleQuoted($doubleQuoted)
+    {
+        $this->doubleQuoted = $doubleQuoted;
     }
 }

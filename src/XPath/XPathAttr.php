@@ -82,7 +82,7 @@ class XPathAttr extends AbstractXPath
         }
 
         $parts = explode(':', substr($xPath, 1));
-        $obj = new self;
+        $obj = new self();
 
         if (count($parts) > 1) {
             $obj->setNamespace($parts[0]);

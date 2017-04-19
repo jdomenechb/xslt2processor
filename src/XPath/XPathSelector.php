@@ -46,7 +46,7 @@ class XPathSelector extends AbstractXPath
         $selectorString = array_pop($parts);
 
         $factory = new Factory();
-        $obj = new self;
+        $obj = new self();
 
         $obj->setSelector($factory->create($selectorString));
 

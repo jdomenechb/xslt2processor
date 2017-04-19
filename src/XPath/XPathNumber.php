@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\NotANumber;
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
 
 /**
@@ -37,7 +38,7 @@ class XPathNumber extends AbstractXPath
             return false;
         }
 
-        $obj = new self;
+        $obj = new self();
         $obj->setNumber($xPath);
 
         return $obj;
@@ -45,18 +46,19 @@ class XPathNumber extends AbstractXPath
 
     /**
      * {@inheritdoc}
+     *
      * @throws InvalidEvaluation
      */
     public function evaluate($context)
     {
         // If it has decimal part, it's a float, otherwise, it's an integer
         if (preg_match('#^-?\d+(\.\d+)?$#', $this->getNumber(), $matches)) {
-            return isset($matches[1])? (float) $this->getNumber() : (int) $this->getNumber();
+            return isset($matches[1]) ? (float) $this->getNumber() : (int) $this->getNumber();
         }
 
         // NaN
         if ($this->getNumber() === 'NaN') {
-            return NAN;
+            return new NotANumber();
         }
 
         throw new InvalidEvaluation('Not a valid number evaluation');
@@ -73,7 +75,8 @@ class XPathNumber extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @return string
      */
     public function toString()

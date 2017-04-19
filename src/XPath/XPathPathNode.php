@@ -15,7 +15,6 @@ use DOMNode;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
-use Jdomenechb\XSLT2Processor\XSLT\Debug;
 
 class XPathPathNode extends AbstractXPath
 {
@@ -38,10 +37,9 @@ class XPathPathNode extends AbstractXPath
      */
     protected $selector;
 
-
     public static function parseXPath($string)
     {
-        $obj = new self;
+        $obj = new self();
 
         if (mb_strpos($string, '[') === false) {
             $obj->setNode($string);

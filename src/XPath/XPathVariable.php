@@ -18,12 +18,14 @@ class XPathVariable extends AbstractXPath
 {
     /**
      * Name of the variable.
+     *
      * @var string
      */
     protected $name;
 
     /**
      * Value of the variable.
+     *
      * @var mixed
      */
     protected $value;
@@ -34,14 +36,15 @@ class XPathVariable extends AbstractXPath
             return false;
         }
 
-        $obj = new self;
+        $obj = new self();
         $obj->setName(substr($string, 1));
 
         return $obj;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @return string
      */
     public function toString()
@@ -82,8 +85,10 @@ class XPathVariable extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param \DOMNode $context
+     *
      * @return DOMNodeList|mixed
      */
     public function evaluate($context)
@@ -92,8 +97,10 @@ class XPathVariable extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param \DOMNode $context
+     *
      * @return mixed
      */
     public function query($context)
@@ -106,7 +113,8 @@ class XPathVariable extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param TemplateContext $context
      */
     public function setTemplateContext(TemplateContext $context)

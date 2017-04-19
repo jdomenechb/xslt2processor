@@ -13,7 +13,6 @@ namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMElement;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -29,7 +28,6 @@ class XPathEveryLevelPath extends AbstractXPath
      */
     protected $rightPart;
 
-
     public static function parseXPath($string)
     {
         $eph = new Expression\ExpressionParserHelper();
@@ -40,7 +38,7 @@ class XPathEveryLevelPath extends AbstractXPath
         }
 
         $factory = new Factory();
-        $obj = new self;
+        $obj = new self();
 
         $obj->setLeftPart($factory->create(array_shift($parts)));
         $obj->setRightPart($factory->create(implode('//', $parts)));

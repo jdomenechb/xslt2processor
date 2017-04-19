@@ -46,7 +46,8 @@ class Debug
 
     /**
      * Stream to direct the output to.
-     * @var resource $stream
+     *
+     * @var resource
      */
     protected $stream;
 
@@ -181,6 +182,7 @@ class Debug
 
     /**
      * Displays verbosely the given parameter.
+     *
      * @param $content
      */
     public function show($content)
@@ -193,7 +195,6 @@ class Debug
             fwrite($this->getStream(), '<p>' . $toDisplay . '</p>');
         }
     }
-
 
     /**
      * Get if the debug is enabled or not.
@@ -281,20 +282,6 @@ class Debug
     }
 
     /**
-     * Get the XML string of the document.
-     *
-     * @param \DOMDocument $xml
-     *
-     * @return string
-     */
-    protected function getXml(\DOMDocument $xml)
-    {
-        return $this->getOutput()->getMethod() == Output::METHOD_XML ?
-            $xml->saveXML() :
-            $xml->saveHTML();
-    }
-
-    /**
      * @return resource
      */
     public function getStream()
@@ -310,5 +297,17 @@ class Debug
         $this->stream = $stream;
     }
 
-
+    /**
+     * Get the XML string of the document.
+     *
+     * @param \DOMDocument $xml
+     *
+     * @return string
+     */
+    protected function getXml(\DOMDocument $xml)
+    {
+        return $this->getOutput()->getMethod() == Output::METHOD_XML ?
+            $xml->saveXML() :
+            $xml->saveHTML();
+    }
 }

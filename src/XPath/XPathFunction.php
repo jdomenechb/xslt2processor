@@ -73,7 +73,7 @@ class XPathFunction extends AbstractXPath
         }
 
         // Extract name
-        $obj = new self;
+        $obj = new self();
         $obj->setFullName(array_shift($parts));
 
         // Parse parameters

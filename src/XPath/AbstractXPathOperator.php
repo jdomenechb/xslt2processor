@@ -32,7 +32,6 @@ abstract class AbstractXPathOperator extends AbstractXPath
      */
     protected $operator;
 
-
     public static function parseXPath($string)
     {
         $factory = new Factory();
@@ -102,12 +101,11 @@ abstract class AbstractXPathOperator extends AbstractXPath
             if (count($results) > 1) {
                 /** @var AbstractXPathOperator $obj */
                 $obj = get_called_class();
-                $obj = new $obj;
+                $obj = new $obj();
 
                 $obj->setOperator($operator);
                 $obj->setRightPart($factory->create(array_pop($results)));
                 $obj->setLeftPart($factory->create(implode($opWithSpaces[0], $results)));
-
 
                 return $obj;
             }
@@ -185,7 +183,6 @@ abstract class AbstractXPathOperator extends AbstractXPath
         if ($rightPart instanceof DOMResultTree) {
             $rightPart = $rightPart->evaluate();
         }
-
 
         return $func($leftPart, $rightPart);
     }

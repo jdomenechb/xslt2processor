@@ -13,6 +13,7 @@ namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
+use Jdomenechb\XSLT2Processor\XML\NotANumber;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
@@ -39,7 +40,7 @@ class Number extends AbstractFunctionImplementation
 
         if ($toEvaluate instanceof DOMNodeList) {
             if (!$toEvaluate->count()) {
-                return NAN;
+                return new NotANumber();
             }
 
             $toEvaluate = $toEvaluate->item(0);
@@ -57,6 +58,6 @@ class Number extends AbstractFunctionImplementation
             return (float) $toEvaluate;
         }
 
-        return NAN;
+        return new NotANumber();
     }
 }

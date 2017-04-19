@@ -33,7 +33,7 @@ class XPathSub extends AbstractXPath
 
         $factory = new Factory();
 
-        $obj = new self;
+        $obj = new self();
         $obj->setSubExpression($factory->create($parts[0]));
 
         return $obj;

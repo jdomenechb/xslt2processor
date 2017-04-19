@@ -1,13 +1,15 @@
 <?php
 
 /**
- * CORDIS Frontend application
- * 2017 - Developed by Lot 1 for CORDIS
- * @author Lot 1 - S2 - everis Barcelona
+ * This file is part of the XSLT2Processor package.
+ *
+ * (c) Jordi Domènech Bonilla
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Jdomenechb\XSLT2Processor\XML;
-
 
 class DOMResultTree
 {

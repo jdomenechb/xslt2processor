@@ -29,7 +29,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
             $string[$i] = $factory->create($string[$i]);
         }
 
-        $obj = new self;
+        $obj = new self();
         $obj->setParts($string);
 
         return $obj;

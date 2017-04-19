@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\NotANumber;
+
 class XPathMulDivOperator extends AbstractXPathOperator
 {
     protected static $operators;
@@ -21,21 +23,21 @@ class XPathMulDivOperator extends AbstractXPathOperator
             static::$operators = [
                 '*' => function ($left, $right) {
                     if (!is_numeric($left) || !is_numeric($right)) {
-                        return NAN;
+                        return new NotANumber();
                     }
 
                     return $left * $right;
                 },
                 'div' => function ($left, $right) {
                     if (!is_numeric($left) || !is_numeric($right)) {
-                        return NAN;
+                        return new NotANumber();
                     }
 
                     return $left / $right;
                 },
                 'mod' => function ($left, $right) {
                     if (!is_numeric($left) || !is_numeric($right)) {
-                        return NAN;
+                        return new NotANumber();
                     }
 
                     return $left % $right;
