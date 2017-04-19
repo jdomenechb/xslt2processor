@@ -158,8 +158,9 @@ class Processor
     /**
      * Main function to be called to transform the source XML with the XSL stylesheet defined.
      *
-     * @return string
      * @throws \RuntimeException
+     *
+     * @return string
      */
     public function transformXML()
     {
@@ -651,10 +652,12 @@ class Processor
     }
 
     /**
-     * xsl:if
+     * xsl:if.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     *
      * @return bool
      */
     protected function xslIf(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -684,7 +687,9 @@ class Processor
 
     /**
      * Given a string xPath, returns a chain of ExpressionInterface objects representing the XPath.
+     *
      * @param string $xPath
+     *
      * @return ExpressionInterface
      */
     protected function parseXPath($xPath)
@@ -736,10 +741,11 @@ class Processor
     }
 
     /**
-     * xsl:value-of
+     * xsl:value-of.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslValueOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -772,10 +778,11 @@ class Processor
     }
 
     /**
-     * xsl:text
+     * xsl:text.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslText(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -809,10 +816,11 @@ class Processor
     }
 
     /**
-     * xsl:copy-of
+     * xsl:copy-of.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslCopyOf(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -1312,9 +1320,10 @@ class Processor
 
     /**
      * xsl:call-template.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslCallTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {

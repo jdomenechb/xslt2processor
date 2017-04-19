@@ -22,9 +22,9 @@ use PHPUnit\Framework\TestCase;
  */
 class XPathPathNodeTest extends TestCase
 {
-
     /**
      * Test the given nodes are valid.
+     *
      * @param $xPath
      * @param $context
      * @param $expected
@@ -38,7 +38,6 @@ class XPathPathNodeTest extends TestCase
 
         $this->assertEquals($expected, $result);
     }
-
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 

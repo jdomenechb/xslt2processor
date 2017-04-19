@@ -102,7 +102,6 @@ class XPathNumberTest extends TestCase
         $obj->evaluate($document);
     }
 
-
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
     public function basicValuesProvider()

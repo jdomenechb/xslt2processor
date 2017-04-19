@@ -31,7 +31,7 @@ class TemplateList extends ArrayObject
      */
     public function getByName($name)
     {
-        return new self(isset($this->nameRelation[$name])? $this->nameRelation[$name]: []);
+        return new self(isset($this->nameRelation[$name]) ? $this->nameRelation[$name] : []);
     }
 
     public function appendTemplate(Template $template)
@@ -56,7 +56,6 @@ class TemplateList extends ArrayObject
         parent::append($template);
 
         $this->nameRelation[$template->getName()][] = $template;
-
     }
 
     public function append($template)

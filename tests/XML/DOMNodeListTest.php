@@ -14,7 +14,6 @@ namespace Jdomenechb\XSLT2Processor\Tests\XML;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use PHPUnit\Framework\TestCase;
 
-
 /**
  * Class DOMNodeListTest for testing DOMNodeList.
  *

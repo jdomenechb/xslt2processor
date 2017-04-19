@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
-use DOMDocument;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathVariable;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -80,7 +79,6 @@ class XPathVariableTest extends TestCase
     }
 
     // TODO: test for var not in template context
-
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 

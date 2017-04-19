@@ -55,6 +55,7 @@ class Count extends TestCase
      * Tests that the count works correctly for every case.
      *
      * @param $parameter
+     * @param mixed $expectedCount
      * @dataProvider dataProvider
      */
     public function testValidResult(ExpressionInterface $parameter, $expectedCount)
@@ -67,7 +68,6 @@ class Count extends TestCase
 
         $this->assertSame($count, $expectedCount);
     }
-
 
     // --- PROVIDERS ---------------------------------------------------------------------------------------------------
 
