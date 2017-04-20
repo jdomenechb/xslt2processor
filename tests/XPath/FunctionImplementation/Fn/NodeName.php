@@ -113,31 +113,31 @@ class NodeName extends TestCase
     public function invalidParameterProvider()
     {
         return [
-            [new XPathString('"test"')],
-            [new XPathNumber(4)],
-            [new XPathPath('/*/*')],
+            [XPathString::parseXPath('"test"')],
+            [XPathNumber::parseXPath(4)],
+            [XPathPath::parseXPath('/*/*')],
         ];
     }
 
     public function notNamedParameterProvider()
     {
         return [
-            [new XPathPath('/')],
-            [new XPathPath('/*/comment()')],
-            [new XPathPath('/*/a/text()')],
-            [new XPathPath('/*/b/text()')],
-            [new XPathPath('/nonExistingElement')],
+            [XPathPath::parseXPath('/')],
+            [XPathPath::parseXPath('/*/comment()')],
+            [XPathPath::parseXPath('/*/a/text()')],
+            [XPathPath::parseXPath('/*/b/text()')],
+            [XPathPath::parseXPath('/nonExistingElement')],
         ];
     }
 
     public function namedParameterProvider()
     {
         return [
-            [new XPathPath('/*'), 'root'],
-            [new XPathPath('/*/a'), 'a'],
-            [new XPathPath('/*/b'), 'b'],
-            [new XPathPath('/*/b/@*'), 'testAttribute'],
-            [new XPathPath('/*/xfoo:c'), 'xfoo:c'],
+            [XPathPath::parseXPath('/*'), 'root'],
+            [XPathPath::parseXPath('/*/a'), 'a'],
+            [XPathPath::parseXPath('/*/b'), 'b'],
+            [XPathPath::parseXPath('/*/b/@*'), 'testAttribute'],
+            [XPathPath::parseXPath('/*/xfoo:c'), 'xfoo:c'],
         ];
     }
 }

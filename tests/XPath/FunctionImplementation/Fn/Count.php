@@ -32,21 +32,13 @@ class Count extends TestCase
     {
         parent::setUpBeforeClass();
 
+        $xmlSource = <<<'SOURCE'
+<?xml version="1.0"?>
+<root><!--I am a comment--><a>contentA</a><b testAttribute="test value attr"><![CDATA[I am a CDATA text section!]]></b><xfoo:c xmlns:xfoo="http://www.example.com/XFoo">A namespaced element</xfoo:c></root>
+SOURCE;
+
         $xml = new \DOMDocument();
-
-        $root = $xml->createElement('root');
-        $xml->appendChild($root);
-
-        $root->appendChild($xml->createComment('I am a comment'));
-        $root->appendChild($xml->createElement('a', 'contentA'));
-
-        $b = $xml->createElement('b');
-        $b->setAttribute('testAttribute', 'test value attr');
-        $root->appendChild($b);
-
-        $b->appendChild($xml->createCDATASection('I am a CDATA text section!'));
-
-        $root->appendChild($xml->createElementNS('http://www.example.com/XFoo', 'xfoo:c', 'A namespaced element'));
+        $xml->loadXML($xmlSource);
 
         $this->xml = $xml;
     }
@@ -74,11 +66,11 @@ class Count extends TestCase
     public function dataProvider()
     {
         return [
-            [new XPathPath('/*'), 1],
-            [new XPathPath('/*/*'), 3],
-            [new XPathPath('/*/node()'), 4],
-            [new XPathFunction('false()'), 1],
-            [new XPathPath('/*/meh'), 0],
+            [XPathPath::parseXPath('/*'), 1],
+            [XPathPath::parseXPath('/*/*'), 3],
+            [XPathPath::parseXPath('/*/node()'), 4],
+            [XPathFunction::parseXPath('false()'), 1],
+            [XPathPath::parseXPath('/*/meh'), 0],
         ];
     }
 }

@@ -32,8 +32,7 @@ class XPathVariableTest extends TestCase
      */
     public function testInvalid($xPath)
     {
-        $this->expectException(NotValidXPathElement::class);
-        new XPathVariable($xPath);
+        $this->assertFalse(XPathVariable::parseXPath($xPath));
     }
 
     /**
@@ -45,7 +44,7 @@ class XPathVariableTest extends TestCase
      */
     public function testToString($xPath)
     {
-        $obj = new XPathVariable($xPath);
+        $obj = XPathVariable::parseXPath($xPath);
         $this->assertSame((string) $xPath, $obj->toString());
     }
 
@@ -58,7 +57,7 @@ class XPathVariableTest extends TestCase
      */
     public function testName($xPath)
     {
-        $obj = new XPathVariable($xPath);
+        $obj = XPathVariable::parseXPath($xPath);
         $this->assertSame(substr($xPath, 1), $obj->getName());
     }
 

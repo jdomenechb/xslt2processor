@@ -33,7 +33,7 @@ class XPathPathNodeTest extends TestCase
      */
     public function testValidEvaluation($xPath, $context, $expected)
     {
-        $obj = new XPathPathNode($xPath);
+        $obj = XPathPathNode::parseXPath($xPath);
         $result = $obj->evaluate($context);
 
         $this->assertEquals($expected, $result);

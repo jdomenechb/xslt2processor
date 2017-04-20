@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
 use DOMDocument;
+use Jdomenechb\XSLT2Processor\XML\NotANumber;
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
 use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
@@ -33,8 +34,7 @@ class XPathNumberTest extends TestCase
      */
     public function testInvalid($xPath)
     {
-        $this->expectException(NotValidXPathElement::class);
-        new XPathNumber($xPath);
+        $this->assertFalse(XPathNumber::parseXPath($xPath));
     }
 
     /**
@@ -46,7 +46,7 @@ class XPathNumberTest extends TestCase
      */
     public function testToString($xPath)
     {
-        $obj = new XPathNumber($xPath);
+        $obj = XPathNumber::parseXPath($xPath);
         $this->assertSame((string) $xPath, $obj->toString());
     }
 
@@ -59,7 +59,7 @@ class XPathNumberTest extends TestCase
      */
     public function testToStringCast($xPath)
     {
-        $obj = new XPathNumber($xPath);
+        $obj = XPathNumber::parseXPath($xPath);
         $this->assertSame((string) $xPath, (string) $obj);
     }
 
@@ -74,7 +74,7 @@ class XPathNumberTest extends TestCase
     {
         $document = new DOMDocument();
 
-        $obj = new XPathNumber($xPath);
+        $obj = XPathNumber::parseXPath($xPath);
         $this->assertEquals($xPath, $obj->evaluate($document), '', 0.0000001);
     }
 
@@ -85,8 +85,8 @@ class XPathNumberTest extends TestCase
     {
         $document = new DOMDocument();
 
-        $obj = new XPathNumber('NaN');
-        $this->assertNan($obj->evaluate($document));
+        $obj =XPathNumber::parseXPath('NaN');
+        $this->assertInstanceOf(NotANumber::class, $obj->evaluate($document));
     }
 
     /**

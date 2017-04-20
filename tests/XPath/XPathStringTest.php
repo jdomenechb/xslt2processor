@@ -33,8 +33,7 @@ class XPathStringTest extends TestCase
      */
     public function testInvalid($xPath)
     {
-        $this->expectException(NotValidXPathElement::class);
-        new XPathString($xPath);
+        $this->assertFalse(XPathString::parseXPath($xPath));
     }
 
     /**
@@ -46,7 +45,7 @@ class XPathStringTest extends TestCase
      */
     public function testToString($xPath)
     {
-        $obj = new XPathString($xPath);
+        $obj = XPathString::parseXPath($xPath);
         $this->assertSame((string) $xPath, $obj->toString());
     }
 
@@ -59,7 +58,7 @@ class XPathStringTest extends TestCase
      */
     public function testToStringCast($xPath)
     {
-        $obj = new XPathString($xPath);
+        $obj = XPathString::parseXPath($xPath);
         $this->assertSame((string) $xPath, (string) $obj);
     }
 
@@ -75,7 +74,7 @@ class XPathStringTest extends TestCase
     {
         $document = new DOMDocument();
 
-        $obj = new XPathString($xPath);
+        $obj = XPathString::parseXPath($xPath);
         $this->assertSame($evaluated, $obj->evaluate($document));
     }
 
