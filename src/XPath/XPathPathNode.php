@@ -120,7 +120,7 @@ class XPathPathNode extends AbstractXPath
         if (isset(static::$queryCache[$key])) {
             return static::$queryCache[$key];
         }
-        
+
         // Direct cases
         if (!$nodeName) {
             // Document
