@@ -115,28 +115,12 @@ class XPathPathNode extends AbstractXPath
     {
         $nodeName = $this->getNode();
 
-        // Test for optimization
-//        static::$inc++;
-
         $key = sha1($nodeName . ':' . spl_object_hash($context));
-//
+
         if (isset(static::$queryCache[$key])) {
             return static::$queryCache[$key];
         }
-
-//        if (isset(static::$hits[$key])) {
-//            echo $key, '<br>';
-//            static::$nHits++;
-//        }
-
-//        static::$hits[$key] = $key;
-//
-//        echo 'Total: ', static::$inc , '<br>';
-//        echo 'Keys: ', count(static::$hits) , '<br>';
-//        echo 'Hits: ', static::$nHits , '<br>';
-
-        // End test for optimization
-
+        
         // Direct cases
         if (!$nodeName) {
             // Document
