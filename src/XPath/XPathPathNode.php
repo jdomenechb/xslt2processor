@@ -107,19 +107,17 @@ class XPathPathNode extends AbstractXPath
         $this->node = $node;
     }
 
-    public static $inc;
-    public static $hits = [];
-    public static $nHits;
-
     public function query($context)
     {
         $nodeName = $this->getNode();
 
+        // FIXME: SPL Hashes can be resued in memory
         $key = sha1($nodeName . ':' . spl_object_hash($context));
 
-        if (isset(static::$queryCache[$key])) {
-            return static::$queryCache[$key];
-        }
+
+//        if (isset(static::$queryCache[$key])) {
+//            return static::$queryCache[$key];
+//        }
 
         // Direct cases
         if (!$nodeName) {
