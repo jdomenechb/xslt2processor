@@ -194,13 +194,10 @@ class DOMNodeList implements ArrayAccess, Iterator
 
     public function merge(DOMNodeList ...$list)
     {
-        $this->mergeArray(...array_map(function (DOMNodeList $value) {
+        $list = array_map(function (DOMNodeList $value) {
             return $value->toArray();
-        }, $list));
-    }
+        }, $list);
 
-    public function mergeArray(array ...$list)
-    {
         array_unshift($list, $this->items);
 
         $this->items = array_merge(...$list);

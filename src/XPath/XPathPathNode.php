@@ -23,6 +23,12 @@ class XPathPathNode extends AbstractXPath
     const LIMIT_ALL = 3;
 
     /**
+     * Memory-based cache for reusing values already calculated in query().
+     * @var array
+     */
+    protected static $queryCache = [];
+
+    /**
      * @var string
      */
     protected $node;
@@ -101,9 +107,35 @@ class XPathPathNode extends AbstractXPath
         $this->node = $node;
     }
 
+    public static $inc;
+    public static $hits = [];
+    public static $nHits;
+
     public function query($context)
     {
         $nodeName = $this->getNode();
+
+        // Test for optimization
+//        static::$inc++;
+
+        $key = sha1($nodeName . ':' . spl_object_hash($context));
+//
+        if (isset(static::$queryCache[$key])) {
+            return static::$queryCache[$key];
+        }
+
+//        if (isset(static::$hits[$key])) {
+//            echo $key, '<br>';
+//            static::$nHits++;
+//        }
+
+//        static::$hits[$key] = $key;
+//
+//        echo 'Total: ', static::$inc , '<br>';
+//        echo 'Keys: ', count(static::$hits) , '<br>';
+//        echo 'Hits: ', static::$nHits , '<br>';
+
+        // End test for optimization
 
         // Direct cases
         if (!$nodeName) {
@@ -143,17 +175,19 @@ class XPathPathNode extends AbstractXPath
         }
 
         $parts = explode(':', $nodeName);
+        $globalContext = $this->getGlobalContext();
 
-        if (count($parts) > 1) {
+        if (isset($parts[1])) {
             list($namespacePrefix, $localName) = $parts;
         } else {
             $localName = $nodeName;
-            $namespacePrefix = $this->getGlobalContext()->getDefaultNamespace();
+            $namespacePrefix = $globalContext->getDefaultNamespace();
         }
 
-        $namespace = $this->getGlobalContext()->getNamespaces()[$namespacePrefix];
+        $namespaces = $globalContext->getNamespaces();
+        $namespace = $namespaces[$namespacePrefix];
 
-        if (!$this->getGlobalContext()->getNamespaces()->offsetExists($namespacePrefix)) {
+        if (!$namespaces->offsetExists($namespacePrefix)) {
             throw new \RuntimeException('Namespace with prefix "' . $namespacePrefix . '" is not defined in context');
         }
 
@@ -162,15 +196,18 @@ class XPathPathNode extends AbstractXPath
 
         if ($context instanceof DOMNodeList) {
             $contextArray = $context->toArray();
-            $contextChilds = new DOMNodeList();
+            $contextChildsArray = [];
 
             foreach ($contextArray as $contextElement) {
-                $contextChilds->merge(new DOMNodeList(
+                $contextChildsArray[] = new DOMNodeList(
                     $contextElement instanceof \DOMDocument ?
                     $contextElement->documentElement :
                     $contextElement->childNodes
-                ));
+                );
             }
+
+            $contextChilds = new DOMNodeList();
+            $contextChilds->merge(...$contextChildsArray);
 
             $contextChilds = $contextChilds->toArray();
         } elseif (
@@ -199,6 +236,10 @@ class XPathPathNode extends AbstractXPath
             }
         }
 
-        return new DOMNodeList($result);
+        $result = new DOMNodeList($result);
+
+        static::$queryCache[$key] = $result;
+
+        return $result;
     }
 }
