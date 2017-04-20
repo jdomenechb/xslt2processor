@@ -37,10 +37,6 @@ class Node extends AbstractFunctionImplementation
         $toReturn = new DOMNodeList();
 
         foreach ($context as $node) {
-            if (!$node instanceof \DOMElement) {
-                continue;
-            }
-
             $toReturn->merge(new DOMNodeList($node->childNodes));
         }
 
