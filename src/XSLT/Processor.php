@@ -79,11 +79,18 @@ class Processor
     protected $decimalFormats = [];
 
     /**
-     * Determines if the the template being processed right now is imported/included or not.
+     * Determines if the the template being processed right now is imported or not.
      *
      * @var bool
      */
     protected $isImported = false;
+
+    /**
+     * Determines if the the template being processed right now is included or not.
+     *
+     * @var bool
+     */
+    protected $isIncluded = false;
 
     /**
      * XSLT version used in the document.
@@ -189,9 +196,6 @@ class Processor
             $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
-        } catch (\Exception $exception) {
-            echo htmlentities($this->newXml->saveXML());
-            throw $exception;
         }
 
         // Restore back the error handler we had
@@ -325,13 +329,13 @@ class Processor
 
         foreach ($node->attributes as $attribute) {
             // Default namespace
-            if ($attribute->nodeName == 'xpath-default-namespace') {
+            if ($attribute->nodeName === 'xpath-default-namespace') {
                 $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()] = $attribute->nodeValue;
                 continue;
             }
 
             // XSL version
-            if ($attribute->nodeName == 'version') {
+            if ($attribute->nodeName === 'version') {
                 $this->version = $attribute->nodeValue;
                 continue;
             }
@@ -495,6 +499,16 @@ class Processor
 
     protected function xslTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
+        if (
+            $this->isIncluded
+            && $node->hasAttribute('name')
+            && $this->getGlobalContext()->getTemplates()->getByName(($name = $node->getAttribute('name')))->count()
+        ) {
+            throw new \RuntimeException(
+                'Template "' . $name . '" cannot be included: a template with the same name already exists'
+            );
+        }
+
         $template = new Template();
         $template->setNode($node);
 
@@ -521,7 +535,7 @@ class Processor
             }
         }
 
-        if (!$this->isImported) {
+        if (!$this->isImported && !$this->isIncluded) {
             $template->setPriority($template->getPriority() + 2);
         }
 
@@ -919,6 +933,13 @@ class Processor
         }
     }
 
+    /**
+     * xsl:import
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslImport(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if (!$this->filePath) {
@@ -937,9 +958,15 @@ class Processor
         $importedXslt->load($href);
 
         $wasImported = $this->isImported;
+        $wasIncluded = $this->isIncluded;
+
         $this->isImported = true;
+        $this->isIncluded = false;
+
         $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
+
         $this->isImported = $wasImported;
+        $this->isIncluded = $wasIncluded;
 
         $this->filePath = $oldFilePath;
     }
@@ -958,13 +985,19 @@ class Processor
         $oldFilePath = $this->filePath;
         $this->filePath = $href;
 
-        $importedXslt = new DOMDocument();
-        $importedXslt->load($href);
+        $includedXslt = new DOMDocument();
+        $includedXslt->load($href);
 
         $wasImported = $this->isImported;
-        $this->isImported = true;
-        $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
+        $wasIncluded = $this->isIncluded;
+
+        $this->isImported = false;
+        $this->isIncluded = true;
+
+        $this->xslStylesheet($includedXslt->documentElement, $context, $newContext);
+
         $this->isImported = $wasImported;
+        $this->isIncluded = $wasIncluded;
 
         $this->filePath = $oldFilePath;
     }

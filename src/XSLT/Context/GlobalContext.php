@@ -92,7 +92,7 @@ class GlobalContext
     }
 
     /**
-     * @return mixed
+     * @return TemplateList
      */
     public function getTemplates()
     {
@@ -100,7 +100,7 @@ class GlobalContext
     }
 
     /**
-     * @param mixed $templates
+     * @param TemplateList $templates
      */
     public function setTemplates($templates)
     {
