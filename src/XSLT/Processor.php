@@ -173,7 +173,7 @@ class Processor
                 return false;
             }
 
-            if ($errno == E_USER_WARNING || $errno == E_USER_NOTICE) {
+            if ($errno === E_USER_WARNING || $errno === E_USER_NOTICE) {
                 return false;
             }
 
@@ -323,8 +323,17 @@ class Processor
         return $this->messages;
     }
 
+    /**
+     * xsl:stylesheet
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
+        $this->getDebug()->startNodeLevel($this->newXml, $node);
+
         $this->getGlobalContext()->getNamespaces()[GlobalContext::NAMESPACE_XSL] = $node->namespaceURI;
 
         foreach ($node->attributes as $attribute) {
@@ -340,7 +349,21 @@ class Processor
                 continue;
             }
 
-            //throw new \RuntimeException('xsl:stylesheet parameter "' . $attribute->nodeName . '" not implemented');
+            // Extension element prefixes
+            if ($attribute->nodeName === 'extension-element-prefixes') {
+                $eep = explode(' ', $attribute->nodeValue);
+
+                foreach ($eep as $eepElement) {
+                    $this->getGlobalContext()->getExtensionElementPrefixes()->offsetSet($eepElement, $eepElement);
+                }
+
+                continue;
+            }
+
+//            trigger_error(
+//                'xsl:stylesheet attribute "' . $attribute->nodeName . '" not implemented',
+//                E_USER_WARNING
+//            );
         }
 
         $xpath = new DOMXPath($node->ownerDocument);
@@ -351,6 +374,8 @@ class Processor
 
         // Start processing the template
         $this->processChildNodes($node, $context, $newContext);
+
+        $this->getDebug()->endNodeLevel($this->newXml);
     }
 
     protected function processChildNodes(DOMNode $parent, DOMNode $context, DOMNode $newContext)
@@ -963,7 +988,7 @@ class Processor
         $this->isImported = true;
         $this->isIncluded = false;
 
-        $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
+        $this->xslStylesheet($importedXslt->documentElement, $importedXslt, $newContext);
 
         $this->isImported = $wasImported;
         $this->isIncluded = $wasIncluded;
@@ -994,7 +1019,7 @@ class Processor
         $this->isImported = false;
         $this->isIncluded = true;
 
-        $this->xslStylesheet($includedXslt->documentElement, $context, $newContext);
+        $this->xslStylesheet($includedXslt->documentElement, $includedXslt, $newContext);
 
         $this->isImported = $wasImported;
         $this->isIncluded = $wasIncluded;
