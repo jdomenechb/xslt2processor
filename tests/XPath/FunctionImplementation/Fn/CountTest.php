@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @author jdomenechb
  */
-class Count extends TestCase
+class CountTest extends TestCase
 {
     protected $xml;
 

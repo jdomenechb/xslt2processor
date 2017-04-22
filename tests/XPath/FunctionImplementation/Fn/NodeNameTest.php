@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @author jdomenechb
  */
-class NodeName extends TestCase
+class NodeNameTest extends TestCase
 {
     protected $xml;
 

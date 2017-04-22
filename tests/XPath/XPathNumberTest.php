@@ -14,7 +14,6 @@ namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 use DOMDocument;
 use Jdomenechb\XSLT2Processor\XML\NotANumber;
 use Jdomenechb\XSLT2Processor\XPath\Exception\InvalidEvaluation;
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathNumber;
 use PHPUnit\Framework\TestCase;
 

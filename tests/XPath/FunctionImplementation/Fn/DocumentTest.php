@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @author jdomenechb
  */
-class Document extends TestCase
+class DocumentTest extends TestCase
 {
     protected $xml;
 
