@@ -37,6 +37,11 @@ class GlobalContext
     protected $keys;
 
     /**
+     * @var \ArrayObject
+     */
+    protected $extensionElementPrefixes;
+
+    /**
      * @return TemplateList
      */
     protected $templates;
@@ -46,6 +51,8 @@ class GlobalContext
         $this->namespaces = new \ArrayObject(['default' => null]);
         $this->keys = new \ArrayObject();
         $this->templates = new TemplateList();
+
+        $this->extensionElementPrefixes = new \ArrayObject(['fn']);
     }
 
     /**
@@ -106,4 +113,22 @@ class GlobalContext
     {
         $this->templates = $templates;
     }
+
+    /**
+     * @return \ArrayObject
+     */
+    public function getExtensionElementPrefixes()
+    {
+        return $this->extensionElementPrefixes;
+    }
+
+    /**
+     * @param \ArrayObject $extensionElementPrefixes
+     */
+    public function setExtensionElementPrefixes($extensionElementPrefixes)
+    {
+        $this->extensionElementPrefixes = $extensionElementPrefixes;
+    }
+
+
 }

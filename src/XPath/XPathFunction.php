@@ -21,6 +21,8 @@ use RuntimeException;
 
 class XPathFunction extends AbstractXPath
 {
+    const DEFAULT_NAMESPACE = 'fn';
+
     /**
      * @var string
      */
@@ -50,7 +52,7 @@ class XPathFunction extends AbstractXPath
      * @var array
      */
     protected $availableNamespaces = [
-        'fn' => 'fn',
+        self::DEFAULT_NAMESPACE => self::DEFAULT_NAMESPACE,
         'http://exslt.org/common' => 'exslt',
     ];
 
@@ -170,6 +172,33 @@ class XPathFunction extends AbstractXPath
         $this->parameters = $parameters;
     }
 
+    /**
+     * Returns the name of the class associated to the function.
+     * @return string
+     */
+    public function getClassName()
+    {
+        $className = __NAMESPACE__ . '\\FunctionImplementation';
+        $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
+        $className .= '\\' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+
+        if (!class_exists($className)) {
+            $className = __NAMESPACE__ . '\\FunctionImplementation';
+            $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
+            $className .= '\\' . 'Func' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+        }
+
+        return $className;
+    }
+
+    /**
+     * Checks if the given function is implemented.
+     */
+    public function exists()
+    {
+        return class_exists($this->getClassName());
+    }
+
     public function evaluate($context)
     {
         if (array_key_exists($this->getName(), static::getCustomFunctions())) {
@@ -180,25 +209,19 @@ class XPathFunction extends AbstractXPath
             throw new \RuntimeException('Namespace "' . $this->getNamespace() . '" not implemented for functions');
         }
 
-        $className = __NAMESPACE__ . '\\FunctionImplementation';
-        $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
-        $className .= '\\' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+        $className = $this->getClassName();
 
         if (!class_exists($className)) {
-            $className = __NAMESPACE__ . '\\FunctionImplementation';
-            $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
-            $className .= '\\' . 'Func' . implode('', array_map('ucfirst', explode('-', $this->getName())));
-
-            if (!class_exists($className)) {
-                throw new RuntimeException('The function ' . $this->getFullName() . ' is not supported yet (' . $className . ')');
-            }
+            throw new RuntimeException(
+                'The function ' . $this->getFullName() . ' is not supported yet (' . $className . ')'
+            );
         }
 
         /** @var $obj FunctionImplementationInterface */
         $obj = new $className();
         $result = $obj->evaluate($this, $context);
 
-        if ($this->getDebug()->isEnabled() && $this->getNamespacePrefix() !== 'exsl') {
+        if ($this->getNamespacePrefix() !== 'exsl' && $this->getDebug()->isEnabled()) {
             $this->getDebug()->showFunction($this->getFullName(), $result);
         }
 
@@ -287,4 +310,6 @@ class XPathFunction extends AbstractXPath
 
         return $this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()];
     }
+
+
 }
