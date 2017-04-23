@@ -899,15 +899,18 @@ class Processor
             throw new \RuntimeException('Class ' . get_class($context) . ' not supported in xsl:copy');
         }
 
+        $childNode = $newContext->appendChild($childNode);
+        $toAddPrefix = $newContext instanceof DOMDocument ? $newContext->documentElement : $newContext;
+
         foreach ($this->getGlobalContext()->getNamespaces() as $prefix => $namespace) {
             if ($prefix === 'default' || $prefix === 'xsl' || $prefix === 'xml') {
                 continue;
             }
 
-            $newContext->setAttribute('xmlns:' . $prefix, $namespace);
+            $toAddPrefix->setAttribute('xmlns:' . $prefix, $namespace);
         }
 
-        $childNode = $newContext->appendChild($childNode);
+
 
         $this->processChildNodes($node, $context, $childNode);
     }
@@ -1173,6 +1176,38 @@ class Processor
         if ($node->hasAttribute('group-adjacent')) {
             $groups[$lastMatchedCriteria] = $currentGroup;
         }
+
+        // Detect sortings
+        // TODO
+//        foreach ($node->childNodes as $childNode) {
+//            if (!$childNode instanceof DOMElement || $childNode->nodeName !== 'xsl:sort') {
+//                continue;
+//            }
+//
+//            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+//
+//            if ($childNode->hasAttribute('select')) {
+//                $xPath = $childNode->getAttribute('select');
+//                $xPathParsed = $this->parseXPath($xPath);
+//
+//                $newResults = $result->toArray();
+//
+//                usort($newResults, function ($a, $b) use ($xPathParsed) {
+//                    return strcmp(
+//                        $xPathParsed->evaluate($a)->item(0)->nodeValue,
+//                        $xPathParsed->evaluate($b)->item(0)->nodeValue
+//                    );
+//                });
+//
+//                $result = new DOMNodeList();
+//                $result->setSortable(false);
+//                $result->fromArray($newResults);
+//            }
+//
+//            $this->getDebug()->endNodeLevel($this->newXml);
+//
+//            break;
+//        }
 
         foreach ($groups as $groupName => $group) {
             $this->getTemplateContextStack()->pushAClone();
