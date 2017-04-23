@@ -66,7 +66,7 @@ class Debug
      */
     public function endNodeLevel(\DOMDocument $xml)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<h3>&lt;/evaluation&gt;</h3>');
 
             if ($this->isIncludeAfter()) {
@@ -86,7 +86,7 @@ class Debug
      */
     public function startNodeLevel(\DOMDocument $xml, \DOMNode $node)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<div style="border-left: 1px solid #555; border-top: 1px solid #555; '
                 . 'border-bottom: 1px solid #555; padding-left: 2px; margin-left: 20px">');
             fwrite($this->getStream(), "<h2 style='font-family: monospace;'>$node->nodeName</h2>");
@@ -121,7 +121,7 @@ class Debug
      */
     public function showTemplate(Template $template)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<p>Template: ');
             fwrite($this->getStream(), '@name="' . $template->getName() . '"');
             fwrite($this->getStream(), ' ### @match="' . $template->getMatch() . '"');
@@ -137,7 +137,7 @@ class Debug
      */
     public function showFunction($name, $result)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<p>Function ' . $name . ' result:</p>');
 
             /* @noinspection ForgottenDebugOutputInspection */
@@ -151,7 +151,7 @@ class Debug
 
     public function showVar($varName, $varValue)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<p>Variable "' . $varName . '" content:</p>');
 
             /* @noinspection ForgottenDebugOutputInspection */
@@ -175,7 +175,7 @@ class Debug
 
     public function printText($text)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             fwrite($this->getStream(), '<p>' . $text . '</p>');
         }
     }
@@ -187,7 +187,7 @@ class Debug
      */
     public function show($content)
     {
-        if ($this->isEnabled()) {
+        if ($this->enabled) {
             ob_start();
             var_dump($content);
             $toDisplay = ob_get_clean();

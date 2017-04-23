@@ -154,7 +154,7 @@ class Processor
         }
 
         $this->setDebug(Debug::getInstance());
-        $this->getDebug()->setOutput($this->getOutput());
+        $this->debug->setOutput($this->getOutput());
         $this->xPathFactory = new Factory();
     }
 
@@ -333,7 +333,7 @@ class Processor
      */
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        $this->getDebug()->startNodeLevel($this->newXml, $node);
+        $this->debug->startNodeLevel($this->newXml, $node);
 
         // Add to the stylesheet stack the current XSLT stylesheet
         $this->globalContext->getStylesheetStack()->push($node->ownerDocument);
@@ -382,7 +382,7 @@ class Processor
         // Remove the stylesheet from the stack
         $this->globalContext->getStylesheetStack()->pop();
 
-        $this->getDebug()->endNodeLevel($this->newXml);
+        $this->debug->endNodeLevel($this->newXml);
     }
 
     protected function processChildNodes(DOMNode $parent, DOMNode $context, DOMNode $newContext)
@@ -402,7 +402,18 @@ class Processor
 
             // Determine if it is an XSLT node or not
             if ($childNode->namespaceURI === $this->getGlobalContext()->getNamespaces()['xsl']) {
-                $this->processXsltNode($childNode, $context, $newContext);
+                $methodName = 'xsl' . str_replace('-', '', ucwords($childNode->localName, '-'));
+
+                $this->debug->startNodeLevel($this->newXml, $childNode);
+
+                if (method_exists($this, $methodName)) {
+                    $this->$methodName($childNode, $context, $newContext);
+                } else {
+                    throw new RuntimeException('The XSL tag  ' . $childNode->nodeName . ' is not supported yet');
+                }
+
+                $this->debug->endNodeLevel($this->newXml);
+
                 continue;
             }
 
@@ -416,19 +427,25 @@ class Processor
         }
     }
 
+    /**
+     * Processes a node that is not an XSL transformation node.
+     *
+     * @param DOMNode $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function processNormalNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
-        $this->getDebug()->startNodeLevel($this->newXml, $node);
+        $this->debug->startNodeLevel($this->newXml, $node);
 
-        if ($this->getTemplateContextStack()->count() === 1) {
-            $this->getDebug()->printText('Node ignored due to being executed in xsl:stylesheet');
-        } else {
+        if ($this->getTemplateContextStack()->count() !== 1) {
             // Copy the node to the new document
             $doc = $newContext->ownerDocument ?: $newContext;
             $newNode = $doc->importNode($node);
 
             $nodesToDelete = [];
 
+            /** @var DOMElement $newNode */
             $newNode = $newContext->appendChild($newNode);
 
             foreach ($newNode->childNodes as $child) {
@@ -443,32 +460,33 @@ class Processor
             $newAttr = [];
 
             foreach ($newNode->attributes as $attribute) {
-                $newAttr[$attribute->nodeName] = $this->evaluateAttrValueTemplates($attribute->nodeValue, $context);
-            }
-
-            foreach ($newAttr as $attrName => $attr) {
-                $newNode->setAttribute($attrName, $attr);
+                $newNode->setAttribute(
+                    $attribute->nodeName,
+                    $this->evaluateAttrValueTemplates($attribute->nodeValue, $context)
+                );
             }
 
             $this->processChildNodes($node, $context, $newNode);
+        } else {
+            $this->debug->printText('Node ignored due to being executed in xsl:stylesheet');
         }
 
-        $this->getDebug()->endNodeLevel($this->newXml);
+        $this->debug->endNodeLevel($this->newXml);
     }
 
     protected function processXsltNode(DOMNode $node, DOMNode $context, DOMNode $newContext)
     {
         $methodName = 'xsl' . str_replace('-', '', ucwords($node->localName, '-'));
 
-        $this->getDebug()->startNodeLevel($this->newXml, $node);
+        $this->debug->startNodeLevel($this->newXml, $node);
 
         if (method_exists($this, $methodName)) {
-            call_user_func([$this, $methodName], $node, $context, $newContext);
+            $this->$methodName($node, $context, $newContext);
         } else {
             throw new RuntimeException('The XSL tag  ' . $node->nodeName . ' is not supported yet');
         }
 
-        $this->getDebug()->endNodeLevel($this->newXml);
+        $this->debug->endNodeLevel($this->newXml);
     }
 
     protected function xslOutput(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -649,7 +667,7 @@ class Processor
                 }
 
                 if ($isMatch) {
-                    $this->getDebug()->showTemplate($template);
+                    $this->debug->showTemplate($template);
                     $this->getTemplateContextStack()->pushAClone();
                     $this->getTemplateContextStack()->top()->setContextParent($nodesMatched);
                     $this->processTemplate($template, $nodeMatched, $newContext, $params);
@@ -676,7 +694,7 @@ class Processor
         $nodes = $xPathProcessed->query($context);
 
         foreach ($nodes as $contextNode) {
-            $this->getDebug()->showTemplate($template);
+            $this->debug->showTemplate($template);
             $this->getTemplateContextStack()->pushAClone();
             $this->getTemplateContextStack()->top()->setContextParent($nodes);
             $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext, $params);
@@ -700,8 +718,8 @@ class Processor
         $xPathParsed = $this->parseXPath($toEvaluate);
         $result = $xPathParsed->evaluate($context);
 
-        $this->getDebug()->printText('Evaluated condition');
-        $this->getDebug()->show($result);
+        $this->debug->printText('Evaluated condition');
+        $this->debug->show($result);
 
         if (
             $result === true
@@ -728,7 +746,7 @@ class Processor
     protected function parseXPath($xPath)
     {
         $xPathParsed = null;
-        $hasCache = $this->cache !== null;
+        $hasCache = (bool) $this->cache;
 
         // If cache defined, try to get it from there
         if ($hasCache) {
@@ -781,7 +799,7 @@ class Processor
         $toEvaluate = $this->parseXPath($toEvaluateXPath);
         $result = $toEvaluate->evaluate($context);
 
-        $this->getDebug()->showVar('result', $result);
+        $this->debug->showVar('result', $result);
 
         // Bools must be shown as string
         if ($result === true) {
@@ -839,7 +857,7 @@ class Processor
             }
         }
 
-        $this->getDebug()->show($text);
+        $this->debug->show($text);
     }
 
     /**
@@ -856,8 +874,8 @@ class Processor
 
         $results = $selectParsed->evaluate($context);
 
-        $this->getDebug()->printText('Before copy:');
-        $this->getDebug()->show($results);
+        $this->debug->printText('Before copy:');
+        $this->debug->show($results);
 
         if ($results instanceof DOMResultTree) {
             $results = $results->evaluate();
@@ -874,8 +892,8 @@ class Processor
             $wNode->nodeValue .= $results;
         }
 
-        $this->getDebug()->printText('After copy:');
-        $this->getDebug()->show($results);
+        $this->debug->printText('After copy:');
+        $this->debug->show($results);
     }
 
     protected function xslCopy(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -939,7 +957,7 @@ class Processor
         $this->getTemplateContextStack()->top()->getVariables()[$name] = $value;
         $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
 
-        $this->getDebug()->showVar($name, $this->getTemplateContextStack()->top()->getVariables()[$name]);
+        $this->debug->showVar($name, $this->getTemplateContextStack()->top()->getVariables()[$name]);
     }
 
     protected function xslChoose(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -950,20 +968,20 @@ class Processor
                 continue;
             }
 
-            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+            $this->debug->startNodeLevel($this->newXml, $childNode);
 
             if ($childNode->nodeName === 'xsl:when') {
                 if ($this->xslIf($childNode, $context, $newContext)) {
-                    $this->getDebug()->endNodeLevel($this->newXml);
+                    $this->debug->endNodeLevel($this->newXml);
                     break;
                 }
 
-                $this->getDebug()->endNodeLevel($this->newXml);
+                $this->debug->endNodeLevel($this->newXml);
             }
 
             if ($childNode->nodeName === 'xsl:otherwise') {
                 $this->processChildNodes($childNode, $context, $newContext);
-                $this->getDebug()->endNodeLevel($this->newXml);
+                $this->debug->endNodeLevel($this->newXml);
             }
         }
     }
@@ -1084,7 +1102,7 @@ class Processor
                 continue;
             }
 
-            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+            $this->debug->startNodeLevel($this->newXml, $childNode);
 
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
@@ -1104,7 +1122,7 @@ class Processor
                 $result->fromArray($newResults);
             }
 
-            $this->getDebug()->endNodeLevel($this->newXml);
+            $this->debug->endNodeLevel($this->newXml);
 
             break;
         }
@@ -1184,7 +1202,7 @@ class Processor
 //                continue;
 //            }
 //
-//            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+//            $this->debug->startNodeLevel($this->newXml, $childNode);
 //
 //            if ($childNode->hasAttribute('select')) {
 //                $xPath = $childNode->getAttribute('select');
@@ -1204,7 +1222,7 @@ class Processor
 //                $result->fromArray($newResults);
 //            }
 //
-//            $this->getDebug()->endNodeLevel($this->newXml);
+//            $this->debug->endNodeLevel($this->newXml);
 //
 //            break;
 //        }
@@ -1389,7 +1407,7 @@ class Processor
                 throw new RuntimeException('Found not recognized "' . $childNode->nodeName . '" inside xsl:call-template');
             }
 
-            $this->getDebug()->startNodeLevel($this->newXml, $childNode);
+            $this->debug->startNodeLevel($this->newXml, $childNode);
 
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
@@ -1406,10 +1424,10 @@ class Processor
                 $params[$childNode->getAttribute('name')] = $this->evaluateBody($childNode, $context);
             }
 
-            $this->getDebug()->printText('Result:');
-            $this->getDebug()->show($params[$childNode->getAttribute('name')]);
+            $this->debug->printText('Result:');
+            $this->debug->show($params[$childNode->getAttribute('name')]);
 
-            $this->getDebug()->endNodeLevel($this->newXml);
+            $this->debug->endNodeLevel($this->newXml);
         }
 
         return $params;
@@ -1465,10 +1483,10 @@ class Processor
 
             $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->append($name);
 
-            $this->getDebug()->printText('Result:');
-            $this->getDebug()->show($this->getTemplateContextStack()->top()->getVariables()[$name]);
+            $this->debug->printText('Result:');
+            $this->debug->show($this->getTemplateContextStack()->top()->getVariables()[$name]);
         } else {
-            $this->getDebug()->printText('Parameter already defined');
+            $this->debug->printText('Parameter already defined');
         }
     }
 

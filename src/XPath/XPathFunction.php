@@ -178,14 +178,14 @@ class XPathFunction extends AbstractXPath
      */
     public function getClassName()
     {
-        $className = __NAMESPACE__ . '\\FunctionImplementation';
-        $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
-        $className .= '\\' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+        $name = str_replace('-', '', ucwords($this->getName(), '-'));
+
+        $baseClassName = __NAMESPACE__ . '\\FunctionImplementation';
+        $baseClassName .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
+        $className = $baseClassName . '\\' . $name;
 
         if (!class_exists($className)) {
-            $className = __NAMESPACE__ . '\\FunctionImplementation';
-            $className .= '\\' . ucfirst($this->availableNamespaces[$this->getNamespace()]);
-            $className .= '\\' . 'Func' . implode('', array_map('ucfirst', explode('-', $this->getName())));
+            $className = $baseClassName . '\\' . 'Func' . $name;
         }
 
         return $className;
@@ -298,13 +298,20 @@ class XPathFunction extends AbstractXPath
         return $result;
     }
 
+    /**
+     * Returns the namespace this function is actually using.
+     * @return string
+     */
     protected function getNamespace()
     {
-        if (!isset($this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()])) {
-            throw new \RuntimeException('Namespace with prefix "' . $this->getNamespacePrefix() . '" not defined');
+        $namespaces = $this->getGlobalContext()->getNamespaces();
+        $prefix = $this->getNamespacePrefix();
+
+        if (!isset($namespaces[$prefix])) {
+            throw new \RuntimeException('Namespace with prefix "' . $prefix . '" not defined');
         }
 
-        return $this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()];
+        return $namespaces[$prefix];
     }
 
 
