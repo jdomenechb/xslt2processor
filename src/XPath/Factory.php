@@ -65,9 +65,10 @@ class Factory
             return $tmp;
         }
 
+        $expressionParserHelper = new ExpressionParserHelper();
+
         // Analyze parentheses
         if (substr($expression, -1) === ')') {
-            $expressionParserHelper = new ExpressionParserHelper();
             $history = $expressionParserHelper->subExpressionLevelAnalysis($expression, '(', ')');
 
             if (
@@ -93,9 +94,10 @@ class Factory
         $expressionToLower = strtolower($expression);
 
         // Parse OR
+        // TODO: Move inside function
         // Fast search first
         if (strpos($expressionToLower, ' or ') !== false) {
-            $pieces = $this->parseByOperator(' or ', $expression);
+            $pieces = $expressionParserHelper->explodeRootLevel(' or ', $expression);
 
             if (count($pieces) > 1) {
                 return new XPathOr($pieces);
@@ -103,9 +105,10 @@ class Factory
         }
 
         // Parse AND
+        // TODO: Move inside function
         // Fast search first
         if (strpos($expressionToLower, ' and ') !== false) {
-            $pieces = $this->parseByOperator(' and ', $expression);
+            $pieces = $expressionParserHelper->explodeRootLevel(' and ', $expression);
 
             if (count($pieces) > 1) {
                 return new XPathAnd($pieces);
@@ -178,117 +181,13 @@ class Factory
         return $tmp;
     }
 
-    /**
-     * Given an operator and an string
-     * @param $operator
-     * @param $string
-     * @return array
-     */
-    public function parseByOperator($operator, $string)
-    {
-        $level = 0;
-        $sBLevel = 0;
-        $matches = [];
-
-        $offset = 0;
-        $offsetPiece = 0;
-        $stringToLower = strtolower($string);
-        $stringLength = strlen($string);
-        $lengthOperator = strlen($operator);
-        $operator = strtolower($operator);
-
-        while ($offset < $stringLength) {
-            $min = $stringLength;
-
-            // Position of the left parenthesis
-            $lParPos = strpos($stringToLower, '(', $offset);
-
-            if ($lParPos !== false && $lParPos < $min) {
-                $min = $lParPos;
-            }
-
-            // Position of the right parenthesis
-            $rParPos = strpos($stringToLower, ')', $offset);
-
-            if ($rParPos !== false && $rParPos < $min) {
-                $min = $rParPos;
-            }
-
-            // Position of the left square bracket
-            $lSBPos = strpos($stringToLower, '[', $offset);
-
-            if ($lSBPos !== false && $lSBPos < $min) {
-                $min = $lSBPos;
-            }
-
-            // Position of the right square bracket
-            $rSBPos = strpos($stringToLower, ']', $offset);
-
-            if ($rSBPos !== false && $rSBPos < $min) {
-                $min = $rSBPos;
-            }
-
-            // Position of the operator
-            if ($level === 0) {
-                $opPos = strpos($stringToLower, $operator, $offset);
-
-                if ($opPos !== false && $opPos < $min) {
-                    $min = $opPos;
-                }
-            } else {
-                $opPos = $stringLength;
-            }
-
-            if ($min === $stringLength) {
-                $offset = $stringLength;
-            } elseif ($min === $lParPos) {
-                if ($sBLevel === 0) {
-                    ++$level;
-                }
-
-                $offset = $min + 1;
-            } elseif ($min === $rParPos) {
-                if ($sBLevel === 0) {
-                    --$level;
-                }
-
-                $offset = $min + 1;
-            } elseif ($min === $lSBPos) {
-                if ($level === 0) {
-                    ++$sBLevel;
-                }
-
-                $offset = $min + 1;
-            } elseif ($min === $rSBPos) {
-                if ($level === 0) {
-                    --$sBLevel;
-                }
-
-                $offset = $min + 1;
-            } elseif ($min === $opPos) {
-                if ($level === 0 && $sBLevel === 0) {
-                    $matches[] = trim(substr($string, $offsetPiece, $opPos - $offsetPiece));
-                    $offsetPiece = $min + $lengthOperator;
-                }
-
-                $offset = $min + $lengthOperator;
-            }
-        }
-
-        $matches[] = trim(substr($string, $offsetPiece, $stringLength - $offsetPiece));
-
-        return $matches;
-    }
 
     public function createFromAttributeValue($attributeValue)
     {
-        // TODO: Move inside function
         $expressionParserHelper = new ExpressionParserHelper();
         $levels = $expressionParserHelper->parseFirstLevelSubExpressions($attributeValue, '{', '}');
 
-        $xPath = XPathAttributeValueTemplate::parseXPath($levels);
-
-        return $xPath;
+        return XPathAttributeValueTemplate::parseXPath($levels);
     }
 
     public static function cleanXPathCache()

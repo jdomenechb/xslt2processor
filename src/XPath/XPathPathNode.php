@@ -111,7 +111,7 @@ class XPathPathNode extends AbstractXPath
     {
         $nodeName = $this->getNode();
 
-        // FIXME: SPL Hashes can be resued in memory
+        // FIXME: SPL Hashes can be reused in memory
 //        $key = sha1($nodeName . ':' . spl_object_hash($context));
 
 

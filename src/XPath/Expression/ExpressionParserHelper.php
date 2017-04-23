@@ -285,6 +285,14 @@ class ExpressionParserHelper
         return $history;
     }
 
+    /**
+     * Given an expression and a glue string, it explodes the string separating it by the given glue. However, it only
+     * splits it at the first level, meaning it ignores strings, parenthesis and square brackets that could be in the
+     * string.
+     * @param $glue
+     * @param $expression
+     * @return array
+     */
     public function explodeRootLevel($glue, $expression)
     {
         $level = 0;
@@ -299,6 +307,8 @@ class ExpressionParserHelper
         $stringLength = strlen($expression);
 
         while ($offset < $stringLength) {
+            $min = $stringLength;
+
             // Position of the left parenthesis
             $lParPos = strpos($stringToLower, '(', $offset);
 

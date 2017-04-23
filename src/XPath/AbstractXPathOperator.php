@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
+use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -35,6 +36,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
     public static function parseXPath($string)
     {
         $factory = new Factory();
+        $eph = new ExpressionParserHelper();
 
         foreach (static::getOperators() as $operator => $nothing) {
             // Guess the possibility of having the operator
@@ -92,7 +94,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
             }
 
             // Parse using the detected operator
-            $results = $factory->parseByOperator($opWithSpaces[$keyFound], $string);
+            $results = $eph->explodeRootLevel($opWithSpaces[$keyFound], $string);
 
             if (count($results) === 1) {
                 continue;
