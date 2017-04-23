@@ -174,6 +174,7 @@ class XPathFunction extends AbstractXPath
 
     /**
      * Returns the name of the class associated to the function.
+     *
      * @return string
      */
     public function getClassName()
@@ -300,6 +301,7 @@ class XPathFunction extends AbstractXPath
 
     /**
      * Returns the namespace this function is actually using.
+     *
      * @return string
      */
     protected function getNamespace()
@@ -313,6 +315,4 @@ class XPathFunction extends AbstractXPath
 
         return $namespaces[$prefix];
     }
-
-
 }

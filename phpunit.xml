@@ -7,6 +7,9 @@
         <testsuite name="XPath">
             <directory suffix=".php">./tests/XPath</directory>
         </testsuite>
+        <testsuite name="XSLT">
+            <directory suffix=".php">./tests/XSLT</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">

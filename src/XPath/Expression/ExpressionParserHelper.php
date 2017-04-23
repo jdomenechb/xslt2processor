@@ -29,10 +29,10 @@ class ExpressionParserHelper
      * @param string $start
      * @param string $end
      *
-     * @return string[] values with odd indexes are parts outside the subexpression, values with even indexes the
-     *                  subexpressions.
-     *
      * @throws RuntimeException
+     *
+     * @return string[] values with odd indexes are parts outside the subexpression, values with even indexes the
+     *                  subexpressions
      */
     public function parseFirstLevelSubExpressions($expression, $start, $end)
     {
@@ -146,11 +146,12 @@ class ExpressionParserHelper
      * @param string $start
      * @param string $end
      *
+     * @throws RuntimeException
+     *
      * @return string The level string. For example, if a subexpression is not available in the main expression, the
      *                method will return '0'. In the case of an expression like
      *                'expr1 or (expr2 and (expression1 and (expression2)) or (expresssion))', being the parenthesis the delimiters,
      *                the returned string would be '012321210'.
-     * @throws RuntimeException
      */
     public function subExpressionLevelAnalysis($expression, $start, $end)
     {
@@ -238,7 +239,7 @@ class ExpressionParserHelper
      *
      * @param string $expression
      * @param string $delimiter
-     * @param mixed $escapedLiteral
+     * @param mixed  $escapedLiteral
      *
      * @throws RuntimeException
      *
@@ -295,8 +296,10 @@ class ExpressionParserHelper
      * Given an expression and a glue string, it explodes the string separating it by the given glue. However, it only
      * splits it at the first level, meaning it ignores strings, parenthesis and square brackets that could be in the
      * string. It is case insensitive.
+     *
      * @param $glue
      * @param $expression
+     *
      * @return array
      */
     public function explodeRootLevel($glue, $expression)

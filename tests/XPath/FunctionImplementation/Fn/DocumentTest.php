@@ -30,9 +30,10 @@ class DocumentTest extends TestCase
      */
     public function testEmptyStringAndNull()
     {
+        // TODO: Replace by method from abstract parent class
         $xml = new \DOMDocument();
         $xml->load('tests/data/' . str_replace(['\\', '::'], '/', __METHOD__) . '-001.xml');
-        
+
         $func = new XPathFunction();
         $func->setParameters([XPathString::parseXPath('""')]);
         $func->getGlobalContext()->getStylesheetStack()->push($xml);

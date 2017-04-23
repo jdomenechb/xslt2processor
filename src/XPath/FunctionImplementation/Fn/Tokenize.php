@@ -53,8 +53,7 @@ class Tokenize extends AbstractFunctionImplementation
 
             $doc = $context instanceof \DOMDocument ? $context : $context->ownerDocument;
 
-            $parts = array_map(function ($value) use ($doc) { return $doc->createTextNode($value);}, $parts);
-
+            $parts = array_map(function ($value) use ($doc) { return $doc->createTextNode($value); }, $parts);
         }
 
         return new DOMNodeList($parts);

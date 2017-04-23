@@ -325,11 +325,11 @@ class Processor
     }
 
     /**
-     * xsl:stylesheet
+     * xsl:stylesheet.
      *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslStylesheet(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -409,7 +409,7 @@ class Processor
                 if (method_exists($this, $methodName)) {
                     $this->$methodName($childNode, $context, $newContext);
                 } else {
-                    throw new RuntimeException('The XSL tag  ' . $childNode->nodeName . ' is not supported yet');
+                    throw new RuntimeException('The XSL tag ' . $childNode->nodeName . ' is not supported yet');
                 }
 
                 $this->debug->endNodeLevel($this->newXml);
@@ -928,8 +928,6 @@ class Processor
             $toAddPrefix->setAttribute('xmlns:' . $prefix, $namespace);
         }
 
-
-
         $this->processChildNodes($node, $context, $childNode);
     }
 
@@ -987,11 +985,11 @@ class Processor
     }
 
     /**
-     * xsl:import
+     * xsl:import.
      *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslImport(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -1552,5 +1550,42 @@ class Processor
         $doc = ($context instanceof DOMDocument ? $context : $context->ownerDocument);
 
         $doc->appendChild($doc->createProcessingInstruction($name, $content));
+    }
+
+    /**
+     * xsl:attribute-set.
+     *
+     * @param DOMNode    $parent
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     * @param DOMElement $node
+     */
+    protected function xslAttributeSet(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    {
+        // Get the name of the attribute set
+        $name = $node->getAttribute('name');
+
+        if ($node->hasAttribute('use-attribute-sets')) {
+            throw new RuntimeException('Attribute use-attribute-sets not supported yet in xsl:attribute-set');
+        }
+
+        $set = [];
+
+        // Process the childs to define and list the attributes
+        foreach ($node->childNodes as $childNode) {
+            if ($childNode instanceof DOMElement && $childNode->localName === 'attribute') {
+                if ($childNode->hasAttribute('namespace')) {
+                    throw new RuntimeException('Attribute namespace not supported yet in xsl:attribute');
+                }
+
+                $set[$childNode->getAttribute('name')] = $this->evaluateBody($childNode, $context)->evaluate();
+            } elseif ($childNode instanceof DOMText && trim($childNode->nodeValue) === '') {
+                continue;
+            } else {
+                throw new RuntimeException('Child ' . $childNode->nodeName . ' not recognized in xsl:attribute-set');
+            }
+        }
+
+        $this->getGlobalContext()->getAttributeSets()->offsetSet($name, $set);
     }
 }

@@ -15,13 +15,14 @@ use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 
 /**
  * Factory class used as entry point to create XPath classes.
- * @package Jdomenechb\XSLT2Processor\XPath
+ *
  * @author jdomemechb
  */
 class Factory
 {
     /**
      * Memory-based cache for reusing XPaths already parsed.
+     *
      * @var array
      */
     protected static $xPathCache = [];
@@ -30,6 +31,7 @@ class Factory
      * Creates an XPath class system from the given XPath.
      *
      * @param $expression
+     *
      * @return ExpressionInterface
      */
     public function create($expression)
@@ -44,24 +46,28 @@ class Factory
         // Parse string
         if ($tmp = XPathString::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse number
         if ($tmp = XPathNumber::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse var
         if ($tmp = XPathVariable::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse for
         if ($tmp = XPathFor::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
@@ -80,12 +86,14 @@ class Factory
                 // Is a function?
                 if ($tmp = XPathFunction::parseXPath($expression)) {
                     static::$xPathCache[$expression] = serialize($tmp);
+
                     return $tmp;
                 }
 
                 // Is a subexpression?
                 if ($tmp = XPathSub::parseXPath($expression)) {
                     static::$xPathCache[$expression] = serialize($tmp);
+
                     return $tmp;
                 }
             }
@@ -118,69 +126,79 @@ class Factory
         // Parse boolean operator
         if ($tmp = XPathBooleanOperator::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse comparison operator
         if ($tmp = XPathCompareOperator::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse add minus
         if ($tmp = XPathSumSubOperator::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse mul div
         if ($tmp = XPathMulDivOperator::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse union
         if ($tmp = XPathUnionOperator::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse selector
         if ($tmp = XPathSelector::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse every level path
         if ($tmp = XPathEveryLevelPath::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse path
         if ($tmp = XPathPath::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse attribute node
         if ($tmp = XPathAttr::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse axis
         if ($tmp = XPathAxis::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
+
             return $tmp;
         }
 
         // Parse normal node
         $tmp = XPathPathNode::parseXPath($expression);
         static::$xPathCache[$expression] = serialize($tmp);
+
         return $tmp;
     }
-
 
     public function createFromAttributeValue($attributeValue)
     {

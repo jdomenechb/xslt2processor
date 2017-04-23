@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
@@ -36,7 +35,8 @@ class XPathFor extends AbstractXPath
     protected $return;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param string $xPath
      */
     public static function parseXPath($xPath)
@@ -47,7 +47,7 @@ class XPathFor extends AbstractXPath
 
         preg_match('#^for\s+(\$[^\s])+\s+in\s+(.+)$#', $xPath, $matches);
 
-        $obj = new XPathFor();
+        $obj = new self();
         $obj->setVariable(XPathVariable::parseXPath($matches[1]));
 
         $e = new ExpressionParserHelper();
@@ -61,7 +61,7 @@ class XPathFor extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @return string
      */
@@ -72,7 +72,8 @@ class XPathFor extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param \DOMNode $context
      */
     public function evaluate($context)
@@ -162,7 +163,7 @@ class XPathFor extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @param GlobalContext $context
      */
@@ -184,7 +185,7 @@ class XPathFor extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @param TemplateContext $context
      */

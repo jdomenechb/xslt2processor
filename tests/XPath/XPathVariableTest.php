@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\Tests\XPath;
 
-use Jdomenechb\XSLT2Processor\XPath\Exception\NotValidXPathElement;
 use Jdomenechb\XSLT2Processor\XPath\XPathVariable;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 use PHPUnit\Framework\TestCase;

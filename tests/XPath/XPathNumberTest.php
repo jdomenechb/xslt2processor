@@ -84,7 +84,7 @@ class XPathNumberTest extends TestCase
     {
         $document = new DOMDocument();
 
-        $obj =XPathNumber::parseXPath('NaN');
+        $obj = XPathNumber::parseXPath('NaN');
         $this->assertInstanceOf(NotANumber::class, $obj->evaluate($document));
     }
 

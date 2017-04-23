@@ -22,7 +22,6 @@ class XPathVariable extends AbstractXPath
      */
     protected $name;
 
-
     public static function parseXPath($string)
     {
         if (!preg_match('#^\$[a-z0-9_-]+$#i', $string)) {
@@ -70,7 +69,7 @@ class XPathVariable extends AbstractXPath
         $vars = $this->getTemplateContext()->getVariables();
 
         if (isset($vars[$name])) {
-           return $vars[$name];
+            return $vars[$name];
         }
 
         return null;

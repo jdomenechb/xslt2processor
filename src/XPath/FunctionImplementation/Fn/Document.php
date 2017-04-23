@@ -44,6 +44,5 @@ class Document extends AbstractFunctionImplementation
         }
 
         throw new \RuntimeException('The current use of the fn:document function is not implemented yet');
-
     }
 }

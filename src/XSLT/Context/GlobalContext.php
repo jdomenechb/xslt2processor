@@ -51,17 +51,23 @@ class GlobalContext
      */
     protected $stylesheetStack;
 
+    /**
+     * @var \ArrayObject
+     */
+    protected $attributeSets;
+
     public function __construct()
     {
         $this->namespaces = new \ArrayObject([
             'default' => null,
-            'fn' => 'http://www.w3.org/2005/xpath-functions'
+            'fn' => 'http://www.w3.org/2005/xpath-functions',
         ]);
 
         $this->keys = new \ArrayObject();
         $this->templates = new TemplateList();
         $this->stylesheetStack = new \SplStack();
         $this->extensionElementPrefixes = new \ArrayObject(['fn']);
+        $this->attributeSets = new \ArrayObject();
     }
 
     /**
@@ -153,5 +159,21 @@ class GlobalContext
     public function setStylesheetStack($stylesheetStack)
     {
         $this->stylesheetStack = $stylesheetStack;
+    }
+
+    /**
+     * @return \ArrayObject
+     */
+    public function getAttributeSets()
+    {
+        return $this->attributeSets;
+    }
+
+    /**
+     * @param \ArrayObject $attributeSets
+     */
+    public function setAttributeSets($attributeSets)
+    {
+        $this->attributeSets = $attributeSets;
     }
 }

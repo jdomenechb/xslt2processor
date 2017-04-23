@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\Expression;
 
-
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 
@@ -19,7 +18,9 @@ class Converter
 {
     /**
      * Given a DOM object, it will provide its string value given the internal XSLT rules.
+     *
      * @param $value
+     *
      * @return string
      */
     public static function fromDOMToString($value)

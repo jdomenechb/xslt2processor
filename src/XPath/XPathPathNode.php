@@ -24,6 +24,7 @@ class XPathPathNode extends AbstractXPath
 
     /**
      * Memory-based cache for reusing values already calculated in query().
+     *
      * @var array
      */
     protected static $queryCache = [];
@@ -113,7 +114,6 @@ class XPathPathNode extends AbstractXPath
 
         // FIXME: SPL Hashes can be reused in memory
 //        $key = sha1($nodeName . ':' . spl_object_hash($context));
-
 
 //        if (isset(static::$queryCache[$key])) {
 //            return static::$queryCache[$key];
