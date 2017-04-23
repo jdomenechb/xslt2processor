@@ -39,11 +39,8 @@ class Document extends AbstractFunctionImplementation
         if ($firstParam === '' && $secondParam === null) {
             // In the case of the an empty string as first param an no second param provided, we are returning a
             // DOMNodeList containing the document
-            if ($context instanceof DOMNodeList) {
-                $context = $context->item(0);
-            }
 
-            return new DOMNodeList($context instanceof \DOMDocument ? $context: $context->ownerDocument);
+            return new DOMNodeList($func->getGlobalContext()->getStylesheetStack()->top());
         }
 
         throw new \RuntimeException('The current use of the fn:document function is not implemented yet');

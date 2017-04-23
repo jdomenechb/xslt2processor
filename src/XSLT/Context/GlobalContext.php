@@ -46,12 +46,17 @@ class GlobalContext
      */
     protected $templates;
 
+    /**
+     * @var \SplStack
+     */
+    protected $stylesheetStack;
+
     public function __construct()
     {
         $this->namespaces = new \ArrayObject(['default' => null]);
         $this->keys = new \ArrayObject();
         $this->templates = new TemplateList();
-
+        $this->stylesheetStack = new \SplStack();
         $this->extensionElementPrefixes = new \ArrayObject(['fn']);
     }
 
@@ -130,5 +135,19 @@ class GlobalContext
         $this->extensionElementPrefixes = $extensionElementPrefixes;
     }
 
+    /**
+     * @return \SplStack
+     */
+    public function getStylesheetStack()
+    {
+        return $this->stylesheetStack;
+    }
 
+    /**
+     * @param \SplStack $stylesheetStack
+     */
+    public function setStylesheetStack($stylesheetStack)
+    {
+        $this->stylesheetStack = $stylesheetStack;
+    }
 }

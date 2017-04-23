@@ -22,6 +22,7 @@ use ErrorException;
 use Jdomenechb\XSLT2Processor\XML\DOMElementUtils;
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 use Jdomenechb\XSLT2Processor\XPath\ExpressionInterface;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
@@ -334,6 +335,9 @@ class Processor
     {
         $this->getDebug()->startNodeLevel($this->newXml, $node);
 
+        // Add to the stylesheet stack the current XSLT stylesheet
+        $this->globalContext->getStylesheetStack()->push($node->ownerDocument);
+
         $this->getGlobalContext()->getNamespaces()[GlobalContext::NAMESPACE_XSL] = $node->namespaceURI;
 
         foreach ($node->attributes as $attribute) {
@@ -374,6 +378,9 @@ class Processor
 
         // Start processing the template
         $this->processChildNodes($node, $context, $newContext);
+
+        // Remove the stylesheet from the stack
+        $this->globalContext->getStylesheetStack()->pop();
 
         $this->getDebug()->endNodeLevel($this->newXml);
     }
@@ -988,7 +995,7 @@ class Processor
         $this->isImported = true;
         $this->isIncluded = false;
 
-        $this->xslStylesheet($importedXslt->documentElement, $importedXslt, $newContext);
+        $this->xslStylesheet($importedXslt->documentElement, $context, $newContext);
 
         $this->isImported = $wasImported;
         $this->isIncluded = $wasIncluded;
@@ -1019,7 +1026,7 @@ class Processor
         $this->isImported = false;
         $this->isIncluded = true;
 
-        $this->xslStylesheet($includedXslt->documentElement, $includedXslt, $newContext);
+        $this->xslStylesheet($includedXslt->documentElement, $context, $newContext);
 
         $this->isImported = $wasImported;
         $this->isIncluded = $wasIncluded;
@@ -1121,7 +1128,6 @@ class Processor
         $criteria = null;
         $lastMatchedCriteria = null;
         $currentGroup = new DOMNodeList();
-        $currentGroup->setSortable(false);
 
         foreach ($result as $resultSingle) {
             if ($node->hasAttribute('group-adjacent')) {
@@ -1130,32 +1136,49 @@ class Processor
                     $criteria = $this->parseXPath($criteria);
                 }
 
+                // Get the criteria values to ues
                 $criteriaExec = $criteria->evaluate($resultSingle);
 
+                // If the criteria is not the same as the previous one, change group
                 if ($criteriaExec !== $lastMatchedCriteria && $lastMatchedCriteria !== null) {
-                    //                    if (count($currentGroup) > 1) {
-                        $groups[$lastMatchedCriteria] = $currentGroup;
-//                    }
-
-                    $currentGroup = new DOMNodeList();
-                    $currentGroup->setSortable(false);
+                    $groups[$lastMatchedCriteria] = $currentGroup;
+                    $currentGroup = [];
                 }
 
+                // Add the item
                 $currentGroup[] = $resultSingle;
-
                 $lastMatchedCriteria = $criteriaExec;
+            } elseif ($node->hasAttribute('group-by')) {
+                if (!$criteria) {
+                    $criteria = $node->getAttribute('group-by');
+                    $criteria = $this->parseXPath($criteria);
+                }
+
+                // Get the criteria values to ues
+                $criteriaExec = $criteria->evaluate($resultSingle);
+
+                if (!$criteriaExec instanceof DOMNodeList) {
+                    $criteriaExec = [$criteriaExec];
+                }
+
+                foreach ($criteriaExec as $criteriaExecItem) {
+                    $cEIString = Converter::fromDOMToString($criteriaExecItem);
+                    $groups[$cEIString][] = $resultSingle;
+                }
             } else {
                 throw new \RuntimeException('Criteria for xsl:for-each-group not implemented');
             }
         }
 
-        $groups[$lastMatchedCriteria] = $currentGroup;
+        if ($node->hasAttribute('group-adjacent')) {
+            $groups[$lastMatchedCriteria] = $currentGroup;
+        }
 
         foreach ($groups as $groupName => $group) {
             $this->getTemplateContextStack()->pushAClone();
             $this->getTemplateContextStack()->top()->setGroupingKey($groupName);
-            $this->getTemplateContextStack()->top()->setGroup($group);
-            $this->processChildNodes($node, $group->item(0), $newContext);
+            $this->getTemplateContextStack()->top()->setGroup(new DOMNodeList($group));
+            $this->processChildNodes($node, $group[0], $newContext);
             $this->getTemplateContextStack()->pop();
         }
     }

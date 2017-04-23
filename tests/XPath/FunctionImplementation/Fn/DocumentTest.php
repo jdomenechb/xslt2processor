@@ -26,7 +26,7 @@ class DocumentTest extends TestCase
 
     /**
      * Tests the function when it receives an empty string and nothing else: it should return a set of nodes containing
-     * the the document.
+     * the XML document put at stack.
      */
     public function testEmptyStringAndNull()
     {
@@ -35,9 +35,10 @@ class DocumentTest extends TestCase
         
         $func = new XPathFunction();
         $func->setParameters([XPathString::parseXPath('""')]);
+        $func->getGlobalContext()->getStylesheetStack()->push($xml);
 
         $funcImpl = new \Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Document();
-        $result = $funcImpl->evaluate($func, $xml);
+        $result = $funcImpl->evaluate($func, null);
 
         $this->assertEqualXMLStructure($result->item(0)->documentElement, $xml->documentElement);
     }
