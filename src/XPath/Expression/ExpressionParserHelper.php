@@ -30,7 +30,9 @@ class ExpressionParserHelper
      * @param string $end
      *
      * @return string[] values with odd indexes are parts outside the subexpression, values with even indexes the
-     *                  subexpressions
+     *                  subexpressions.
+     *
+     * @throws RuntimeException
      */
     public function parseFirstLevelSubExpressions($expression, $start, $end)
     {
@@ -148,6 +150,7 @@ class ExpressionParserHelper
      *                method will return '0'. In the case of an expression like
      *                'expr1 or (expr2 and (expression1 and (expression2)) or (expresssion))', being the parenthesis the delimiters,
      *                the returned string would be '012321210'.
+     * @throws RuntimeException
      */
     public function subExpressionLevelAnalysis($expression, $start, $end)
     {
@@ -200,7 +203,9 @@ class ExpressionParserHelper
 
             if ($min === $expressionLength) {
                 break;
-            } elseif ($min === $sPos && !$levelAvoid) {
+            }
+
+            if ($min === $sPos && !$levelAvoid) {
                 ++$level;
 
                 if ($level > 9) {
@@ -233,8 +238,7 @@ class ExpressionParserHelper
      *
      * @param string $expression
      * @param string $delimiter
-     * @param string $escaped
-     * @param mixed  $escapedLiteral
+     * @param mixed $escapedLiteral
      *
      * @throws RuntimeException
      *
@@ -268,7 +272,9 @@ class ExpressionParserHelper
 
             if ($min === $expressionLength) {
                 break;
-            } elseif ($min === $dPos && $dPos !== $ePos) {
+            }
+
+            if ($min === $dPos && $dPos !== $ePos) {
                 if ($level > 0) {
                     --$level;
                 } else {
@@ -288,13 +294,28 @@ class ExpressionParserHelper
     /**
      * Given an expression and a glue string, it explodes the string separating it by the given glue. However, it only
      * splits it at the first level, meaning it ignores strings, parenthesis and square brackets that could be in the
-     * string.
+     * string. It is case insensitive.
      * @param $glue
      * @param $expression
      * @return array
      */
     public function explodeRootLevel($glue, $expression)
     {
+        // Avoid calculating some direct cases
+        if (stripos($expression, $glue) === false) {
+            return [$expression];
+        }
+
+        if (
+            strpos($expression, '(') === false
+            && strpos($expression, ')') === false
+            && strpos($expression, '[') === false
+            && strpos($expression, ']') === false
+            && strpos($expression, '\'') === false
+        ) {
+            return explode($glue, $expression);
+        }
+
         $level = 0;
         $sqLevel = 0;
         $isString = false;
@@ -307,8 +328,6 @@ class ExpressionParserHelper
         $stringLength = strlen($expression);
 
         while ($offset < $stringLength) {
-            $min = $stringLength;
-
             // Position of the left parenthesis
             $lParPos = strpos($stringToLower, '(', $offset);
 
@@ -381,12 +400,12 @@ class ExpressionParserHelper
 
                 $offset = $min + 1;
             } elseif ($min === $strPos) {
-                if ($level === 0 && $sqLevel == 0) {
+                if ($level === 0 && $sqLevel === 0) {
                     $isString = !$isString;
                 }
 
                 $offset = $min + 1;
-            } elseif ($min == $gluePos) {
+            } elseif ($min === $gluePos) {
                 $offset = $min + strlen($glue);
 
                 if (!$level && !$sqLevel && !$isString) {
