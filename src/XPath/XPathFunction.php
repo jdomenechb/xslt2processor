@@ -52,7 +52,7 @@ class XPathFunction extends AbstractXPath
      * @var array
      */
     protected $availableNamespaces = [
-        self::DEFAULT_NAMESPACE => self::DEFAULT_NAMESPACE,
+        'http://www.w3.org/2005/xpath-functions' => self::DEFAULT_NAMESPACE,
         'http://exslt.org/common' => 'exslt',
     ];
 
@@ -300,10 +300,6 @@ class XPathFunction extends AbstractXPath
 
     protected function getNamespace()
     {
-        if ($this->getNamespacePrefix() === 'fn') {
-            return 'fn';
-        }
-
         if (!isset($this->getGlobalContext()->getNamespaces()[$this->getNamespacePrefix()])) {
             throw new \RuntimeException('Namespace with prefix "' . $this->getNamespacePrefix() . '" not defined');
         }

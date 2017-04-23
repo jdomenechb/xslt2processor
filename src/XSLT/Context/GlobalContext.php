@@ -53,7 +53,11 @@ class GlobalContext
 
     public function __construct()
     {
-        $this->namespaces = new \ArrayObject(['default' => null]);
+        $this->namespaces = new \ArrayObject([
+            'default' => null,
+            'fn' => 'http://www.w3.org/2005/xpath-functions'
+        ]);
+
         $this->keys = new \ArrayObject();
         $this->templates = new TemplateList();
         $this->stylesheetStack = new \SplStack();
