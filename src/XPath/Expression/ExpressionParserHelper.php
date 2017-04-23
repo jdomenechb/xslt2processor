@@ -34,13 +34,13 @@ class ExpressionParserHelper
      */
     public function parseFirstLevelSubExpressions($expression, $start, $end)
     {
-        if ($start == '(') {
+        if ($start === '(') {
             $avoidL = '[';
             $avoidR = ']';
-        } elseif ($start == '[') {
+        } elseif ($start === '[') {
             $avoidL = '[';
             $avoidR = ']';
-        } elseif ($start == '{') {
+        } elseif ($start === '{') {
             $avoidL = '{';
             $avoidR = '}';
         } else {

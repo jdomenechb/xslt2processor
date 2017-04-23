@@ -59,6 +59,12 @@ class Factory
             return $tmp;
         }
 
+        // Parse for
+        if ($tmp = XPathFor::parseXPath($expression)) {
+            static::$xPathCache[$expression] = serialize($tmp);
+            return $tmp;
+        }
+
         // Analyze parentheses
         if (substr($expression, -1) === ')') {
             $expressionParserHelper = new ExpressionParserHelper();
@@ -172,6 +178,12 @@ class Factory
         return $tmp;
     }
 
+    /**
+     * Given an operator and an string
+     * @param $operator
+     * @param $string
+     * @return array
+     */
     public function parseByOperator($operator, $string)
     {
         $level = 0;
