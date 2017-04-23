@@ -112,7 +112,7 @@ class XPathPathNode extends AbstractXPath
         $nodeName = $this->getNode();
 
         // FIXME: SPL Hashes can be resued in memory
-        $key = sha1($nodeName . ':' . spl_object_hash($context));
+//        $key = sha1($nodeName . ':' . spl_object_hash($context));
 
 
 //        if (isset(static::$queryCache[$key])) {
@@ -220,7 +220,7 @@ class XPathPathNode extends AbstractXPath
 
         $result = new DOMNodeList($result);
 
-        static::$queryCache[$key] = $result;
+//        static::$queryCache[$key] = $result;
 
         return $result;
     }

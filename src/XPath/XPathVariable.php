@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
 class XPathVariable extends AbstractXPath
 {
@@ -23,12 +22,6 @@ class XPathVariable extends AbstractXPath
      */
     protected $name;
 
-    /**
-     * Value of the variable.
-     *
-     * @var mixed
-     */
-    protected $value;
 
     public static function parseXPath($string)
     {
@@ -73,15 +66,14 @@ class XPathVariable extends AbstractXPath
      */
     public function getValue()
     {
-        return $this->value;
-    }
+        $name = $this->getName();
+        $vars = $this->getTemplateContext()->getVariables();
 
-    /**
-     * @param mixed $value
-     */
-    public function setValue($value)
-    {
-        $this->value = $value;
+        if (isset($vars[$name])) {
+           return $vars[$name];
+        }
+
+        return null;
     }
 
     /**
@@ -110,22 +102,5 @@ class XPathVariable extends AbstractXPath
         }
 
         return new DOMNodeList();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param TemplateContext $context
-     */
-    public function setTemplateContext(TemplateContext $context)
-    {
-        parent::setTemplateContext($context);
-
-        $name = $this->getName();
-        $vars = $context->getVariables();
-
-        if (isset($vars[$name])) {
-            $this->setValue($vars[$name]);
-        }
     }
 }
