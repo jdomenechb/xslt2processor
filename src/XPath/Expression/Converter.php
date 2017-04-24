@@ -43,4 +43,16 @@ class Converter
 
         return (string) $value;
     }
+
+    /**
+     * Given a DOM object, it will provide its string value given the internal XSLT rules.
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    public static function fromDOMToInteger($value)
+    {
+        return (int) static::fromDOMToString($value);
+    }
 }

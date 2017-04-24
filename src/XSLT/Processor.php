@@ -1493,19 +1493,28 @@ class Processor
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
     }
 
+    /**
+     * xsl:strip-space.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslStripSpace(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $elements = $node->getAttribute('elements');
         $elements = explode(' ', $elements);
         $newElements = [];
 
+        $namespaces = $this->getGlobalContext()->getNamespaces();
+
         foreach ($elements as $element) {
             $parts = explode(':', $element);
 
             if (count($parts) === 1) {
-                $newElements[$this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()]][$parts[0]] = $parts[0];
+                $newElements[$namespaces[$this->getGlobalContext()->getDefaultNamespace()]][$parts[0]] = $parts[0];
             } else {
-                $newElements[$this->getGlobalContext()->getNamespaces()[$parts[0]]][$parts[1]] = $parts[1];
+                $newElements[$namespaces[$parts[0]]][$parts[1]] = $parts[1];
             }
         }
 
@@ -1514,7 +1523,13 @@ class Processor
 
         foreach ($leaves as $leaf) {
             /** @var $leaf DOMElement */
-            if (isset($newElements[$leaf->namespaceURI][$leaf->localName]) && preg_match('#^\s*$#', $leaf->nodeValue)) {
+            if (
+                (
+                    isset($newElements[$leaf->namespaceURI][$leaf->localName])
+                    || isset($newElements[$leaf->namespaceURI]['*'])
+                )
+                && preg_match('#^\s*$#', $leaf->nodeValue)
+            ) {
                 $leaf->nodeValue = '';
             }
         }

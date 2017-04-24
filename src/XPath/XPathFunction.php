@@ -53,6 +53,7 @@ class XPathFunction extends AbstractXPath
      */
     protected $availableNamespaces = [
         'http://www.w3.org/2005/xpath-functions' => self::DEFAULT_NAMESPACE,
+        'http://www.w3.org/2001/XMLSchema' => 'xs',
         'http://exslt.org/common' => 'exslt',
     ];
 
