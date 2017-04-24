@@ -32,6 +32,11 @@ class XPathFor extends AbstractXPath
     /**
      * @var ExpressionInterface
      */
+    protected $to;
+
+    /**
+     * @var ExpressionInterface
+     */
     protected $return;
 
     /**
@@ -51,11 +56,20 @@ class XPathFor extends AbstractXPath
         $obj->setVariable(XPathVariable::parseXPath($matches[1]));
 
         $e = new ExpressionParserHelper();
-        $expressions = $e->explodeRootLevel(' return ', $matches[2]);
-
         $factory = new Factory();
-        $obj->setIn($factory->create($expressions[0]));
-        $obj->setReturn($factory->create($expressions[1]));
+
+        if (strpos($matches[2], ' to ') !== false) {
+            $expressions = $e->explodeRootLevel(' to ', $matches[2]);
+            $obj->setIn($factory->create($expressions[0]));
+
+            $expressions = $e->explodeRootLevel(' return ', $expressions[1]);
+            $obj->setTo($factory->create($expressions[0]));
+            $obj->setReturn($factory->create($expressions[1]));
+        } else {
+            $expressions = $e->explodeRootLevel(' return ', $matches[2]);
+            $obj->setIn($factory->create($expressions[0]));
+            $obj->setReturn($factory->create($expressions[1]));
+        }
 
         return $obj;
     }
@@ -67,7 +81,8 @@ class XPathFor extends AbstractXPath
      */
     public function toString()
     {
-        return 'for ' . $this->getVariable()->toString() . ' in ' . $this->getIn()->toString() . ' return '
+        return 'for ' . $this->getVariable()->toString() . ' in ' . $this->getIn()->toString()
+            . ($this->to !== null ? ' to ' . $this->getTo()->toString() : '') . ' return '
             . $this->getReturn()->toString();
     }
 
@@ -79,7 +94,16 @@ class XPathFor extends AbstractXPath
     public function evaluate($context)
     {
         $doc = null;
-        $inNodeList = $this->getIn()->evaluate($context);
+        $in = $this->getIn()->evaluate($context);
+        $inNodeList = [];
+
+        if ($this->getTo()) {
+            $to = $this->getTo()->evaluate($context);
+
+            $inNodeList = range($in, $to);
+        } else {
+            $inNodeList = $in;
+        }
 
         $result = [];
 
@@ -163,6 +187,22 @@ class XPathFor extends AbstractXPath
     }
 
     /**
+     * @return ExpressionInterface
+     */
+    public function getTo()
+    {
+        return $this->to;
+    }
+
+    /**
+     * @param ExpressionInterface $to
+     */
+    public function setTo($to)
+    {
+        $this->to = $to;
+    }
+
+    /**
      * {@inheritdoc}
      *
      * @param GlobalContext $context
@@ -177,6 +217,10 @@ class XPathFor extends AbstractXPath
 
         if ($this->getIn()) {
             $this->getIn()->setGlobalContext($context);
+        }
+
+        if ($this->getTo()) {
+            $this->getTo()->setGlobalContext($context);
         }
 
         if ($this->getReturn()) {
@@ -199,6 +243,10 @@ class XPathFor extends AbstractXPath
 
         if ($this->getIn()) {
             $this->getIn()->setTemplateContext($context);
+        }
+
+        if ($this->getTo()) {
+            $this->getTo()->setTemplateContext($context);
         }
 
         if ($this->getReturn()) {
