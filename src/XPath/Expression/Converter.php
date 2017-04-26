@@ -55,4 +55,28 @@ class Converter
     {
         return (int) static::fromDOMToString($value);
     }
+
+    /**
+     * Given a DOM object, it will provide the DOMDocuement of the first of the elements it represents.
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    public static function fromDOMToDOMDocument($value)
+    {
+        if ($value instanceof \DOMDocument) {
+            return $value;
+        }
+
+        if ($value instanceof DOMNodeList) {
+            $value = $value->item(0);
+        }
+
+        if ($value instanceof \DOMNode && !$value instanceof \DOMDocument) {
+            $value = $value->ownerDocument;
+        }
+
+        return $value;
+    }
 }
