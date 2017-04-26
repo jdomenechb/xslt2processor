@@ -622,6 +622,7 @@ class Processor
         foreach ($nodesMatched as $nodeMatched) {
             // Select a template that match
             foreach ($this->getGlobalContext()->getTemplates()->getArrayCopy() as $template) {
+                /** @var Template $template */
                 if (!$fbPossibleTemplate) {
                     $fbPossibleTemplate = $template;
                 }
@@ -668,10 +669,15 @@ class Processor
 
                 if ($isMatch) {
                     $this->debug->showTemplate($template);
+
+                    $this->getGlobalContext()->getStylesheetStack()->push($template->getNode()->ownerDocument);
                     $this->getTemplateContextStack()->pushAClone();
+
                     $this->getTemplateContextStack()->top()->setContextParent($nodesMatched);
                     $this->processTemplate($template, $nodeMatched, $newContext, $params);
+
                     $this->getTemplateContextStack()->pop();
+                    $this->getGlobalContext()->getStylesheetStack()->pop();
 
                     $executed = true;
 
@@ -695,10 +701,15 @@ class Processor
 
         foreach ($nodes as $contextNode) {
             $this->debug->showTemplate($template);
+
+            $this->getGlobalContext()->getStylesheetStack()->push($template->getNode()->ownerDocument);
             $this->getTemplateContextStack()->pushAClone();
+
             $this->getTemplateContextStack()->top()->setContextParent($nodes);
             $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext, $params);
+
             $this->getTemplateContextStack()->pop();
+            $this->getGlobalContext()->getStylesheetStack()->pop();
         }
     }
 
@@ -1454,9 +1465,11 @@ class Processor
             throw new RuntimeException('Multiple templates by the name "' . $name . '" found');
         }
 
+        $this->getGlobalContext()->getStylesheetStack()->push($templates[0]->getNode()->ownerDocument);
         $this->getTemplateContextStack()->pushAClone();
         $this->processTemplate($templates[0], $context, $newContext, $params);
         $this->getTemplateContextStack()->pop();
+        $this->getGlobalContext()->getStylesheetStack()->pop();
     }
 
     protected function xslParam(DOMElement $node, DOMNode $context, DOMNode $newContext)
