@@ -12,11 +12,12 @@
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function replace() from XSLT standard library.
+ * Function fn:tokenize() from XSLT standard library.
  */
 class Tokenize extends AbstractFunctionImplementation
 {
@@ -35,25 +36,23 @@ class Tokenize extends AbstractFunctionImplementation
         }
 
         $value = $func->getParameters()[0]->evaluate($context);
-        $value = $this->valueAsString($value);
-
-//        if ($value === null || ($value instanceof DOMNodeList && !$value->count())) {
-//            return new DOMNodeList();
-//        }
+        $value = Converter::fromDOMToString($value);
 
         $pattern = $func->getParameters()[1]->evaluate($context);
-        $pattern = $this->valueAsString($pattern);
+        $pattern = Converter::fromDOMToString($pattern);
 
         $parts = preg_split('#' . $pattern . '#', $value);
 
         if ($parts) {
             if ($context instanceof DOMNodeList) {
                 $context = $context->item(0);
-            }// elseif ($context)
+            }
 
             $doc = $context instanceof \DOMDocument ? $context : $context->ownerDocument;
 
-            $parts = array_map(function ($value) use ($doc) { return $doc->createTextNode($value); }, $parts);
+            foreach ($parts as &$part) {
+                $part = $doc->createTextNode($part);
+            }
         }
 
         return new DOMNodeList($parts);
