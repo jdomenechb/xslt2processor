@@ -158,15 +158,15 @@ class Factory
             return $tmp;
         }
 
-        // Parse selector
-        if ($tmp = XPathSelector::parseXPath($expression)) {
+        // Parse every level path
+        if ($tmp = XPathEveryLevelPath::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
 
             return $tmp;
         }
 
-        // Parse every level path
-        if ($tmp = XPathEveryLevelPath::parseXPath($expression)) {
+        // Parse selector
+        if ($tmp = XPathSelector::parseXPath($expression)) {
             static::$xPathCache[$expression] = serialize($tmp);
 
             return $tmp;
