@@ -42,21 +42,21 @@ class Position extends AbstractFunctionImplementation
                     }
                 }
             }
-        } else {
-            // Iterate all siblings
-            $parent = $context->parentNode;
-            $i = 0;
+        }
 
-            foreach ($parent->childNodes as $childNode) {
-                if (
-                    ($childNode instanceof \DOMElement && $context instanceof \DOMElement)
-                    || ($childNode instanceof \DOMText && $context instanceof \DOMText)
-                ) {
-                    ++$i;
+        // Iterate all siblings
+        $parent = $context->parentNode;
+        $i = 0;
 
-                    if ($childNode->isSameNode($context)) {
-                        return $i;
-                    }
+        foreach ($parent->childNodes as $childNode) {
+            if (
+                ($childNode instanceof \DOMElement && $context instanceof \DOMElement)
+                || ($childNode instanceof \DOMText && $context instanceof \DOMText)
+            ) {
+                ++$i;
+
+                if ($childNode->isSameNode($context)) {
+                    return $i;
                 }
             }
         }
