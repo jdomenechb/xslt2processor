@@ -68,6 +68,10 @@ class XPathAxis extends AbstractXPath
 
     public function query($context)
     {
+        if (!$context instanceof DOMNodeList) {
+            $context = new DOMNodeList($context);
+        }
+
         switch ($this->getName()) {
             case 'child':
                 switch ($this->getNode()) {
@@ -140,7 +144,17 @@ class XPathAxis extends AbstractXPath
                         return $result;
 
                     default:
-                        throw new \RuntimeException('Second parameter of self:: not recognised: ' . $this->getNode());
+                        $result = new DOMNodeList();
+
+                        foreach ($context as $contextNode) {
+                            if (!$contextNode instanceof \DOMElement || $contextNode->localName !== $this->getNode()) {
+                                continue;
+                            }
+
+                            $result[] = $contextNode;
+                        }
+
+                        return $result;
                 }
                 break;
 
