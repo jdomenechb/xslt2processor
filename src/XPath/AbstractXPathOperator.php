@@ -59,7 +59,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
             }
 
             // Prepare the possible cases for fast search
-            if (in_array($operator, ['-', 'mod'])) {
+            if (in_array($operator, ['-', 'mod', 'div'])) {
                 // These operators can only have space before, after, and both
                 $opWithSpaces = [' ' . $operator . ' ', ' ' . $operator, $operator . ' '];
             } elseif (in_array($operator, ['*'])) {

@@ -1091,6 +1091,12 @@ class Processor
         return $tmpContext;
     }
 
+    /**
+     * xsl:for-each
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $xPath = $node->getAttribute('select');
