@@ -11,12 +11,19 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+
 class XPathOr extends AbstractXPathLogic
 {
     public function evaluate($context)
     {
         foreach ($this->getExpressions() as $expression) {
-            if ($expression->evaluate($context)) {
+            $evaluation = $expression->evaluate($context);
+
+            if (
+                (!$evaluation instanceof DOMNodeList && $evaluation)
+                || ($evaluation instanceof DOMNodeList && $evaluation->count())
+            ) {
                 return true;
             }
         }
