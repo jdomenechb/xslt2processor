@@ -194,7 +194,10 @@ class Processor
         $node->setAttribute('select', '/');
 
         try {
-            $this->xslApplyTemplates($node, $this->xml, $this->newXml, true);
+            $this->xslApplyTemplates($node, $this->xml, $this->newXml, false)
+            || ($node->setAttribute('select', '/*') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, false))
+            || ($node->setAttribute('select', '/') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, true));
+
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
         }
@@ -343,7 +346,9 @@ class Processor
         foreach ($node->attributes as $attribute) {
             // Default namespace
             if ($attribute->nodeName === 'xpath-default-namespace') {
-                $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()] = $attribute->nodeValue;
+                $this->getGlobalContext()->getNamespaces()[$this->getGlobalContext()->getDefaultNamespace()] =
+                    $attribute->nodeValue;
+
                 continue;
             }
 
@@ -547,12 +552,19 @@ class Processor
         }
     }
 
+    /**
+     * xsl:template
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @throws RuntimeException
+     */
     protected function xslTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if (
             $this->isIncluded
             && $node->hasAttribute('name')
-            && $this->getGlobalContext()->getTemplates()->getByName(($name = $node->getAttribute('name')))->count()
+            && $this->getGlobalContext()->getTemplates()->getByName($name = $node->getAttribute('name'))->count()
         ) {
             throw new \RuntimeException(
                 'Template "' . $name . '" cannot be included: a template with the same name already exists'
@@ -605,7 +617,10 @@ class Processor
     protected function xslApplyTemplates(DOMElement $node, DOMNode $context, DOMNode $newContext, $first = false)
     {
         // Select the candidates to be processed
-        $applyTemplatesSelect = $node->getAttribute('select');
+        if (!$applyTemplatesSelect = $node->getAttribute('select')) {
+            $applyTemplatesSelect = 'node()';
+        }
+
         $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
 
         $nodesMatched = $applyTemplatesSelectParsed->query($context);
@@ -613,7 +628,7 @@ class Processor
         $fbPossibleTemplate = null;
 
         if (!$nodesMatched->length) {
-            return;
+            return false;
         }
 
         $params = $this->getParamsFromXslWithParam($node, $context);
@@ -637,21 +652,27 @@ class Processor
                 $mode = $template->getMode();
 
                 if (
-                    ($node->hasAttribute('mode') && $mode !== $node->getAttribute('mode'))
-                    || (!$node->hasAttribute('mode') && $mode != null)
+                    (!$node->hasAttribute('mode') && $mode !== null)
+                    || ($node->hasAttribute('mode') && $mode !== $node->getAttribute('mode'))
                 ) {
                     continue;
                 }
 
                 $xPathParsed = $this->parseXPath($xPath);
-                $results = $xPathParsed->query(!$nodesMatched->item(0) instanceof \DOMDocument ? $nodeMatched->parentNode : $nodesMatched);
+                $results = $xPathParsed->query(
+                    !$nodesMatched->item(0) instanceof \DOMDocument ?
+                        $nodeMatched->parentNode :
+                        $nodeMatched
+                );
 
                 if ($results === false) {
                     continue;
                 }
 
                 if (!$results instanceof OriginalDOMNodeList && !$results instanceof DOMNodeList) {
-                    throw new RuntimeException('xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList');
+                    throw new RuntimeException(
+                        'xPath "' . $template->getMatch() . '" evaluation wrong: expected DOMNodeList'
+                    );
                 }
 
                 if (!$results->count()) {
@@ -687,8 +708,13 @@ class Processor
         }
 
         // No matched templates: if first, select the most prioritary one
-        if (!$first || $executed) {
-            return;
+
+        if ($executed) {
+            return true;
+        }
+
+        if (!$first) {
+            return false;
         }
 
         if (!$fbPossibleTemplate) {
@@ -711,6 +737,8 @@ class Processor
             $this->getTemplateContextStack()->pop();
             $this->getGlobalContext()->getStylesheetStack()->pop();
         }
+
+        return (bool) $nodes->count();
     }
 
     /**
@@ -1493,7 +1521,8 @@ class Processor
 
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = $result;
             } elseif ($node->childNodes->length > 0) {
-                $this->getTemplateContextStack()->top()->getVariables()[$name] = $this->evaluateBody($node, $context, $newContext)->evaluate();
+                $this->getTemplateContextStack()->top()->getVariables()[$name] =
+                    $this->evaluateBody($node, $context, $newContext)->evaluate();
             } else {
                 $this->getTemplateContextStack()->top()->getVariables()[$name] = null;
             }
