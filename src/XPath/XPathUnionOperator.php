@@ -56,6 +56,8 @@ class XPathUnionOperator extends AbstractXPathOperator
 
         $results = new DOMNodeList();
         $results->merge($resultsLeft, $resultsRight);
+        $results->unique();
+        $results->sort();
 
         return $results;
     }
