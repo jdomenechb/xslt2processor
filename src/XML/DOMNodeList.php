@@ -33,16 +33,10 @@ class DOMNodeList implements ArrayAccess, Iterator
     protected $items;
 
     /**
-     * Defines if the set has to be sorted.
-     *
-     * @var bool
-     */
-    protected $sortable = false;
-
-    /**
      * Constructor.
      *
      * @param mixed $items
+     * @throws RuntimeException
      */
     public function __construct($items = [])
     {
@@ -56,7 +50,7 @@ class DOMNodeList implements ArrayAccess, Iterator
             $this->fromDOMNode($items);
         } elseif ($items instanceof self) {
             $this->fromSelf($items);
-        } elseif (is_null($items)) {
+        } elseif ($items === null) {
             $this->fromArray([]);
         } else {
             throw new RuntimeException('Given parameter not recognized: type ' . gettype($items));
@@ -110,10 +104,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         } else {
             $this->items[] = $value;
         }
-
-        if ($this->isSortable()) {
-            $this->sort();
-        }
     }
 
     public function offsetUnset($offset)
@@ -134,10 +124,6 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromArray(array $items)
     {
         $this->items = $items;
-
-        if ($this->isSortable()) {
-            $this->sort();
-        }
     }
 
     /**
@@ -186,10 +172,6 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromSelf(DOMNodeList $item)
     {
         $this->items = $item->toArray();
-
-        if ($this->isSortable()) {
-            $this->sort();
-        }
     }
 
     public function merge(DOMNodeList ...$list)
@@ -201,10 +183,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         array_unshift($list, $this->items);
 
         $this->items = array_merge(...$list);
-
-        if ($this->isSortable()) {
-            $this->sort();
-        }
     }
 
     /**
@@ -245,22 +223,9 @@ class DOMNodeList implements ArrayAccess, Iterator
     }
 
     /**
-     * @return bool
+     * Sorts the elements contained in apparition order.
      */
-    public function isSortable()
-    {
-        return $this->sortable;
-    }
-
-    /**
-     * @param bool $sortable
-     */
-    public function setSortable($sortable)
-    {
-        $this->sortable = $sortable;
-    }
-
-    protected function sort()
+    public function sort()
     {
         if (count($this->items) <= 1) {
             return;
@@ -304,7 +269,7 @@ class DOMNodeList implements ArrayAccess, Iterator
             $min = min(count($levelsA), count($levelsB));
 
             for ($i = 0; $i < $min; ++$i) {
-                if ($levelsA[$i] == $levelsB[$i]) {
+                if ($levelsA[$i] === $levelsB[$i]) {
                     continue;
                 }
 
@@ -330,5 +295,21 @@ class DOMNodeList implements ArrayAccess, Iterator
 
             return 0;
         });
+    }
+
+    /**
+     * Deletes duplicates from the elements contained in the list.
+     */
+    public function unique()
+    {
+        $newItems = [];
+
+        foreach ($this->items as $item) {
+            if (!in_array($item, $newItems, true)) {
+                $newItems[] = $item;
+            }
+        }
+
+        $this->items = $newItems;
     }
 }
