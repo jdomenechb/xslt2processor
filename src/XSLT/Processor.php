@@ -1161,7 +1161,6 @@ class Processor
                 });
 
                 $result = new DOMNodeList();
-                $result->setSortable(false);
                 $result->fromArray($newResults);
             }
 

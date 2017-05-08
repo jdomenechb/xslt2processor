@@ -231,7 +231,6 @@ class XPathAxis extends AbstractXPath
                         }
 
                         $result = new DOMNodeList();
-                        $result->setSortable(true);
 
                         while ($context->previousSibling !== null) {
                             if ($context->previousSibling instanceof \DOMElement) {
@@ -240,6 +239,8 @@ class XPathAxis extends AbstractXPath
 
                             $context = $context->previousSibling;
                         }
+
+                        $result->sort();
 
                         return $result;
 
@@ -265,12 +266,12 @@ class XPathAxis extends AbstractXPath
                             $items = new DOMNodeList();
                         }
 
-                        $items->setSortable(true);
-
                         while ($context->parentNode instanceof \DOMElement) {
                             $items[] = $context->parentNode;
                             $context = $context->parentNode;
                         }
+
+                        $items->sort();
 
                         return $items;
 

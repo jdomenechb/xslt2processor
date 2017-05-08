@@ -31,7 +31,6 @@ class Comment extends AbstractFunctionImplementation
     public function evaluate(XPathFunction $func, $context)
     {
         $result = new DOMNodeList();
-        $result->setSortable(false);
 
         if (!$context instanceof DOMNodeList) {
             $context = new DOMNodeList($context);
