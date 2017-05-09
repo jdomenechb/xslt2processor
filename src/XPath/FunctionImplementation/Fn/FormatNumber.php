@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn;
 
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImplementation;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
@@ -26,6 +27,8 @@ class FormatNumber extends AbstractFunctionImplementation
      * @param $context
      *
      * @return string
+     *
+     * @throws \RuntimeException
      */
     public function evaluate(XPathFunction $func, $context)
     {
@@ -34,6 +37,7 @@ class FormatNumber extends AbstractFunctionImplementation
         }
 
         $number = $func->getParameters()[0]->evaluate($context);
+        $number = Converter::fromDOMToString($number);
 
         $format = $func->getParameters()[1]->evaluate($context);
         $format = $this->valueAsString($format);
@@ -41,21 +45,25 @@ class FormatNumber extends AbstractFunctionImplementation
         $integerPart = (int) $number;
         $decimalPart = $number - $integerPart;
 
-        if ($format == '') {
+        // If no format provided, no number
+        if ($format === '') {
             return '';
         }
 
+        // Explode by the decimal point
         $formatParts = explode('.', $format);
 
+        // We still don't support format of decimal parts
         if (count($formatParts) > 1) {
             throw new \RuntimeException('format-number function with decimal format not implemented yet');
         }
+
         $formatParts[1] = '';
 
         $j = 1;
         $finalNumber = '';
 
-        if (mb_substr($formatParts[0], .1) === '%') {
+        if (mb_substr($formatParts[0], -1) === '%') {
             $number *= 100;
             $finalNumber = '%';
         }
@@ -72,7 +80,7 @@ class FormatNumber extends AbstractFunctionImplementation
             }
 
             // Separators
-            if (!in_array($formatParts[0][$i], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, '#'])) {
+            if (!in_array($formatParts[0][$i], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, '#'], false)) {
                 $finalNumber = $formatParts[0][$i] . $finalNumber;
                 continue;
             }
@@ -82,8 +90,8 @@ class FormatNumber extends AbstractFunctionImplementation
             if (
                 $numberPart === 0 &&
                 (
-                    $formatParts[0][$i] == 0
-                    || ($formatParts[0][$i] == '#' && ((int) $integerPart / $j / 10) > 0)
+                    $formatParts[0][$i] === 0
+                    || ($formatParts[0][$i] === '#' && ((int) $integerPart / $j / 10) > 0)
                 )
             ) {
                 $finalNumber = '0' . $finalNumber;
