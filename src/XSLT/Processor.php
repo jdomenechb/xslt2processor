@@ -1180,10 +1180,12 @@ class Processor
                     case 'number':
                         usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
                             $result = 0;
+                            $valueA = $xPathParsed->evaluate($a)->item(0)->nodeValue;
+                            $valueB = $xPathParsed->evaluate($b)->item(0)->nodeValue;
 
-                            if ($a < $b) {
+                            if ($valueA < $valueB) {
                                 $result = -1;
-                            } elseif ($a > $b)  {
+                            } elseif ($valueA > $valueB)  {
                                 $result = 1;
                             }
 
