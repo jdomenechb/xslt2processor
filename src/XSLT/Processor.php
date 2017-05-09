@@ -623,8 +623,8 @@ class Processor
         }
 
         $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
-
         $nodesMatched = $applyTemplatesSelectParsed->query($context);
+        $nodesMatched = $this->sortElementsByXslSort($node, $nodesMatched);
 
         $fbPossibleTemplate = null;
 
@@ -1137,72 +1137,7 @@ class Processor
             return;
         }
 
-        // Detect sortings
-        foreach ($node->childNodes as $childNode) {
-            if (!$childNode instanceof DOMElement) {
-                continue;
-            }
-
-            if ($childNode->nodeName !== 'xsl:sort') {
-                continue;
-            }
-
-            $this->debug->startNodeLevel($this->newXml, $childNode);
-
-            if ($childNode->hasAttribute('select')) {
-                $xPath = $childNode->getAttribute('select');
-                $xPathParsed = $this->parseXPath($xPath);
-
-                $newResults = $result->toArray();
-
-                $order = 1;
-
-                if ($childNode->hasAttribute('order') && $childNode->getAttribute('order') === 'descending') {
-                    $order = -1;
-                }
-
-                $dataType = 'text';
-
-                if ($childNode->hasAttribute('data-type')) {
-                    $dataType = $childNode->getAttribute('data-type');
-                }
-
-                switch ($dataType) {
-                    case 'text':
-                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
-                            return $order * strcmp(
-                                    $xPathParsed->evaluate($a)->item(0)->nodeValue,
-                                    $xPathParsed->evaluate($b)->item(0)->nodeValue
-                                );
-                        });
-
-                        break;
-
-                    case 'number':
-                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
-                            $result = 0;
-                            $valueA = $xPathParsed->evaluate($a)->item(0)->nodeValue;
-                            $valueB = $xPathParsed->evaluate($b)->item(0)->nodeValue;
-
-                            if ($valueA < $valueB) {
-                                $result = -1;
-                            } elseif ($valueA > $valueB)  {
-                                $result = 1;
-                            }
-
-                            return $result * $order;
-                        });
-                }
-
-
-                $result = new DOMNodeList();
-                $result->fromArray($newResults);
-            }
-
-            $this->debug->endNodeLevel($this->newXml);
-
-            break;
-        }
+        $result = $this->sortElementsByXslSort($node, $result);
 
         foreach ($result as $eachNode) {
             $this->getTemplateContextStack()->pushAClone();
@@ -1477,6 +1412,13 @@ class Processor
         $newContext->appendChild($comment);
     }
 
+    /**
+     * xsl:with-param. Returns the parameters defined inside the call to the node.
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @return array
+     * @throws RuntimeException
+     */
     protected function getParamsFromXslWithParam(DOMElement $node, DOMNode $context)
     {
         $params = [];
@@ -1487,19 +1429,16 @@ class Processor
                 continue;
             }
 
-            if ($childNode->nodeName !== 'xsl:with-param') {
-                throw new RuntimeException('Found not recognized "' . $childNode->nodeName . '" inside xsl:call-template');
+            if ($childNode->nodeName !== 'xsl:with-param' && $childNode->nodeName !== 'xsl:sort') {
+                throw new RuntimeException(
+                    'Found not recognized "' . $childNode->nodeName . '" inside ' . $node->nodeName
+                );
             }
 
             $this->debug->startNodeLevel($this->newXml, $childNode);
 
             if ($childNode->hasAttribute('select')) {
                 $xPath = $childNode->getAttribute('select');
-
-                if ($xPath === '$nodes[position() > 1]') {
-                    $meh = null;
-                }
-
                 $xPathParsed = $this->parseXPath($xPath);
                 $result = $xPathParsed->evaluate($context);
 
@@ -1577,9 +1516,95 @@ class Processor
         }
     }
 
-    protected function xslSort(DOMElement $node, DOMNode $context, DOMNode $newContext)
+    /**
+     * Fake xsl:sort.
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @param bool $inside
+     */
+    protected function xslSort(DOMElement $node, DOMNode $context, DOMNode $newContext, $inside = false)
     {
         // xsl:sort is implemented inside the body of the functions that use it, so nothing to do here.
+    }
+
+    /**
+     * xsl:sort. Sorts the given array by the criteria in the XSL node.
+     * @param DOMElement $node
+     * @param DOMNodeList $toSort
+     * @return DOMNodeList
+     * @throws RuntimeException
+     */
+    protected function sortElementsByXslSort(DOMElement $node, DOMNodeList $toSort)
+    {
+        // Detect sortings
+        foreach ($node->childNodes as $childNode) {
+            if (!$childNode instanceof DOMElement) {
+                continue;
+            }
+
+            if ($childNode->nodeName !== 'xsl:sort') {
+                continue;
+            }
+
+            $this->debug->startNodeLevel($this->newXml, $childNode);
+
+            if ($childNode->hasAttribute('select')) {
+                $xPath = $childNode->getAttribute('select');
+                $xPathParsed = $this->parseXPath($xPath);
+
+                $newResults = $toSort->toArray();
+
+                $order = 1;
+
+                if ($childNode->hasAttribute('order') && $childNode->getAttribute('order') === 'descending') {
+                    $order = -1;
+                }
+
+                $dataType = 'text';
+
+                if ($childNode->hasAttribute('data-type')) {
+                    $dataType = $childNode->getAttribute('data-type');
+                }
+
+                // TODO: usorts can be optimized precalculating the strings first, or caching the strings.
+                switch ($dataType) {
+                    case 'text':
+                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
+                            return $order * strcmp(
+                                Converter::fromDOMToString($xPathParsed->evaluate($a)),
+                                Converter::fromDOMToString($xPathParsed->evaluate($b))
+                            );
+                        });
+
+                        break;
+
+                    case 'number':
+                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
+                            $result = 0;
+                            $valueA = Converter::fromDOMToString($xPathParsed->evaluate($a));
+                            $valueB = Converter::fromDOMToString($xPathParsed->evaluate($b));
+
+                            if ($valueA < $valueB) {
+                                $result = -1;
+                            } elseif ($valueA > $valueB)  {
+                                $result = 1;
+                            }
+
+                            return $result * $order;
+                        });
+                }
+
+                $toSort = new DOMNodeList();
+                $toSort->fromArray($newResults);
+            }
+
+            $this->debug->endNodeLevel($this->newXml);
+
+            break;
+        }
+
+        return $toSort;
     }
 
     /**
