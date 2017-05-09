@@ -11,6 +11,8 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
+
 class XPathCompareOperator extends AbstractXPathOperator
 {
     protected static $operators;
@@ -23,6 +25,9 @@ class XPathCompareOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '<=' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return false;
                     }
@@ -31,6 +36,9 @@ class XPathCompareOperator extends AbstractXPathOperator
                 },
 
                 '>=' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return false;
                     }
@@ -39,6 +47,9 @@ class XPathCompareOperator extends AbstractXPathOperator
                 },
 
                 '>' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return false;
                     }
@@ -47,6 +58,9 @@ class XPathCompareOperator extends AbstractXPathOperator
                 },
 
                 '<' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return false;
                     }
