@@ -392,7 +392,7 @@ class Processor
 
     protected function processChildNodes(DOMNode $parent, DOMNode $context, DOMNode $newContext)
     {
-        $domElementUtils = new DOMElementUtils();
+
 
         foreach ($parent->childNodes as $childNode) {
             // Ignore spaces
@@ -423,6 +423,7 @@ class Processor
             }
 
             if ($childNode instanceof DOMText) {
+                $domElementUtils = new DOMElementUtils();
                 $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
                 $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
@@ -618,7 +619,7 @@ class Processor
     {
         // Select the candidates to be processed
         if (!$applyTemplatesSelect = $node->getAttribute('select')) {
-            $applyTemplatesSelect = 'node()';
+            $applyTemplatesSelect = '//node()';
         }
 
         $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
@@ -1423,27 +1424,34 @@ class Processor
         $this->processChildNodes($node, $tmpContext, $newContext);
     }
 
+    /**
+     * xsl:decimal-format
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @throws RuntimeException
+     */
     protected function xslDecimalFormat(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = 'default';
-        $info = [];
+        $info = [
+            'decimal-separator' => '.',
+            'grouping-separator' => ',',
+            'infinity' => 'Infinity',
+            'minus-sign' => '.-',
+            'NaN' => 'NaN',
+            'percent' => '%',
+            'per-mille' => '‰',
+            'zero-digit' => '0',
+            'digit' => '#',
+            'pattern-separator' => ';',
+        ];
 
         foreach ($node->attributes as $attribute) {
-            switch ($attribute->nodeName) {
-                case 'name':
-                    $name = $attribute->nodeValue;
-                    break;
-
-                case 'decimal-separator':
-                    $info['decimal-separator'] = $attribute->nodeValue;
-                    break;
-
-                case 'grouping-separator':
-                    $info['grouping-separator'] = $attribute->nodeValue;
-                    break;
-
-                default:
-                    throw new RuntimeException('xsl:decimal-format attribute ' . $attribute->nodeName . ' not supported');
+            if ($attribute->nodeName !== 'name') {
+                $info[$attribute->nodeName] = $attribute->nodeValue;
+            } else {
+                $name = $attribute->nodeValue;
             }
         }
 
