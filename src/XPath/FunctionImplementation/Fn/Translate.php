@@ -15,7 +15,7 @@ use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\AbstractFunctionImple
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
 
 /**
- * Function translate() from XSLT standard library.
+ * Function fn:translate() from XSLT standard library.
  */
 class Translate extends AbstractFunctionImplementation
 {

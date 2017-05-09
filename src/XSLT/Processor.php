@@ -1124,6 +1124,7 @@ class Processor
      * @param DOMElement $node
      * @param DOMNode $context
      * @param DOMNode $newContext
+     * @throws RuntimeException
      */
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
@@ -1153,12 +1154,43 @@ class Processor
 
                 $newResults = $result->toArray();
 
-                usort($newResults, function ($a, $b) use ($xPathParsed) {
-                    return strcmp(
-                        $xPathParsed->evaluate($a)->item(0)->nodeValue,
-                        $xPathParsed->evaluate($b)->item(0)->nodeValue
-                    );
-                });
+                $order = 1;
+
+                if ($childNode->hasAttribute('order') && $childNode->getAttribute('order') === 'descending') {
+                    $order = -1;
+                }
+
+                $dataType = 'text';
+
+                if ($childNode->hasAttribute('data-type')) {
+                    $dataType = $childNode->getAttribute('data-type');
+                }
+
+                switch ($dataType) {
+                    case 'text':
+                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
+                            return $order * strcmp(
+                                    $xPathParsed->evaluate($a)->item(0)->nodeValue,
+                                    $xPathParsed->evaluate($b)->item(0)->nodeValue
+                                );
+                        });
+
+                        break;
+
+                    case 'number':
+                        usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
+                            $result = 0;
+
+                            if ($a < $b) {
+                                $result = -1;
+                            } elseif ($a > $b)  {
+                                $result = 1;
+                            }
+
+                            return $result * $order;
+                        });
+                }
+
 
                 $result = new DOMNodeList();
                 $result->fromArray($newResults);
