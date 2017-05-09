@@ -26,9 +26,9 @@ class FormatNumber extends AbstractFunctionImplementation
      * @param XPathFunction $func
      * @param $context
      *
-     * @return string
-     *
      * @throws \RuntimeException
+     *
+     * @return string
      */
     public function evaluate(XPathFunction $func, $context)
     {

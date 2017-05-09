@@ -19,7 +19,6 @@ use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
  */
 class Last extends AbstractFunctionImplementation
 {
-
     /**
      * {@inheritdoc}
      *

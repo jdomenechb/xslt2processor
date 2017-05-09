@@ -197,7 +197,6 @@ class Processor
             $this->xslApplyTemplates($node, $this->xml, $this->newXml, false)
             || ($node->setAttribute('select', '/*') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, false))
             || ($node->setAttribute('select', '/') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, true));
-
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
         }
@@ -392,8 +391,6 @@ class Processor
 
     protected function processChildNodes(DOMNode $parent, DOMNode $context, DOMNode $newContext)
     {
-
-
         foreach ($parent->childNodes as $childNode) {
             // Ignore spaces
             if ($childNode instanceof DOMText && trim($childNode->nodeValue) === '') {
@@ -554,10 +551,12 @@ class Processor
     }
 
     /**
-     * xsl:template
+     * xsl:template.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     *
      * @throws RuntimeException
      */
     protected function xslTemplate(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -638,7 +637,7 @@ class Processor
         foreach ($nodesMatched as $nodeMatched) {
             // Select a template that match
             foreach ($this->getGlobalContext()->getTemplates()->getArrayCopy() as $template) {
-                /** @var Template $template */
+                /* @var Template $template */
                 if (!$fbPossibleTemplate) {
                     $fbPossibleTemplate = $template;
                 }
@@ -1121,10 +1120,12 @@ class Processor
     }
 
     /**
-     * xsl:for-each
+     * xsl:for-each.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     *
      * @throws RuntimeException
      */
     protected function xslForEach(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1360,10 +1361,12 @@ class Processor
     }
 
     /**
-     * xsl:decimal-format
+     * xsl:decimal-format.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     *
      * @throws RuntimeException
      */
     protected function xslDecimalFormat(DOMElement $node, DOMNode $context, DOMNode $newContext)
@@ -1414,10 +1417,13 @@ class Processor
 
     /**
      * xsl:with-param. Returns the parameters defined inside the call to the node.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @return array
+     * @param DOMNode    $context
+     *
      * @throws RuntimeException
+     *
+     * @return array
      */
     protected function getParamsFromXslWithParam(DOMElement $node, DOMNode $context)
     {
@@ -1518,10 +1524,11 @@ class Processor
 
     /**
      * Fake xsl:sort.
+     *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
-     * @param bool $inside
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
+     * @param bool       $inside
      */
     protected function xslSort(DOMElement $node, DOMNode $context, DOMNode $newContext, $inside = false)
     {
@@ -1530,10 +1537,13 @@ class Processor
 
     /**
      * xsl:sort. Sorts the given array by the criteria in the XSL node.
-     * @param DOMElement $node
+     *
+     * @param DOMElement  $node
      * @param DOMNodeList $toSort
-     * @return DOMNodeList
+     *
      * @throws RuntimeException
+     *
+     * @return DOMNodeList
      */
     protected function sortElementsByXslSort(DOMElement $node, DOMNodeList $toSort)
     {
@@ -1587,7 +1597,7 @@ class Processor
 
                             if ($valueA < $valueB) {
                                 $result = -1;
-                            } elseif ($valueA > $valueB)  {
+                            } elseif ($valueA > $valueB) {
                                 $result = 1;
                             }
 
@@ -1611,8 +1621,8 @@ class Processor
      * xsl:strip-space.
      *
      * @param DOMElement $node
-     * @param DOMNode $context
-     * @param DOMNode $newContext
+     * @param DOMNode    $context
+     * @param DOMNode    $newContext
      */
     protected function xslStripSpace(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {

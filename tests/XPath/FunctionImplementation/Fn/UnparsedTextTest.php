@@ -25,7 +25,6 @@ class UnparsedTextTest extends AbstractTestCase
     protected $xml;
 
     /**
-     * Tests that the function van read the file relatively to the file
      */
     public function testValid()
     {

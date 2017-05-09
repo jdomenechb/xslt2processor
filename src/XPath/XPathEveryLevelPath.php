@@ -84,8 +84,10 @@ class XPathEveryLevelPath extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param \DOMNode $context
+     *
      * @return DOMNodeList
      */
     public function evaluate($context)
@@ -106,8 +108,10 @@ class XPathEveryLevelPath extends AbstractXPath
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
      * @param \DOMNode $context
+     *
      * @return DOMNodeList|mixed
      */
     public function query($context)

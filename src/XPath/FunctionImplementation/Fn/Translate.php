@@ -46,11 +46,11 @@ class Translate extends AbstractFunctionImplementation
         $piecesFrom = [];
         $piecesTo = [];
 
-        for ($j = 0; $j < $lengthFrom; $j++) {
+        for ($j = 0; $j < $lengthFrom; ++$j) {
             $piecesFrom[] = mb_substr($from, $j, 1);
         }
 
-        for ($j = 0; $j < $lengthTo; $j++) {
+        for ($j = 0; $j < $lengthTo; ++$j) {
             $piecesTo[] = mb_substr($to, $j, 1);
         }
 
@@ -58,7 +58,7 @@ class Translate extends AbstractFunctionImplementation
             $piecesTo = [''];
         }
 
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $length; ++$i) {
             $character = mb_substr($value, $i, 1);
 
             $key = array_search($character, $piecesFrom, true);

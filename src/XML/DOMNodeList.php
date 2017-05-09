@@ -36,6 +36,7 @@ class DOMNodeList implements ArrayAccess, Iterator
      * Constructor.
      *
      * @param mixed $items
+     *
      * @throws RuntimeException
      */
     public function __construct($items = [])
