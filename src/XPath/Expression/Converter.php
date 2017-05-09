@@ -57,6 +57,18 @@ class Converter
     }
 
     /**
+     * Given a DOM object, it will provide its float value given the internal XSLT rules.
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    public static function fromDOMToFloat($value)
+    {
+        return (float) static::fromDOMToString($value);
+    }
+
+    /**
      * Given a DOM object, it will provide the DOMDocuement of the first of the elements it represents.
      *
      * @param $value
