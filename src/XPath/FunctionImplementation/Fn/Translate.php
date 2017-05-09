@@ -38,6 +38,38 @@ class Translate extends AbstractFunctionImplementation
         $to = $func->getParameters()[2]->evaluate($context);
         $to = $this->valueAsString($to);
 
-        return str_replace(preg_split('//u', $from, -1, PREG_SPLIT_NO_EMPTY), preg_split('//u', $to, -1, PREG_SPLIT_NO_EMPTY), $value);
+        $length = mb_strlen($value);
+        $lengthFrom = mb_strlen($from);
+        $lengthTo = mb_strlen($to);
+
+        $result = '';
+        $piecesFrom = [];
+        $piecesTo = [];
+
+        for ($j = 0; $j < $lengthFrom; $j++) {
+            $piecesFrom[] = mb_substr($from, $j, 1);
+        }
+
+        for ($j = 0; $j < $lengthTo; $j++) {
+            $piecesTo[] = mb_substr($to, $j, 1);
+        }
+
+        if (!$piecesTo) {
+            $piecesTo = [''];
+        }
+
+        for ($i = 0; $i < $length; $i++) {
+            $character = mb_substr($value, $i, 1);
+
+            $key = array_search($character, $piecesFrom, true);
+
+            if ($key !== false) {
+                $result .= $piecesTo[$key];
+            } else {
+                $result .= $character;
+            }
+        }
+
+        return $result;
     }
 }
