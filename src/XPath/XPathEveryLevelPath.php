@@ -83,6 +83,11 @@ class XPathEveryLevelPath extends AbstractXPath
         $this->rightPart = $rightPart;
     }
 
+    /**
+     * @inheritdoc
+     * @param \DOMNode $context
+     * @return DOMNodeList
+     */
     public function evaluate($context)
     {
         $evaluation = $this->getLeftPart()->evaluate($context);
@@ -98,6 +103,16 @@ class XPathEveryLevelPath extends AbstractXPath
         }
 
         return $results;
+    }
+
+    /**
+     * @inheritdoc
+     * @param \DOMNode $context
+     * @return DOMNodeList|mixed
+     */
+    public function query($context)
+    {
+        return $this->evaluate($context);
     }
 
     public function setGlobalContext(GlobalContext $context)
