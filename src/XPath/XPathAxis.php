@@ -72,9 +72,11 @@ class XPathAxis extends AbstractXPath
             $context = new DOMNodeList($context);
         }
 
+        $nodeName = $this->getNode();
+
         switch ($this->getName()) {
             case 'child':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case '*':
                         $result = new DOMNodeList();
 
@@ -90,7 +92,7 @@ class XPathAxis extends AbstractXPath
                 break;
 
             case 'self':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case 'comment()':
                         $result = new DOMNodeList();
 
@@ -147,7 +149,7 @@ class XPathAxis extends AbstractXPath
                         $result = new DOMNodeList();
 
                         foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMElement || $contextNode->localName !== $this->getNode()) {
+                            if (!$contextNode instanceof \DOMElement || $contextNode->localName !== $nodeName) {
                                 continue;
                             }
 
@@ -159,7 +161,7 @@ class XPathAxis extends AbstractXPath
                 break;
 
             case 'namespace':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case '*':
                         // Result DOMXPath
                         foreach ($context as $contextNode) {
@@ -170,12 +172,12 @@ class XPathAxis extends AbstractXPath
                         return new DOMNodeList($results1);
 
                     default:
-                        throw new \RuntimeException('Second parameter of namespace:: not recognised: ' . $this->getNode());
+                        throw new \RuntimeException('Second parameter of namespace:: not recognised: ' . $nodeName);
                 }
                 break;
 
             case 'attribute':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case '*':
                         // Result DOMXPath
                         $result = new DOMNodeList();
@@ -187,12 +189,12 @@ class XPathAxis extends AbstractXPath
                         return $result;
 
                     default:
-                        throw new \RuntimeException('Second parameter of attribute:: not recognised: ' . $this->getNode());
+                        throw new \RuntimeException('Second parameter of attribute:: not recognised: ' . $nodeName);
                 }
                 break;
 
             case 'following-sibling':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case '*':
                         if ($context instanceof DOMNodeList) {
                             $count = $context->count();
@@ -217,42 +219,50 @@ class XPathAxis extends AbstractXPath
                         return $result;
 
                     default:
-                        throw new \RuntimeException('Second parameter of following-sibling:: not recognised');
+                        throw new \RuntimeException(
+                            'Second parameter of following-sibling:: not recognised: ' . $nodeName
+                        );
                 }
                 break;
 
             case 'preceding-sibling':
-                switch ($this->getNode()) {
-                    case '*':
-                        if ($context instanceof DOMNodeList) {
-                            if ($context->count() > 1 || $context->count() < 1) {
-                                throw new \RuntimeException('preceding-sibling only needs 1 context node');
-                            }
-
-                            $context = $context->item(0);
-                        }
-
-                        $result = new DOMNodeList();
-
-                        while ($context->previousSibling !== null) {
-                            if ($context->previousSibling instanceof \DOMElement) {
-                                $result[] = $context->previousSibling;
-                            }
-
-                            $context = $context->previousSibling;
-                        }
-
-                        $result->sort();
-
-                        return $result;
-
-                    default:
-                        throw new \RuntimeException('Second parameter of following-sibling:: not recognised');
+                if (strpos($nodeName, '(') !== false) {
+                    throw new \RuntimeException(
+                        'Second parameter of preceding-sibling:: not recognised: ' . $nodeName
+                    );
                 }
+
+                if ($context instanceof DOMNodeList) {
+                    $count = $context->count();
+
+                    if ($count > 1 || $count < 1) {
+                        throw new \RuntimeException('preceding-sibling only needs 1 context node');
+                    }
+
+                    $context = $context->item(0);
+                }
+
+                $result = new DOMNodeList();
+
+                while ($context->previousSibling !== null) {
+                    if (
+                        $context->previousSibling instanceof \DOMElement
+                        && ($nodeName === '*' || $nodeName === $context->previousSibling->localName)
+                    ) {
+                        $result[] = $context->previousSibling;
+                    }
+
+                    $context = $context->previousSibling;
+                }
+
+                $result->sort();
+
+                return $result;
+
                 break;
 
             case 'ancestor-or-self':
-                switch ($this->getNode()) {
+                switch ($nodeName) {
                     case '*':
                         if ($context instanceof DOMNodeList) {
                             if ($context->count() !== 1) {
@@ -283,7 +293,7 @@ class XPathAxis extends AbstractXPath
                 break;
 
             default:
-                $msg = 'Pseudoelement ' . $this->getName() . '::' . $this->getNode() . ' not recognised';
+                $msg = 'Pseudoelement ' . $this->getName() . '::' . $nodeName . ' not recognised';
                 throw new \RuntimeException($msg);
         }
     }
