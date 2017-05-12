@@ -195,7 +195,9 @@ class XPathAxis extends AbstractXPath
                 switch ($this->getNode()) {
                     case '*':
                         if ($context instanceof DOMNodeList) {
-                            if ($context->count() > 1 || $context->count() < 1) {
+                            $count = $context->count();
+
+                            if ($count > 1 || $count < 1) {
                                 throw new \RuntimeException('following-sibling only needs 1 context node');
                             }
 
