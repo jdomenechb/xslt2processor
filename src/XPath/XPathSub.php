@@ -62,11 +62,7 @@ class XPathSub extends AbstractXPath
 
     public function evaluate($context)
     {
-        //$xPath = $this->toString();
-
-        $result = $this->getSubExpression()->evaluate($context);
-
-        return $result;
+        return $this->getSubExpression()->evaluate($context);
     }
 
     public function setGlobalContext(GlobalContext $context)
