@@ -228,8 +228,6 @@ class Processor
             } else {
                 $header->item(0)->appendChild($meta);
             }
-        } else {
-            throw new \RuntimeException('If the HTML does not implement the head tag, the output cannot be shown');
         }
 
         $result = $content . $this->newXml->saveHTML();
@@ -960,7 +958,7 @@ class Processor
         $toAddPrefix = $newContext instanceof DOMDocument ? $newContext->documentElement : $newContext;
 
         foreach ($this->getGlobalContext()->getNamespaces() as $prefix => $namespace) {
-            if ($prefix === 'default' || $prefix === 'xsl' || $prefix === 'xml') {
+            if ($prefix === 'default' || $prefix === 'xsl' || $prefix === 'xml' || $prefix === 'fn') {
                 continue;
             }
 
@@ -970,11 +968,24 @@ class Processor
         $this->processChildNodes($node, $context, $childNode);
     }
 
+    /**
+     * xsl:variable.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslVariable(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
 
-        if (in_array($name, $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->getArrayCopy())) {
+        if (
+            in_array(
+                $name,
+                $this->getTemplateContextStack()->top()->getVariablesDeclaredInContext()->getArrayCopy(),
+                true
+            )
+        ) {
             throw new \RuntimeException('Variables cannot be redeclared');
         }
 
