@@ -178,14 +178,6 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $leftPart = $this->getLeftPart()->evaluate($context);
         $rightPart = $this->getRightPart()->evaluate($context);
 
-        if ($leftPart instanceof DOMResultTree) {
-            $leftPart = $leftPart->evaluate();
-        }
-
-        if ($rightPart instanceof DOMResultTree) {
-            $rightPart = $rightPart->evaluate();
-        }
-
         return $func($leftPart, $rightPart);
     }
 

@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\NotANumber;
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 
 class XPathMulDivOperator extends AbstractXPathOperator
 {
@@ -22,6 +23,9 @@ class XPathMulDivOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '*' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
                     }
@@ -29,6 +33,9 @@ class XPathMulDivOperator extends AbstractXPathOperator
                     return $left * $right;
                 },
                 'div' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
                     }
@@ -36,6 +43,9 @@ class XPathMulDivOperator extends AbstractXPathOperator
                     return $left / $right;
                 },
                 'mod' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
                     }

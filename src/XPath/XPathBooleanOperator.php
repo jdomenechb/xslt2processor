@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
+use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 
 class XPathBooleanOperator extends AbstractXPathOperator
 {
@@ -25,6 +26,14 @@ class XPathBooleanOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '!=' => function ($left, $right) {
+                    if ($left instanceof DOMResultTree) {
+                        $left = $left->evaluate();
+                    }
+
+                    if ($right instanceof DOMResultTree) {
+                        $right = $right->evaluate();
+                    }
+
                     if (!$left instanceof DOMNodeList && !$right instanceof DOMNodeList) {
                         return $left != $right;
                     }
@@ -55,6 +64,14 @@ class XPathBooleanOperator extends AbstractXPathOperator
                     return false;
                 },
                 '=' => function ($left, $right) {
+                    if ($left instanceof DOMResultTree) {
+                        $left = $left->evaluate();
+                    }
+
+                    if ($right instanceof DOMResultTree) {
+                        $right = $right->evaluate();
+                    }
+
                     if (!$left instanceof DOMNodeList && !$right instanceof DOMNodeList) {
                         return $left == $right;
                     }

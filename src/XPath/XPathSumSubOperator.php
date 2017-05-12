@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\NotANumber;
+use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 
 class XPathSumSubOperator extends AbstractXPathOperator
 {
@@ -22,6 +23,9 @@ class XPathSumSubOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '+' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
                     }
@@ -29,6 +33,9 @@ class XPathSumSubOperator extends AbstractXPathOperator
                     return $left + $right;
                 },
                 '-' => function ($left, $right) {
+                    $left = Converter::fromDOMToString($left);
+                    $right = Converter::fromDOMToString($right);
+
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
                     }
