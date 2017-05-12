@@ -26,6 +26,7 @@ use Jdomenechb\XSLT2Processor\XPath\Expression\Converter;
 use Jdomenechb\XSLT2Processor\XPath\ExpressionInterface;
 use Jdomenechb\XSLT2Processor\XPath\Factory;
 use Jdomenechb\XSLT2Processor\XPath\XPathFunction;
+use Jdomenechb\XSLT2Processor\XPath\XPathPath;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContextStack;
 use Jdomenechb\XSLT2Processor\XSLT\Exception\MessageTerminatedException;
@@ -612,6 +613,15 @@ class Processor
         $this->processChildNodes($template->getNode(), $context, $newContext);
     }
 
+    /**
+     * xsl:apply-templates.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @param bool $first
+     * @return bool
+     */
     protected function xslApplyTemplates(DOMElement $node, DOMNode $context, DOMNode $newContext, $first = false)
     {
         // Select the candidates to be processed
@@ -657,11 +667,25 @@ class Processor
                 }
 
                 $xPathParsed = $this->parseXPath($xPath);
-                $results = $xPathParsed->query(
-                    !$nodesMatched->item(0) instanceof \DOMDocument ?
-                        $nodeMatched->parentNode :
-                        $nodeMatched
-                );
+
+                // By default, use as context:
+                // - The document itself if the instance is a DOMDocument
+                // - The parent node if the instance is not a DOMDocument
+                // - A previous parent if there are more levels in the match
+
+                $matchContext = $nodeMatched;
+
+                if (!$nodeMatched instanceof \DOMDocument) {
+                    $matchContext = $nodeMatched->parentNode;
+
+                    if ($xPathParsed instanceof XPathPath) {
+                        for ($i = 0; $i < count($xPathParsed->getParts()) - 1 && $matchContext->parentNode !== null; $i++) {
+                            $matchContext = $matchContext->parentNode;
+                        }
+                    }
+                }
+
+                $results = $xPathParsed->query($matchContext);
 
                 if ($results === false) {
                     continue;
@@ -813,6 +837,12 @@ class Processor
         return $xPathParsed;
     }
 
+    /**
+     * Creates and evaluates an attribute template, giving the value of the attribute of the node.
+     * @param $attrValue
+     * @param $context
+     * @return mixed|string
+     */
     protected function evaluateAttrValueTemplates($attrValue, $context)
     {
         $xPathParsed = $this->xPathFactory->createFromAttributeValue($attrValue);

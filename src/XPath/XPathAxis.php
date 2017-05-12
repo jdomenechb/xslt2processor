@@ -247,7 +247,7 @@ class XPathAxis extends AbstractXPath
                 while ($context->previousSibling !== null) {
                     if (
                         $context->previousSibling instanceof \DOMElement
-                        && ($nodeName === '*' || $nodeName === $context->previousSibling->localName)
+                        && ($nodeName === '*' || $nodeName === $context->previousSibling->nodeName)
                     ) {
                         $result[] = $context->previousSibling;
                     }
