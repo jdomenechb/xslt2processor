@@ -23,8 +23,8 @@ class XPathSumSubOperator extends AbstractXPathOperator
         if (!static::$operators) {
             static::$operators = [
                 '+' => function ($left, $right) {
-                    $left = Converter::fromDOMToString($left);
-                    $right = Converter::fromDOMToString($right);
+                    $left = trim(Converter::fromDOMToString($left));
+                    $right = trim(Converter::fromDOMToString($right));
 
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
@@ -33,8 +33,8 @@ class XPathSumSubOperator extends AbstractXPathOperator
                     return $left + $right;
                 },
                 '-' => function ($left, $right) {
-                    $left = Converter::fromDOMToString($left);
-                    $right = Converter::fromDOMToString($right);
+                    $left = trim(Converter::fromDOMToString($left));
+                    $right = trim(Converter::fromDOMToString($right));
 
                     if (!is_numeric($left) || !is_numeric($right)) {
                         return new NotANumber();
