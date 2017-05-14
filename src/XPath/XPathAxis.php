@@ -194,36 +194,36 @@ class XPathAxis extends AbstractXPath
                 break;
 
             case 'following-sibling':
-                switch ($nodeName) {
-                    case '*':
-                        if ($context instanceof DOMNodeList) {
-                            $count = $context->count();
-
-                            if ($count > 1 || $count < 1) {
-                                throw new \RuntimeException('following-sibling only needs 1 context node');
-                            }
-
-                            $context = $context->item(0);
-                        }
-
-                        $result = new DOMNodeList();
-
-                        while ($context->nextSibling !== null) {
-                            if ($context->nextSibling instanceof \DOMElement) {
-                                $result[] = $context->nextSibling;
-                            }
-
-                            $context = $context->nextSibling;
-                        }
-
-                        return $result;
-
-                    default:
-                        throw new \RuntimeException(
-                            'Second parameter of following-sibling:: not recognised: ' . $nodeName
-                        );
+                if (strpos($nodeName, '(') !== false) {
+                    throw new \RuntimeException(
+                        'Second parameter of following-sibling:: not recognised: ' . $nodeName
+                    );
                 }
-                break;
+
+                if ($context instanceof DOMNodeList) {
+                    $count = $context->count();
+
+                    if ($count > 1 || $count < 1) {
+                        throw new \RuntimeException('following-sibling only needs 1 context node');
+                    }
+
+                    $context = $context->item(0);
+                }
+
+                $result = new DOMNodeList();
+
+                while ($context->nextSibling !== null) {
+                    if (
+                        $context->nextSibling instanceof \DOMElement
+                        && ($nodeName === '*' || $nodeName === $context->nextSibling->nodeName)
+                    ) {
+                        $result[] = $context->nextSibling;
+                    }
+
+                    $context = $context->nextSibling;
+                }
+
+                return $result;;
 
             case 'preceding-sibling':
                 if (strpos($nodeName, '(') !== false) {
