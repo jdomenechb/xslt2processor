@@ -25,6 +25,10 @@ class Converter
      */
     public static function fromDOMToString($value)
     {
+        if (!is_object($value)) {
+            return (string) $value;
+        }
+
         if ($value instanceof DOMResultTree) {
             $value = $value->evaluate();
         }
