@@ -77,7 +77,7 @@ class Converter
      *
      * @param $value
      *
-     * @return string
+     * @return \DOMDocument
      */
     public static function fromDOMToDOMDocument($value)
     {

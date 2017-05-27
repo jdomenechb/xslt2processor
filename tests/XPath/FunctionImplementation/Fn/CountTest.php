@@ -30,7 +30,7 @@ class CountTest extends TestCase
      */
     protected function setUp()
     {
-        parent::setUpBeforeClass();
+        parent::setUp();
 
         $xmlSource = <<<'SOURCE'
 <?xml version="1.0"?>

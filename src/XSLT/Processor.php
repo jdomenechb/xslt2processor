@@ -1700,6 +1700,14 @@ class Processor
         }
     }
 
+    /**
+     * xsl:message.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     * @throws MessageTerminatedException
+     */
     protected function xslMessage(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         if ($node->hasAttribute('terminate')) {
@@ -1717,11 +1725,25 @@ class Processor
         }
     }
 
+    /**
+     * xsl:result-document.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslResultDocument(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         trigger_error('xsl:result-document not supported yet');
     }
 
+    /**
+     * xsl:processing-instruction.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslProcessingInstruction(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $name = $node->getAttribute('name');
@@ -1735,7 +1757,6 @@ class Processor
     /**
      * xsl:attribute-set.
      *
-     * @param DOMNode    $parent
      * @param DOMNode    $context
      * @param DOMNode    $newContext
      * @param DOMElement $node
