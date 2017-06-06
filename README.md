@@ -14,6 +14,7 @@ XSLT2Processor is a pure PHP library for processing XSLT stylesheets up to versi
 This library requires:
 - PHP 5.6 or greater
 - PHP Extension mbstring
+- PHP Extension xml
 - PHP Extension xsl 
 
 
