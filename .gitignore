@@ -48,16 +48,7 @@ Temporary Items
 
 # Custom
 vendor
-xpath_log.txt
-.vagrant
-vm_build.log
-index.php
-test.php
-test
 composer.lock
-index3.php
 .idea
 phpinfo.php
-composer.lock
 testcases
-greenbytes.php
