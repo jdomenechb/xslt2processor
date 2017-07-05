@@ -210,8 +210,8 @@ class Processor
 
         // Return the result according to the output parameters
         if ($this->getOutput()->getMethod() === Output::METHOD_XML) {
-            return $this->getOutput()->getRemoveXmlDeclaration() && $this->newXml->documentElement ?
-                $this->newXml->saveXML($this->newXml->documentElement) :
+            return $this->getOutput()->getRemoveXmlDeclaration() ?
+                preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $this->newXml->saveXML()) :
                 $this->newXml->saveXML();
         }
 
@@ -459,8 +459,6 @@ class Processor
             }
 
             // Process attributes
-            $newAttr = [];
-
             foreach ($newNode->attributes as $attribute) {
                 $newNode->setAttribute(
                     $attribute->nodeName,
@@ -1446,6 +1444,12 @@ class Processor
         $this->getGlobalContext()->getKeys()[$node->getAttribute('name')] = $key;
     }
 
+    /**
+     * xsl:comment.
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslComment(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $value = $this->evaluateBody($node, $context, $newContext)->evaluate();
@@ -1453,6 +1457,7 @@ class Processor
         $doc = $newContext->ownerDocument ?: $newContext;
 
         $comment = $doc->createComment($value);
+
         $newContext->appendChild($comment);
     }
 
