@@ -112,7 +112,7 @@ class ExpressionParserHelper
                     --$level;
 
                     if ($level === 0) {
-                        $matches[] = trim(substr($expression, $offsetPiece, $rParPos - $offsetPiece));
+                        $matches[] = substr($expression, $offsetPiece, $rParPos - $offsetPiece);
                         $offsetPiece = $min + $lengthEOperator;
                     }
                 }
@@ -133,7 +133,7 @@ class ExpressionParserHelper
             }
         }
 
-        $matches[] = trim(substr($expression, $offsetPiece, $stringLength - $offsetPiece));
+        $matches[] = substr($expression, $offsetPiece, $stringLength - $offsetPiece);
 
         return $matches;
     }
