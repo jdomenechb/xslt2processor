@@ -1,7 +1,7 @@
 XSLT2Processor
 ==============
 
-***WARNING:** This project is in **alpha** state, and as such, does not have any stable release and partial support. Use at your own risk, but feel free to contribute via pull requests, bug issues or feature requests.*
+***WARNING:** This project is in **alpha** state, and as such, does not have any stable release and has partial support. Use at your own risk, but feel free to contribute via pull requests, bug issues or feature requests.*
 
 XSLT2Processor is a pure PHP library for processing XSLT stylesheets up to version 2.0 and XPath expressions. It offers support for:
 
