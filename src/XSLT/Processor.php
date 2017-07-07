@@ -66,9 +66,9 @@ class Processor
     /**
      * Contains information about how the output should be formatted.
      *
-     * @var Output
+     * @var \ArrayObject
      */
-    protected $output;
+    protected $outputs;
 
     /**
      * @var string
@@ -155,7 +155,7 @@ class Processor
         }
 
         $this->setDebug(Debug::getInstance());
-        $this->debug->setOutput($this->getOutput());
+        $this->debug->setOutput($this->getOutputs()['']);
         $this->xPathFactory = new Factory();
     }
 
@@ -209,20 +209,22 @@ class Processor
         Factory::cleanXPathCache();
 
         // Return the result according to the output parameters
-        if ($this->getOutput()->getMethod() === Output::METHOD_XML) {
-            return $this->getOutput()->getRemoveXmlDeclaration() ?
+        $output = $this->getOutputs()[''];
+
+        if ($output->getMethod() === Output::METHOD_XML) {
+            return $output->getRemoveXmlDeclaration() ?
                 preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $this->newXml->saveXML()) :
                 $this->newXml->saveXML();
         }
 
         // Add missing HTML default tags
-        $content = $this->getOutput()->getDoctype() . "\n";
+        $content = $output->getDoctype() . "\n";
 
         $headerXPath = $this->parseXPath('/html/head');
         $header = $headerXPath->query($this->newXml);
 
         if ($header->count()) {
-            $meta = $this->getOutput()->getMetaCharsetTag($this->newXml);
+            $meta = $output->getMetaCharsetTag($this->newXml);
 
             if ($header->item(0)->hasChildNodes()) {
                 $header->item(0)->insertBefore($meta, $header->item(0)->childNodes->item(0));
@@ -231,9 +233,8 @@ class Processor
             }
         }
 
-        $result = $content . $this->newXml->saveHTML();
 
-        return $result;
+        return $content . $this->newXml->saveHTML();
     }
 
     /**
@@ -252,25 +253,25 @@ class Processor
     /**
      * Returns the Output class that determines the format of the transformation.
      *
-     * @return Output
+     * @return \ArrayObject
      */
-    public function getOutput()
+    public function getOutputs()
     {
-        if (!$this->output) {
-            $this->output = new Output();
+        if (!$this->outputs) {
+            $this->outputs = new \ArrayObject(['' => new Output()]);
         }
 
-        return $this->output;
+        return $this->outputs;
     }
 
     /**
      * Sets the Output class that determines the format of the transformation.
      *
-     * @param Output $output
+     * @param \ArrayObject $outputs
      */
-    public function setOutput(Output $output)
+    public function setOutputs(\ArrayObject $outputs)
     {
-        $this->output = $output;
+        $this->outputs = $outputs;
     }
 
     /**
@@ -420,7 +421,7 @@ class Processor
 
             if ($childNode instanceof DOMText) {
                 $domElementUtils = new DOMElementUtils();
-                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
+                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
                 $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
             }
@@ -489,22 +490,31 @@ class Processor
         $this->debug->endNodeLevel($this->newXml);
     }
 
+    /**
+     * xsl:output.
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslOutput(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        // Avoid for now processing outputs with name
-        if ($node->hasAttribute('name')) {
-            trigger_error(
-                'xsl:output with attribute "name" is not supported, the whole tag will be ignored',
-                E_USER_WARNING
-            );
+        if (!$node->hasAttribute('name')) {
+            $name = '';
+        } else {
+            $name = $node->getAttribute('name');
+        }
 
-            return;
+        if (!$this->getOutputs()->offsetExists($name)) {
+            $output = new Output();
+            $this->getOutputs()['name'] = $output;
+        } else {
+            $output = $this->getOutputs()[$name];
         }
 
         foreach ($node->attributes as $attribute) {
             switch ($attribute->nodeName) {
                 case 'omit-xml-declaration':
-                    $this->getOutput()->setRemoveXmlDeclaration($attribute->nodeValue === 'yes');
+                    $output->setRemoveXmlDeclaration($attribute->nodeValue === 'yes');
                     break;
 
                 case 'indent':
@@ -513,7 +523,7 @@ class Processor
                     break;
 
                 case 'method':
-                    $this->getOutput()->setMethod($attribute->nodeValue);
+                    $output->setMethod($attribute->nodeValue);
                     break;
 
                 case 'encoding':
@@ -522,23 +532,27 @@ class Processor
 
                 case 'cdata-section-elements':
                     $elements = explode(' ', $attribute->nodeValue);
-                    $this->getOutput()->setCdataSectionElements(array_merge(
-                        $this->getOutput()->getCdataSectionElements(),
+                    $output->setCdataSectionElements(array_merge(
+                        $output->getCdataSectionElements(),
                         $elements
                     ));
 
                     break;
 
                 case 'version':
-                    $this->getOutput()->setVersion($attribute->nodeValue);
+                    $output->setVersion($attribute->nodeValue);
                     break;
 
                 case 'doctype-public':
-                    $this->getOutput()->setDoctypePublicAttribute($attribute->nodeValue);
+                    $output->setDoctypePublicAttribute($attribute->nodeValue);
                     break;
 
                 case 'doctype-system':
-                    $this->getOutput()->setDoctypeSystemAttribute($attribute->nodeValue);
+                    $output->setDoctypeSystemAttribute($attribute->nodeValue);
+                    break;
+
+                case 'name':
+                    // Name already treated
                     break;
 
                 default:
@@ -874,7 +888,7 @@ class Processor
         }
 
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
 
         if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
@@ -908,7 +922,7 @@ class Processor
         $adoe = $node->getAttribute('disable-output-escaping');
 
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
 
         if ($adoe !== 'yes') {
             $wNode->nodeValue .= $text;
@@ -953,7 +967,7 @@ class Processor
             }
         } else {
             $domElementUtils = new DOMElementUtils();
-            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutput()->getCdataSectionElements());
+            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
             $wNode->nodeValue .= $results;
         }
 
@@ -1393,7 +1407,7 @@ class Processor
     {
         $tmpContext = $this->xml->createElement('tmptmptmptmptmpmonmsubstring');
         $domElementUtils = new DOMElementUtils();
-        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->getOutput()->getCdataSectionElements());
+        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->getOutputs()['']->getCdataSectionElements());
         $text->nodeValue = $match;
 
         $this->processChildNodes($node, $tmpContext, $newContext);
