@@ -188,7 +188,7 @@ class GlobalContext
     /**
      * Returns the Output class that determines the format of the transformation.
      *
-     * @return \ArrayObject
+     * @return \ArrayObject|Output[]
      */
     public function getOutputs()
     {

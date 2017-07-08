@@ -453,7 +453,7 @@ class Processor
 
         if (!$this->getGlobalContext()->getOutputs()->offsetExists($name)) {
             $output = new Output();
-            $this->getGlobalContext()->getOutputs()['name'] = $output;
+            $this->getGlobalContext()->getOutputs()[$name] = $output;
         } else {
             $output = $this->getGlobalContext()->getOutputs()[$name];
         }

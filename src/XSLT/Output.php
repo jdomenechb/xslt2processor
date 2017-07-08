@@ -132,7 +132,7 @@ class Output
      */
     public function getVersion()
     {
-        return $this->version;
+        return (float) $this->version;
     }
 
     /**
@@ -189,6 +189,7 @@ class Output
      * Returns a well-formed DOCTYPE by the information provided to this class.
      *
      * @return string
+     * @throws \RuntimeException
      */
     public function getDoctype()
     {
@@ -200,18 +201,18 @@ class Output
 
         $doctype = '<!DOCTYPE ';
 
-        if ($version == 5) {
+        if ($version === 5) {
             return $doctype . 'html>';
         }
 
-        if ($version == 4) {
+        if ($version === 4) {
             $doctype .= 'HTML';
         } else {
             $doctype .= 'html';
         }
 
-        if (is_null($this->getDoctypePublicAttribute()) && is_null($this->getDoctypeSystemAttribute())) {
-            if ($version == 4) {
+        if ($this->getDoctypePublicAttribute() === null && $this->getDoctypeSystemAttribute() === null) {
+            if ($version === 4) {
                 return $doctype
                     . ' PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
             }
@@ -238,7 +239,7 @@ class Output
 
         $meta = $doc->createElement('meta');
 
-        if ($this->getVersion() == 5) {
+        if ($this->getVersion() === 5) {
             $meta->setAttribute('charset', $doc->encoding);
         } else {
             $meta->setAttribute('http-equiv', 'Content-Type');
@@ -251,14 +252,15 @@ class Output
     /**
      * Formats a document following the rules of the Output instance.
      *
-     * @param \DOMDocument $doc
+     * @param \DOMNode $doc
+     * @return string
      */
-    public function formatXml(\DOMDocument $doc)
+    public function formatXml(\DOMNode $doc)
     {
         if ($this->getMethod() === static::METHOD_XML) {
-            return $this->getRemoveXmlDeclaration() ?
-                preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $doc->saveXML()) :
-                $doc->saveXML();
+            $content = $doc instanceof \DOMDocument ? $doc->saveXML() : $doc->ownerDocument->saveXML($doc);
+
+            return $this->getRemoveXmlDeclaration() ? preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $content) :$content;
         }
 
         if ($this->getMethod() === static::METHOD_TEXT) {
@@ -284,6 +286,6 @@ class Output
         }
 
 
-        return $content . $doc->saveHTML();
+        return $content . ($doc instanceof \DOMDocument ? $doc->saveHTML() : $doc->ownerDocument->saveHTML($doc));
     }
 }

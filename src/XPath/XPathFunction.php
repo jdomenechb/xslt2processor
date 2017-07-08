@@ -55,6 +55,7 @@ class XPathFunction extends AbstractXPath
         'http://www.w3.org/2005/xpath-functions' => self::DEFAULT_NAMESPACE,
         'http://www.w3.org/2001/XMLSchema' => 'xs',
         'http://exslt.org/common' => 'exslt',
+        'http://saxon.sf.net/' => 'saxon',
     ];
 
     /**
@@ -311,7 +312,9 @@ class XPathFunction extends AbstractXPath
         $prefix = $this->getNamespacePrefix();
 
         if (!isset($namespaces[$prefix])) {
-            throw new \RuntimeException('Namespace with prefix "' . $prefix . '" not defined');
+            if (($key = array_search($prefix, $this->availableNamespaces, true)) !== false) {
+                return $key;
+            }
         }
 
         return $namespaces[$prefix];
