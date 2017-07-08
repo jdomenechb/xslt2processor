@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XSLT\Context;
 
+use Jdomenechb\XSLT2Processor\XSLT\Output;
 use Jdomenechb\XSLT2Processor\XSLT\Template\Key;
 use Jdomenechb\XSLT2Processor\XSLT\Template\TemplateList;
 
@@ -55,6 +56,13 @@ class GlobalContext
      * @var \ArrayObject
      */
     protected $attributeSets;
+
+    /**
+     * Contains information about how the output should be formatted.
+     *
+     * @var \ArrayObject
+     */
+    protected $outputs;
 
     public function __construct()
     {
@@ -175,5 +183,29 @@ class GlobalContext
     public function setAttributeSets($attributeSets)
     {
         $this->attributeSets = $attributeSets;
+    }
+
+    /**
+     * Returns the Output class that determines the format of the transformation.
+     *
+     * @return \ArrayObject
+     */
+    public function getOutputs()
+    {
+        if (!$this->outputs) {
+            $this->outputs = new \ArrayObject(['' => new Output()]);
+        }
+
+        return $this->outputs;
+    }
+
+    /**
+     * Sets the Output class that determines the format of the transformation.
+     *
+     * @param \ArrayObject $outputs
+     */
+    public function setOutputs(\ArrayObject $outputs)
+    {
+        $this->outputs = $outputs;
     }
 }

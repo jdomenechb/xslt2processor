@@ -64,13 +64,6 @@ class Processor
     protected $xml;
 
     /**
-     * Contains information about how the output should be formatted.
-     *
-     * @var \ArrayObject
-     */
-    protected $outputs;
-
-    /**
      * @var string
      */
     protected $filePath;
@@ -155,7 +148,6 @@ class Processor
         }
 
         $this->setDebug(Debug::getInstance());
-        $this->debug->setOutput($this->getOutputs()['']);
         $this->xPathFactory = new Factory();
     }
 
@@ -187,6 +179,8 @@ class Processor
         $this->newXml = new DOMDocument();
         $this->messages = new \ArrayObject();
 
+        $this->debug->setOutput($this->getGlobalContext()->getOutputs()['']);
+
         // Process the base xslStylesheet node to be aware of everything the XSL stylesheet features
         $this->xslStylesheet($this->stylesheet->documentElement, $this->xml, $this->newXml);
 
@@ -209,7 +203,7 @@ class Processor
         Factory::cleanXPathCache();
 
         // Return the result according to the output parameters
-        $output = $this->getOutputs()[''];
+        $output = $this->getGlobalContext()->getOutputs()[''];
 
         return $output->formatXml($this->newXml);
     }
@@ -225,30 +219,6 @@ class Processor
     public function setCache(CacheItemPoolInterface $cache)
     {
         $this->cache = $cache;
-    }
-
-    /**
-     * Returns the Output class that determines the format of the transformation.
-     *
-     * @return \ArrayObject
-     */
-    public function getOutputs()
-    {
-        if (!$this->outputs) {
-            $this->outputs = new \ArrayObject(['' => new Output()]);
-        }
-
-        return $this->outputs;
-    }
-
-    /**
-     * Sets the Output class that determines the format of the transformation.
-     *
-     * @param \ArrayObject $outputs
-     */
-    public function setOutputs(\ArrayObject $outputs)
-    {
-        $this->outputs = $outputs;
     }
 
     /**
@@ -398,7 +368,7 @@ class Processor
 
             if ($childNode instanceof DOMText) {
                 $domElementUtils = new DOMElementUtils();
-                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
+                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
                 $wNode->nodeValue .= $childNode->nodeValue;
                 continue;
             }
@@ -481,11 +451,11 @@ class Processor
             $name = $node->getAttribute('name');
         }
 
-        if (!$this->getOutputs()->offsetExists($name)) {
+        if (!$this->getGlobalContext()->getOutputs()->offsetExists($name)) {
             $output = new Output();
-            $this->getOutputs()['name'] = $output;
+            $this->getGlobalContext()->getOutputs()['name'] = $output;
         } else {
-            $output = $this->getOutputs()[$name];
+            $output = $this->getGlobalContext()->getOutputs()[$name];
         }
 
         foreach ($node->attributes as $attribute) {
@@ -865,7 +835,7 @@ class Processor
         }
 
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
 
         if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
@@ -899,7 +869,7 @@ class Processor
         $adoe = $node->getAttribute('disable-output-escaping');
 
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
+        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
 
         if ($adoe !== 'yes') {
             $wNode->nodeValue .= $text;
@@ -944,7 +914,7 @@ class Processor
             }
         } else {
             $domElementUtils = new DOMElementUtils();
-            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getOutputs()['']->getCdataSectionElements());
+            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
             $wNode->nodeValue .= $results;
         }
 
@@ -1384,7 +1354,7 @@ class Processor
     {
         $tmpContext = $this->xml->createElement('tmptmptmptmptmpmonmsubstring');
         $domElementUtils = new DOMElementUtils();
-        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->getOutputs()['']->getCdataSectionElements());
+        $text = $domElementUtils->getWritableNodeIn($tmpContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
         $text->nodeValue = $match;
 
         $this->processChildNodes($node, $tmpContext, $newContext);
@@ -1740,7 +1710,7 @@ class Processor
         if (!$node->hasAttribute('format')) {
             $output = new Output();
         } else {
-            $output = clone $this->getOutputs()[$this->evaluateAttrValueTemplates($node->getAttribute('format'), $context)];
+            $output = clone $this->getGlobalContext()->getOutputs()[$this->evaluateAttrValueTemplates($node->getAttribute('format'), $context)];
         }
 
         if ($node->hasAttribute('method')) {
