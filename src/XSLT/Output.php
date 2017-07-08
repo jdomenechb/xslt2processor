@@ -10,6 +10,7 @@
  */
 
 namespace Jdomenechb\XSLT2Processor\XSLT;
+use Jdomenechb\XSLT2Processor\XPath\Factory;
 
 /**
  * Entity to define the output of the XML/HTML file.
@@ -245,5 +246,44 @@ class Output
         }
 
         return $meta;
+    }
+
+    /**
+     * Formats a document following the rules of the Output instance.
+     *
+     * @param \DOMDocument $doc
+     */
+    public function formatXml(\DOMDocument $doc)
+    {
+        if ($this->getMethod() === static::METHOD_XML) {
+            return $this->getRemoveXmlDeclaration() ?
+                preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $doc->saveXML()) :
+                $doc->saveXML();
+        }
+
+        if ($this->getMethod() === static::METHOD_TEXT) {
+            return $doc->textContent;
+        }
+
+        // Add missing HTML default tags
+        $content = $this->getDoctype() . "\n";
+
+        $xPathFactory = new Factory();
+        $headerXPath = $xPathFactory->create('/html/head');
+
+        $header = $headerXPath->query($doc);
+
+        if ($header->count()) {
+            $meta = $this->getMetaCharsetTag($doc);
+
+            if ($header->item(0)->hasChildNodes()) {
+                $header->item(0)->insertBefore($meta, $header->item(0)->childNodes->item(0));
+            } else {
+                $header->item(0)->appendChild($meta);
+            }
+        }
+
+
+        return $content . $doc->saveHTML();
     }
 }

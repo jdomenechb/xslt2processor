@@ -211,30 +211,7 @@ class Processor
         // Return the result according to the output parameters
         $output = $this->getOutputs()[''];
 
-        if ($output->getMethod() === Output::METHOD_XML) {
-            return $output->getRemoveXmlDeclaration() ?
-                preg_replace('#^<\?xml[^?]*?\?>\s*#', '', $this->newXml->saveXML()) :
-                $this->newXml->saveXML();
-        }
-
-        // Add missing HTML default tags
-        $content = $output->getDoctype() . "\n";
-
-        $headerXPath = $this->parseXPath('/html/head');
-        $header = $headerXPath->query($this->newXml);
-
-        if ($header->count()) {
-            $meta = $output->getMetaCharsetTag($this->newXml);
-
-            if ($header->item(0)->hasChildNodes()) {
-                $header->item(0)->insertBefore($meta, $header->item(0)->childNodes->item(0));
-            } else {
-                $header->item(0)->appendChild($meta);
-            }
-        }
-
-
-        return $content . $this->newXml->saveHTML();
+        return $output->formatXml($this->newXml);
     }
 
     /**
@@ -1750,10 +1727,60 @@ class Processor
      * @param DOMElement $node
      * @param DOMNode $context
      * @param DOMNode $newContext
+     * @throws \RuntimeException
      */
     protected function xslResultDocument(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        trigger_error('xsl:result-document not supported yet');
+        if (!$node->hasAttribute('href')) {
+            throw new RuntimeException('xsl:result-document without a name attribute not implemented');
+        }
+
+        $href = $this->evaluateAttrValueTemplates($node->getAttribute('href'), $context);
+
+        if (!$node->hasAttribute('format')) {
+            $output = new Output();
+        } else {
+            $output = clone $this->getOutputs()[$this->evaluateAttrValueTemplates($node->getAttribute('format'), $context)];
+        }
+
+        if ($node->hasAttribute('method')) {
+            $output->setMethod($this->evaluateAttrValueTemplates($node->getAttribute('method'), $context));
+        }
+
+        if ($node->hasAttribute('encoding')) {
+            trigger_error('Attribute "encoding" not implemented in xsl:result-document', E_USER_NOTICE);
+        }
+
+        foreach ($node->attributes as $attribute) {
+            switch ($attribute->nodeName) {
+                case 'href':
+                case 'format':
+                case 'method':
+                case 'encoding':
+                    // Already treated
+                    break;
+
+                default:
+                    $msg = 'Attribute "' . $attribute->nodeName . '" not implemented in xsl:result-document';
+                    throw new RuntimeException($msg);
+            }
+        }
+
+        $result = $this->evaluateBody($node, $context, $newContext);
+
+        $document = new DOMDocument();
+
+        foreach ($result->getBaseNode()->childNodes as $resultNode) {
+            $document->appendChild($document->importNode($resultNode, true));
+        }
+
+        $result = $output->formatXml($document);
+
+        // Save the result (only relative URLs for now)
+        $parent = dirname($this->filePath);
+        $absHref = $parent . '/' . $href;
+
+        file_put_contents($absHref, $result);
     }
 
     /**
