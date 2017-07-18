@@ -368,8 +368,12 @@ class Processor
 
             if ($childNode instanceof DOMText) {
                 $domElementUtils = new DOMElementUtils();
-                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
-                $wNode->nodeValue .= $childNode->nodeValue;
+                $domElementUtils->appendTextTo(
+                    $newContext,
+                    $childNode->nodeValue,
+                    $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
+                );
+
                 continue;
             }
 
@@ -691,8 +695,11 @@ class Processor
 
             if (!$isMatch && $nodeMatched instanceof DOMText) {
                 $domElementUtils = new DOMElementUtils();
-                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
-                $wNode->nodeValue .= $nodeMatched->nodeValue;
+                $domElementUtils->appendTextTo(
+                    $newContext,
+                    $nodeMatched->nodeValue,
+                    $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
+                );
             }
         }
 
@@ -835,24 +842,17 @@ class Processor
 
         $this->debug->showVar('result', $result);
 
-        // Bools must be shown as string
-        if ($result === true) {
-            $result = 'true';
-        } elseif ($result === false) {
-            $result = 'false';
-        }
-
         $domElementUtils = new DOMElementUtils();
-        $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
+        $cDataSectionElements = $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements();
 
         if ($result instanceof OriginalDOMNodeList || $result instanceof DOMNodeList) {
             foreach ($result as $subResult) {
-                $wNode->nodeValue .= $subResult->nodeValue;
+                $domElementUtils->appendTextTo($newContext, $subResult->nodeValue, $cDataSectionElements);
             }
         } elseif ($result instanceof DOMResultTree) {
-            $wNode->nodeValue .= $result->evaluate();
+            $domElementUtils->appendTextTo($newContext, $result->evaluate(), $cDataSectionElements);
         } else {
-            $wNode->nodeValue .= $result;
+            $domElementUtils->appendTextTo($newContext, $result, $cDataSectionElements);
         }
     }
 
@@ -922,8 +922,11 @@ class Processor
             }
         } else {
             $domElementUtils = new DOMElementUtils();
-            $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
-            $wNode->nodeValue .= $results;
+            $domElementUtils->appendTextTo(
+                $newContext,
+                $results,
+                $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
+            );
         }
 
         $this->debug->printText('After copy:');

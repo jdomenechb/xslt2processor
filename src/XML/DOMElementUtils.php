@@ -68,6 +68,19 @@ class DOMElementUtils
         return $node->appendChild($textNode);
     }
 
+    public function appendTextTo($context, $text, array $cDataSections = [])
+    {
+        $wNode = $this->getWritableNodeIn($context, $cDataSections);
+
+        if (is_float($text) && strpos((string) $text, 'E') !== false) {
+            $text = sprintf('%f20', $text);
+        } elseif (is_bool($text)) {
+            $text = $text ? 'true': 'false';
+        }
+
+        $wNode->nodeValue .= $text;
+    }
+
     public function removeAllChildren(DOMElement $node)
     {
         $children = [];
