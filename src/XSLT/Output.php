@@ -126,7 +126,7 @@ class Output
     }
 
     /**
-     * Get the version of ouptut intended to use.
+     * Get the version of output intended to use.
      *
      * @return float
      */
@@ -193,7 +193,7 @@ class Output
      */
     public function getDoctype()
     {
-        $version = $this->getVersion() ?: 4;
+        $version = $this->getVersion() ?: 4.0;
 
         if ($this->getMethod() !== static::METHOD_HTML) {
             throw new \RuntimeException('Non HTML output methods are not supported for DOCTYPE');
@@ -201,18 +201,18 @@ class Output
 
         $doctype = '<!DOCTYPE ';
 
-        if ($version === 5) {
+        if ($version === 5.0) {
             return $doctype . 'html>';
         }
 
-        if ($version === 4) {
+        if ($version === 4.0) {
             $doctype .= 'HTML';
         } else {
             $doctype .= 'html';
         }
 
         if ($this->getDoctypePublicAttribute() === null && $this->getDoctypeSystemAttribute() === null) {
-            if ($version === 4) {
+            if ($version === 4.0) {
                 return $doctype
                     . ' PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
             }

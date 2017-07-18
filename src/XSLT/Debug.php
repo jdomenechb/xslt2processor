@@ -93,8 +93,10 @@ class Debug
 
             $attr = [];
 
-            foreach ($node->attributes as $attribute) {
-                $attr[] = '@' . $attribute->name . '="' . $attribute->value . '"';
+            if ($node instanceof \DOMElement) {
+                foreach ($node->attributes as $attribute) {
+                    $attr[] = '@' . $attribute->name . '="' . $attribute->value . '"';
+                }
             }
 
             if (count($attr)) {

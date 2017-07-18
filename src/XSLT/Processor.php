@@ -585,7 +585,7 @@ class Processor
     {
         // Select the candidates to be processed
         if (!$applyTemplatesSelect = $node->getAttribute('select')) {
-            $applyTemplatesSelect = '//node()';
+            $applyTemplatesSelect = $context instanceof DOMDocument ? '/*/node()' : 'node()';
         }
 
         $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
@@ -602,6 +602,8 @@ class Processor
         $executed = false;
 
         foreach ($nodesMatched as $nodeMatched) {
+            $isMatch = false;
+
             // Select a template that match
             foreach ($this->getGlobalContext()->getTemplates()->getArrayCopy() as $template) {
                 /* @var Template $template */
@@ -685,6 +687,12 @@ class Processor
 
                     break;
                 }
+            }
+
+            if (!$isMatch && $nodeMatched instanceof DOMText) {
+                $domElementUtils = new DOMElementUtils();
+                $wNode = $domElementUtils->getWritableNodeIn($newContext, $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements());
+                $wNode->nodeValue .= $nodeMatched->nodeValue;
             }
         }
 
