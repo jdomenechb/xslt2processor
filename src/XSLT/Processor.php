@@ -945,7 +945,31 @@ class Processor
             $childNode = $doc->createTextNode('');
             $childNode->nodeValue = $context->nodeValue;
         } elseif ($context instanceof DOMElement) {
+            /** @var DOMElement $childNode */
             $childNode = $doc->importNode($context);
+
+            // Cleanup attributes
+            if ($context->attributes) {
+                foreach ($context->attributes as $attribute) {
+                    $childNode->removeAttribute($attribute->nodeName);
+                }
+            }
+
+            // Attribute-sets
+            if ($node->hasAttribute('use-attribute-sets')) {
+                $attrSets = explode(' ', $node->getAttribute('use-attribute-sets'));
+                $defAttrSets = $this->getGlobalContext()->getAttributeSets();
+
+                foreach ($attrSets as $attrSet) {
+                    if (!$defAttrSets->offsetExists($attrSet)) {
+                        throw new \RuntimeException('Attribute set "' . $attrSet . '" not defined');
+                    }
+
+                    foreach ($defAttrSets->offsetGet($attrSet) as $attrName => $attrValue) {
+                        $childNode->setAttribute($attrName, $attrValue);
+                    }
+                }
+            }
         } elseif ($context instanceof \DOMAttr) {
             $newContext->setAttribute($context->nodeName, $context->nodeValue);
 
