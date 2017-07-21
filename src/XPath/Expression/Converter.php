@@ -89,7 +89,7 @@ class Converter
             $value = $value->item(0);
         }
 
-        if ($value instanceof \DOMNode && !$value instanceof \DOMDocument) {
+        if ($value instanceof \DOMNode) {
             $value = $value->ownerDocument;
         }
 
