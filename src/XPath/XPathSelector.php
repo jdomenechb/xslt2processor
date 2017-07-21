@@ -63,13 +63,20 @@ class XPathSelector extends AbstractXPath
         return $this->getExpression()->toString() . '[' . $this->getSelector()->toString() . ']';
     }
 
+    /**
+     * @inheritdoc
+     */
     public function evaluate($context)
     {
         $resultArray = $this->getExpression()->evaluate($context)->toArray();
         $newResult = [];
 
-        if ($resultArray && $this->getSelector() instanceof XPathNumber) {
-            $newResult[] = $resultArray[$this->getSelector()->toString() - 1];
+        if (
+            $resultArray
+            && $this->getSelector() instanceof XPathNumber
+            && isset($resultArray[($index = $this->getSelector()->toString() - 1)])
+        ) {
+            $newResult[] = $resultArray[$index];
         } else {
             $stack = Current::getStack();
 
