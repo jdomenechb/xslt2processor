@@ -189,9 +189,7 @@ class Processor
         $node->setAttribute('select', '/');
 
         try {
-            $this->xslApplyTemplates($node, $this->xml, $this->newXml, false)
-            || ($node->setAttribute('select', '/*') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, false))
-            || ($node->setAttribute('select', '/') && $this->xslApplyTemplates($node, $this->xml, $this->newXml, true));
+            $this->xslApplyTemplates($node, $this->xml, $this->newXml);
         } catch (MessageTerminatedException $ex) {
             trigger_error('Template execution was terminated because of an xsl:message');
         }
@@ -589,9 +587,10 @@ class Processor
     {
         // Select the candidates to be processed
         if (!$applyTemplatesSelect = $node->getAttribute('select')) {
-            $applyTemplatesSelect = $context instanceof DOMDocument ? '/*/node()' : 'node()';
+            $applyTemplatesSelect = 'node()';
         }
 
+        // Get the candidates
         $applyTemplatesSelectParsed = $this->parseXPath($applyTemplatesSelect);
         $nodesMatched = $applyTemplatesSelectParsed->query($context);
         $nodesMatched = $this->sortElementsByXslSort($node, $nodesMatched);
@@ -603,7 +602,6 @@ class Processor
         }
 
         $params = $this->getParamsFromXslWithParam($node, $context);
-        $executed = false;
 
         foreach ($nodesMatched as $nodeMatched) {
             $isMatch = false;
@@ -687,54 +685,28 @@ class Processor
                     $this->getTemplateContextStack()->pop();
                     $this->getGlobalContext()->getStylesheetStack()->pop();
 
-                    $executed = true;
-
                     break;
                 }
             }
 
-            if (!$isMatch && $nodeMatched instanceof DOMText) {
-                $domElementUtils = new DOMElementUtils();
-                $domElementUtils->appendTextTo(
-                    $newContext,
-                    $nodeMatched->nodeValue,
-                    $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
-                );
+            if (!$isMatch) {
+                // Execute the default behaviour
+                if ($nodeMatched instanceof \DOMCharacterData && !$nodeMatched instanceof DOMComment) {
+                    $domElementUtils = new DOMElementUtils();
+                    $domElementUtils->appendTextTo(
+                        $newContext,
+                        $nodeMatched->nodeValue,
+                        $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
+                    );
+                } elseif ($nodeMatched instanceof DOMElement || $nodeMatched instanceof DOMDocument) {
+                    // Create a temporal apply-templates node
+                    $tmpApplyTemplates = $this->stylesheet->createElement('apply-templates');
+                    //TODO: Add parameters
+
+                    $this->xslApplyTemplates($tmpApplyTemplates, $nodeMatched, $newContext, false);
+                }
             }
         }
-
-        // No matched templates: if first, select the most prioritary one
-
-        if ($executed) {
-            return true;
-        }
-
-        if (!$first) {
-            return false;
-        }
-
-        if (!$fbPossibleTemplate) {
-            throw new \RuntimeException('No template match found');
-        }
-
-        // Apply the template for the match
-        $xPathProcessed = $this->parseXPath($fbPossibleTemplate->getMatch());
-        $nodes = $xPathProcessed->query($context);
-
-        foreach ($nodes as $contextNode) {
-            $this->debug->showTemplate($template);
-
-            $this->getGlobalContext()->getStylesheetStack()->push($template->getNode()->ownerDocument);
-            $this->getTemplateContextStack()->pushAClone();
-
-            $this->getTemplateContextStack()->top()->setContextParent($nodes);
-            $this->processTemplate($fbPossibleTemplate, $contextNode, $newContext, $params);
-
-            $this->getTemplateContextStack()->pop();
-            $this->getGlobalContext()->getStylesheetStack()->pop();
-        }
-
-        return (bool) $nodes->count();
     }
 
     /**
@@ -933,13 +905,16 @@ class Processor
         $this->debug->show($results);
     }
 
+    /**
+     * xsl:copy.
+     *
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslCopy(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
-        if ($newContext instanceof DOMDocument) {
-            $doc = $newContext;
-        } else {
-            $doc = $newContext->ownerDocument;
-        }
+        $doc = Converter::fromDOMToDOMDocument($newContext);
 
         if ($context instanceof DOMText) {
             $childNode = $doc->createTextNode('');
@@ -972,6 +947,10 @@ class Processor
             }
         } elseif ($context instanceof \DOMAttr) {
             $newContext->setAttribute($context->nodeName, $context->nodeValue);
+
+            return;
+        } elseif ($context instanceof DOMComment) {
+            // DOMComments should be ignored
 
             return;
         } else {
