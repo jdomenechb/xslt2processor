@@ -37,7 +37,7 @@ class XPathAttr extends AbstractXPath
     /**
      * {@inheritdoc}
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         if (!$context instanceof DOMNodeList) {
             $context = new DOMNodeList($context);

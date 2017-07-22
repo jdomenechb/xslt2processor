@@ -52,7 +52,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
         return $result;
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $result = '';
 

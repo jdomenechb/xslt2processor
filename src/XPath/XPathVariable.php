@@ -82,7 +82,7 @@ class XPathVariable extends AbstractXPath
      *
      * @return DOMNodeList|mixed
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         return $this->getValue();
     }

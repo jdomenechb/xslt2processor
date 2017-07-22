@@ -91,7 +91,7 @@ class XPathFor extends AbstractXPath
      *
      * @param \DOMNode $context
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $doc = null;
         $in = $this->getIn()->evaluate($context);

@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Current;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -76,5 +77,31 @@ abstract class AbstractXPath implements ExpressionInterface
     public function getTemplateContext()
     {
         return $this->templateContext;
+    }
+
+    /**
+     * Evaluates an expression and returns a result.
+     *
+     * @param \DOMNode  $context
+     * @returns mixed
+     */
+    abstract protected function evaluateExpression ($context);
+
+    /**
+     * @inheritdoc
+     */
+    public function evaluate($context)
+    {
+        $stack = Current::getStack();
+
+        if (!$stack->isEmpty()) {
+            return $this->evaluateExpression($context);
+        }
+
+        $stack->push($context);
+        $toReturn = $this->evaluateExpression($context);
+        $stack->pop();
+
+        return $toReturn;
     }
 }

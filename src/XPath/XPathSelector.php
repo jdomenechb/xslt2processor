@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
-use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Current;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -66,7 +65,7 @@ class XPathSelector extends AbstractXPath
     /**
      * @inheritdoc
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $resultArray = $this->getExpression()->evaluate($context)->toArray();
         $newResult = [];
@@ -78,11 +77,7 @@ class XPathSelector extends AbstractXPath
         ) {
             $newResult[] = $resultArray[$index];
         } else {
-            $stack = Current::getStack();
-
             foreach ($resultArray as $resultElement) {
-                $stack->push($resultElement);
-
                 $evaluation = $this->getSelector()->evaluate($resultElement);
 
                 if (
@@ -91,8 +86,6 @@ class XPathSelector extends AbstractXPath
                 ) {
                     $newResult[] = $resultElement;
                 }
-
-                $stack->pop();
             }
         }
 

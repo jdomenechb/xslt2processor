@@ -11,7 +11,6 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
-use Jdomenechb\XSLT2Processor\XML\DOMResultTree;
 use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -171,7 +170,7 @@ abstract class AbstractXPathOperator extends AbstractXPath
         $this->operator = $operator;
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $func = static::getOperators()[$this->operator];
 

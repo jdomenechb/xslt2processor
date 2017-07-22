@@ -45,7 +45,7 @@ class XPathAxis extends AbstractXPath
         return $this->getName() . '::' . $this->getNode();
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         return $this->query($context);
     }
@@ -193,6 +193,78 @@ class XPathAxis extends AbstractXPath
                 }
                 break;
 
+            case 'following':
+                if ($context instanceof DOMNodeList) {
+                    $count = $context->count();
+
+                    if ($count > 1 || $count < 1) {
+                        throw new \RuntimeException('following only needs 1 context node');
+                    }
+
+                    $context = $context->item(0);
+                }
+
+                $result = [[]];
+
+                while ($context->nextSibling !== null) {
+                    $result[] = $this->getAllNodesDeep($context->nextSibling);
+                    $context = $context->nextSibling;
+                }
+
+                $result = array_merge(...$result);
+
+                if ($nodeName === '*') {
+                    $result = array_filter($result, function ($value) {
+                        return $value instanceof \DOMElement;
+                    });
+                } elseif (preg_match('#^[a-z0-9-]+$#i', $nodeName)) {
+                    $result = array_filter($result, function ($value) use ($nodeName) {
+                        return $value->nodeName === $nodeName && $value instanceof \DOMElement;
+                    });
+                } else {
+                    throw new \RuntimeException('Second parameter of following:: not recognised: ' . $nodeName);
+                }
+
+                return new DOMNodeList($result);
+
+                break;
+
+            case 'preceding':
+                if ($context instanceof DOMNodeList) {
+                    $count = $context->count();
+
+                    if ($count > 1 || $count < 1) {
+                        throw new \RuntimeException('preceding only needs 1 context node');
+                    }
+
+                    $context = $context->item(0);
+                }
+
+                $result = [[]];
+
+                while ($context->previousSibling !== null) {
+                    $result[] = $this->getAllNodesDeep($context->previousSibling);
+                    $context = $context->previousSibling;
+                }
+
+                $result = array_merge(...$result);
+
+                if ($nodeName === '*') {
+                    $result = array_filter($result, function ($value) {
+                        return $value instanceof \DOMElement;
+                    });
+                } elseif (preg_match('#^[a-z0-9-]+$#i', $nodeName)) {
+                    $result = array_filter($result, function ($value) use ($nodeName) {
+                        return $value->nodeName === $nodeName && $value instanceof \DOMElement;
+                    });
+                } else {
+                    throw new \RuntimeException('Second parameter of following:: not recognised: ' . $nodeName);
+                }
+
+                return new DOMNodeList($result);
+
+                break;
+
             case 'following-sibling':
                 if (strpos($nodeName, '(') !== false) {
                     throw new \RuntimeException(
@@ -223,7 +295,7 @@ class XPathAxis extends AbstractXPath
                     $context = $context->nextSibling;
                 }
 
-                return $result;;
+                return $result;
 
             case 'preceding-sibling':
                 if (strpos($nodeName, '(') !== false) {
@@ -288,8 +360,80 @@ class XPathAxis extends AbstractXPath
                         return $items;
 
                     default:
-                        throw new \RuntimeException('Second parameter of ancestor-or-self:: not recognised');
+                        throw new \RuntimeException('Second parameter of ancestor:: not recognised');
                 }
+                break;
+
+            case 'ancestor':
+                switch ($nodeName) {
+                    case '*':
+                        if ($context instanceof DOMNodeList) {
+                            if ($context->count() !== 1) {
+                                throw new \RuntimeException('ancestor');
+                            }
+
+                            $context = $context->item(0);
+                        }
+
+                        $items = new DOMNodeList();
+
+                        while ($context->parentNode instanceof \DOMElement) {
+                            $items[] = $context->parentNode;
+                            $context = $context->parentNode;
+                        }
+
+                        $items->sort();
+
+                        return $items;
+
+
+
+                    default:
+                        throw new \RuntimeException('Second parameter of ancestor:: not recognised');
+                }
+
+                break;
+
+            case 'parent':
+                switch ($nodeName) {
+                    case '*':
+                        if ($context instanceof DOMNodeList) {
+                            if ($context->count() !== 1) {
+                                throw new \RuntimeException('parent');
+                            }
+
+                            $context = $context->item(0);
+                        }
+
+                        return new DOMNodeList($context->parentNode);
+
+
+                    default:
+                        throw new \RuntimeException('Second parameter of parent:: not recognised');
+                }
+                break;
+
+            case 'descendant':
+                switch ($nodeName) {
+                    case '*':
+                        if ($context instanceof DOMNodeList) {
+                            if ($context->count() !== 1) {
+                                throw new \RuntimeException('descendant');
+                            }
+
+                            $context = $context->item(0);
+                        }
+
+                        $items = $this->getAllNodesDeep($context);
+                        array_shift($items);
+                        $items = array_values($items);
+
+                        return new DOMNodeList($items);
+
+                    default:
+                        throw new \RuntimeException('Second parameter of descendant:: not recognised');
+                }
+
                 break;
 
             default:
@@ -313,4 +457,26 @@ class XPathAxis extends AbstractXPath
     {
         $this->name = $name;
     }
+
+    /**
+     * Returns the given node and all their childs in a flat array.
+     *
+     * @param \DOMNode $node
+     * @return array
+     */
+    protected function getAllNodesDeep(\DOMNode $node)
+    {
+        $nodes = [[$node]];
+
+        if ($node->childNodes) {
+            foreach ($node->childNodes as $childNode) {
+                $nodes[] = $this->getAllNodesDeep($childNode);
+            }
+        }
+
+        $nodes = array_merge(...$nodes);
+
+        return $nodes;
+    }
+
 }

@@ -87,7 +87,7 @@ class XPathPathNode extends AbstractXPath
         $this->setNode($toSet);
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         return $this->query($context);
     }

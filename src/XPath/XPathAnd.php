@@ -15,7 +15,7 @@ use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 
 class XPathAnd extends AbstractXPathLogic
 {
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         foreach ($this->getExpressions() as $expression) {
             $evaluation = $expression->evaluate($context);

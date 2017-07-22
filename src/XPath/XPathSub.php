@@ -60,7 +60,7 @@ class XPathSub extends AbstractXPath
         $this->subExpression = $subExpression;
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         return $this->getSubExpression()->evaluate($context);
     }

@@ -49,7 +49,7 @@ class XPathNumber extends AbstractXPath
      *
      * @throws InvalidEvaluation
      */
-    public function evaluate($context)
+    protected function evaluateExpression($context)
     {
         // If it has decimal part, it's a float, otherwise, it's an integer
         if (preg_match('#^-?\d+(\.\d+)?$#', $this->getNumber(), $matches)) {

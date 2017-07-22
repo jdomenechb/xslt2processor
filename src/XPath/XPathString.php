@@ -88,7 +88,7 @@ class XPathString extends AbstractXPath
      *
      * @throws InvalidEvaluation
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         if ($this->getString() === null) {
             throw new InvalidEvaluation('Not a valid string evaluation');

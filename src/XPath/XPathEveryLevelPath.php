@@ -90,7 +90,7 @@ class XPathEveryLevelPath extends AbstractXPath
      *
      * @return DOMNodeList
      */
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $evaluation = $this->getLeftPart()->evaluate($context);
 

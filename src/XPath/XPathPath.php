@@ -95,7 +95,7 @@ class XPathPath extends AbstractXPath
         return new $c($xPath);
     }
 
-    public function evaluate($context)
+    protected function evaluateExpression ($context)
     {
         $xPath = $this->toString();
 

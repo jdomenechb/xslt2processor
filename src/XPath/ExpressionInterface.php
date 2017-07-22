@@ -12,7 +12,6 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
-use DOMXPath;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -40,10 +39,9 @@ interface ExpressionInterface
     public function toString();
 
     /**
-     * Evaluates an expression and returns a result. For now, it is needed normal XSLT still.
+     * Evaluates an expression and returns a result.
      *
      * @param DOMNode  $context
-     * @param DOMXPath $xPathReference
      * @returns mixed
      */
     public function evaluate($context);
