@@ -11,6 +11,7 @@
 
 namespace Jdomenechb\XSLT2Processor\XPath;
 
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XPath\FunctionImplementation\Fn\Current;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
@@ -101,6 +102,10 @@ abstract class AbstractXPath implements ExpressionInterface
         $stack->push($context);
         $toReturn = $this->evaluateExpression($context);
         $stack->pop();
+
+        if ($toReturn instanceof DOMNodeList) {
+            $toReturn->sort();
+        }
 
         return $toReturn;
     }
