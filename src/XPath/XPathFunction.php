@@ -202,7 +202,7 @@ class XPathFunction extends AbstractXPath
         return class_exists($this->getClassName());
     }
 
-    protected function evaluateExpression ($context)
+    protected function evaluateExpression($context)
     {
         if (array_key_exists($this->getName(), static::getCustomFunctions())) {
             throw new \RuntimeException('Custom functions are not supported yet');

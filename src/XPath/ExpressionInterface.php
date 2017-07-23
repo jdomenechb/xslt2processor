@@ -12,6 +12,7 @@
 namespace Jdomenechb\XSLT2Processor\XPath;
 
 use DOMNode;
+use Jdomenechb\XSLT2Processor\XML\DOMNodeList;
 use Jdomenechb\XSLT2Processor\XSLT\Context\GlobalContext;
 use Jdomenechb\XSLT2Processor\XSLT\Context\TemplateContext;
 
@@ -49,7 +50,7 @@ interface ExpressionInterface
     /**
      * Performs a query evaluation on the xPath.
      *
-     * @param DOMNode $context
+     * @param DOMNode|DOMNodeList $context
      * @returns \Jdomenechb\XSLT2Processor\XML\DOMNodeList
      */
     public function query($context);

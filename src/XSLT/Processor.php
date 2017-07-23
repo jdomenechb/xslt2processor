@@ -1168,6 +1168,12 @@ class Processor
         }
     }
 
+    /**
+     * xsl:for-each-group
+     * @param DOMElement $node
+     * @param DOMNode $context
+     * @param DOMNode $newContext
+     */
     protected function xslForEachGroup(DOMElement $node, DOMNode $context, DOMNode $newContext)
     {
         $xPath = $node->getAttribute('select');
