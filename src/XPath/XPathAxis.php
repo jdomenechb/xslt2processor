@@ -21,10 +21,13 @@ class XPathAxis extends AbstractXPath
     protected $name;
 
     /**
-     * @var string
+     * @var ExpressionInterface
      */
     protected $node;
 
+    /**
+     * @inheritdoc
+     */
     public static function parseXPath($string)
     {
         if (strpos($string, '::') === false) {
@@ -34,24 +37,32 @@ class XPathAxis extends AbstractXPath
         $parts = explode('::', $string);
         $obj = new self();
 
+        $factory = new Factory();
+
         $obj->setName($parts[0]);
-        $obj->setNode($parts[1]);
+        $obj->setNode($factory->create($parts[1]));
 
         return $obj;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function toString()
     {
-        return $this->getName() . '::' . $this->getNode();
+        return $this->getName() . '::' . (string) $this->getNode();
     }
 
-    protected function evaluateExpression ($context)
+    /**
+     * @inheritdoc
+     */
+    protected function evaluateExpression($context)
     {
         return $this->query($context);
     }
 
     /**
-     * @return string
+     * @return ExpressionInterface
      */
     public function getNode()
     {
@@ -59,7 +70,7 @@ class XPathAxis extends AbstractXPath
     }
 
     /**
-     * @param string $node
+     * @param ExpressionInterface $node
      */
     public function setNode($node)
     {
@@ -75,98 +86,32 @@ class XPathAxis extends AbstractXPath
             $context = new DOMNodeList($context);
         }
 
-        $nodeName = $this->getNode();
+        $selectedNodes = [];
+        $node = $this->getNode();
+        $nodeString = $node->toString();
+
+        // Select the nodes in each axis
 
         switch ($this->getName()) {
             case 'child':
-                switch ($nodeName) {
-                    case '*':
-                        $result = new DOMNodeList();
+                $selectedNodes[] = [];
 
-                        foreach ($context as $node) {
-                            $result->merge(new DOMNodeList($node->childNodes));
-                        }
-
-                        return $result;
-
-                    default:
-                        throw new \RuntimeException('Second parameter of child:: not recognised');
+                foreach ($context as $contextNode) {
+                    $selectedNodes[] = (new DOMNodeList($contextNode->childNodes))->toArray();
                 }
+
+                $selectedNodes = array_merge(...$selectedNodes);
                 break;
 
             case 'self':
-                switch ($nodeName) {
-                    case 'comment()':
-                        $result = new DOMNodeList();
-
-                        foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMComment) {
-                                continue;
-                            }
-
-                            $result[] = $contextNode;
-                        }
-
-                        return $result;
-
-                    case '*':
-                        $result = new DOMNodeList();
-
-                        foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMElement) {
-                                continue;
-                            }
-
-                            $result[] = $contextNode;
-                        }
-
-                        return $result;
-
-                    case 'processing-instruction()':
-                        $result = new DOMNodeList();
-
-                        foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMProcessingInstruction) {
-                                continue;
-                            }
-
-                            $result[] = $contextNode;
-                        }
-
-                        return $result;
-
-                    case 'text()':
-                        $result = new DOMNodeList();
-
-                        foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMCharacterData) {
-                                continue;
-                            }
-
-                            $result[] = $contextNode;
-                        }
-
-                        return $result;
-
-                    default:
-                        $result = new DOMNodeList();
-
-                        foreach ($context as $contextNode) {
-                            if (!$contextNode instanceof \DOMElement || $contextNode->localName !== $nodeName) {
-                                continue;
-                            }
-
-                            $result[] = $contextNode;
-                        }
-
-                        return $result;
-                }
+                $selectedNodes = $context->toArray();
                 break;
 
             case 'namespace':
-                switch ($nodeName) {
+                // That is an special case: we need to use the normal xPath
+                switch ($this->getNode()->toString()) {
                     case '*':
-                        // Result DOMXPath
+                        // FIXME: If no context, this fails
                         foreach ($context as $contextNode) {
                             $xPathClass = new \DOMXPath($contextNode instanceof \DOMDocument ? $contextNode : $contextNode->ownerDocument);
                             $results1 = $xPathClass->query('namespace::*', $contextNode);
@@ -175,12 +120,14 @@ class XPathAxis extends AbstractXPath
                         return new DOMNodeList($results1);
 
                     default:
-                        throw new \RuntimeException('Second parameter of namespace:: not recognised: ' . $nodeName);
+                        $msg = 'Second parameter of namespace:: not recognised: ' . $this->getNode()->toString();
+                        throw new \RuntimeException($msg);
                 }
                 break;
 
             case 'attribute':
-                switch ($nodeName) {
+                switch ($this->getNode()->toString()) {
+                    // That is an special case: even if using '*', attr are not DOMElements
                     case '*':
                         // Result DOMXPath
                         $result = new DOMNodeList();
@@ -192,257 +139,152 @@ class XPathAxis extends AbstractXPath
                         return $result;
 
                     default:
-                        throw new \RuntimeException('Second parameter of attribute:: not recognised: ' . $nodeName);
+                        $msg = 'Second parameter of attribute:: not recognised: ' . $this->getNode()->toString();
+                        throw new \RuntimeException($msg);
                 }
                 break;
 
             case 'following':
-                if ($context instanceof DOMNodeList) {
-                    $count = $context->count();
+                $selectedNodes[] = [];
 
-                    if ($count > 1 || $count < 1) {
-                        throw new \RuntimeException('following only needs 1 context node');
+                foreach ($context as $contextNode) {
+                    while ($contextNode) {
+                        // First, extract all next siblings with descendants
+                        while ($contextNode->nextSibling !== null) {
+                            $selectedNodes[] = $this->getAllNodesDeep($contextNode->nextSibling);
+                            $contextNode = $contextNode->nextSibling;
+                        }
+
+                        // Now, search for the next sibling of the parent
+                        $contextNode = $contextNode->parentNode;
                     }
-
-                    $context = $context->item(0);
                 }
 
-                $result = [[]];
-
-                while ($context) {
-                    // First, extract all next siblings with descendants
-                    while ($context->nextSibling !== null) {
-                        $result[] = $this->getAllNodesDeep($context->nextSibling);
-                        $context = $context->nextSibling;
-                    }
-
-                    // Now, search for the next sibling of the parent
-                    $context = $context->parentNode;
-                }
-
-                $result = array_merge(...$result);
-
-                if ($nodeName === '*') {
-                    $result = array_filter($result, function ($value) {
-                        return $value instanceof \DOMElement;
-                    });
-                } elseif (preg_match('#^[a-z0-9-]+$#i', $nodeName)) {
-                    $result = array_filter($result, function ($value) use ($nodeName) {
-                        return $value->nodeName === $nodeName && $value instanceof \DOMElement;
-                    });
-                } else {
-                    throw new \RuntimeException('Second parameter of following:: not recognised: ' . $nodeName);
-                }
-
-                return new DOMNodeList($result);
-
+                $selectedNodes = array_merge(...$selectedNodes);
                 break;
 
             case 'preceding':
-                if ($context instanceof DOMNodeList) {
-                    $count = $context->count();
+                $selectedNodes[] = [];
 
-                    if ($count > 1 || $count < 1) {
-                        throw new \RuntimeException('preceding only needs 1 context node');
+                foreach ($context as $contextNode) {
+
+                    while ($contextNode) {
+                        while ($contextNode->previousSibling !== null) {
+                            $selectedNodes[] = $this->getAllNodesDeep($contextNode->previousSibling);
+                            $contextNode = $contextNode->previousSibling;
+                        }
+
+                        $contextNode = $contextNode->previousSibling;
                     }
-
-                    $context = $context->item(0);
                 }
 
-                $result = [[]];
-
-                while ($context) {
-                    while ($context->previousSibling !== null) {
-                        $result[] = $this->getAllNodesDeep($context->previousSibling);
-                        $context = $context->previousSibling;
-                    }
-
-                    $context = $context->previousSibling;
-                }
-
-                $result = array_merge(...$result);
-
-                if ($nodeName === '*') {
-                    $result = array_filter($result, function ($value) {
-                        return $value instanceof \DOMElement;
-                    });
-                } elseif (preg_match('#^[a-z0-9-]+$#i', $nodeName)) {
-                    $result = array_filter($result, function ($value) use ($nodeName) {
-                        return $value->nodeName === $nodeName && $value instanceof \DOMElement;
-                    });
-                } else {
-                    throw new \RuntimeException('Second parameter of following:: not recognised: ' . $nodeName);
-                }
-
-                return new DOMNodeList($result);
-
+                $selectedNodes = array_merge(...$selectedNodes);
                 break;
 
             case 'following-sibling':
-                if (strpos($nodeName, '(') !== false) {
-                    throw new \RuntimeException(
-                        'Second parameter of following-sibling:: not recognised: ' . $nodeName
-                    );
-                }
-
-                $result = [];
-
                 foreach ($context as $contextNode) {
                     while ($contextNode->nextSibling !== null) {
-                        if (
-                            $contextNode->nextSibling instanceof \DOMElement
-                            && ($nodeName === '*' || $nodeName === $contextNode->nextSibling->nodeName)
-                        ) {
-                            $result[] = $contextNode->nextSibling;
-                        }
-
+                        $selectedNodes[] = $contextNode->nextSibling;
                         $contextNode = $contextNode->nextSibling;
                     }
                 }
-
-                return new DOMNodeList($result);
+                break;
 
             case 'preceding-sibling':
-                if (strpos($nodeName, '(') !== false) {
-                    throw new \RuntimeException(
-                        'Second parameter of preceding-sibling:: not recognised: ' . $nodeName
-                    );
-                }
-
-                if ($context instanceof DOMNodeList) {
-                    $count = $context->count();
-
-                    if ($count > 1 || $count < 1) {
-                        throw new \RuntimeException('preceding-sibling only needs 1 context node');
+                foreach ($context as $contextNode) {
+                    while ($contextNode->previousSibling !== null) {
+                        $selectedNodes[] = $contextNode->previousSibling;
+                        $contextNode = $contextNode->previousSibling;
                     }
-
-                    $context = $context->item(0);
                 }
-
-                $result = new DOMNodeList();
-
-                while ($context->previousSibling !== null) {
-                    if (
-                        $context->previousSibling instanceof \DOMElement
-                        && ($nodeName === '*' || $nodeName === $context->previousSibling->nodeName)
-                    ) {
-                        $result[] = $context->previousSibling;
-                    }
-
-                    $context = $context->previousSibling;
-                }
-
-                $result->sort();
-
-                return $result;
-
                 break;
 
             case 'ancestor-or-self':
-                switch ($nodeName) {
-                    case '*':
-                        if ($context instanceof DOMNodeList) {
-                            if ($context->count() !== 1) {
-                                throw new \RuntimeException('ancestor-or-self');
-                            }
+                foreach ($context as $contextNode) {
+                    if (!$contextNode instanceof \DOMDocument) {
+                        $selectedNodes[] = $contextNode;
+                    }
 
-                            $context = $context->item(0);
-                        }
-
-                        if (!$context instanceof \DOMDocument) {
-                            $items = new DOMNodeList($context);
-                        } else {
-                            $items = new DOMNodeList();
-                        }
-
-                        while ($context->parentNode instanceof \DOMElement) {
-                            $items[] = $context->parentNode;
-                            $context = $context->parentNode;
-                        }
-
-                        //$items->sort();
-
-                        return $items;
-
-                    default:
-                        throw new \RuntimeException('Second parameter of ancestor:: not recognised');
+                    while ($contextNode->parentNode instanceof \DOMElement) {
+                        $selectedNodes[] = $contextNode = $contextNode->parentNode;
+                    }
                 }
+
                 break;
 
             case 'ancestor':
-                switch ($nodeName) {
-                    case '*':
-                        if ($context instanceof DOMNodeList) {
-                            if ($context->count() !== 1) {
-                                throw new \RuntimeException('ancestor');
-                            }
-
-                            $context = $context->item(0);
-                        }
-
-                        $items = new DOMNodeList();
-
-                        while ($context->parentNode instanceof \DOMElement) {
-                            $items[] = $context = $context->parentNode;
-                        }
-
-                        return $items;
-
-                    default:
-                        throw new \RuntimeException('Second parameter of ancestor:: not recognised');
+                foreach ($context as $contextNode) {
+                    while ($contextNode->parentNode instanceof \DOMElement) {
+                        $selectedNodes[] = $contextNode = $contextNode->parentNode;
+                    }
                 }
 
                 break;
 
             case 'parent':
-                switch ($nodeName) {
-                    case '*':
-                        if ($context instanceof DOMNodeList) {
-                            if ($context->count() !== 1) {
-                                throw new \RuntimeException('parent');
-                            }
-
-                            $context = $context->item(0);
-                        }
-
-                        return new DOMNodeList($context->parentNode);
-
-
-                    default:
-                        throw new \RuntimeException('Second parameter of parent:: not recognised');
+                foreach ($context as $contextNode) {
+                    $selectedNodes[] = $contextNode->parentNode;
                 }
+
                 break;
 
             case 'descendant':
-                if ($context instanceof DOMNodeList) {
-                    if ($context->count() !== 1) {
-                        throw new \RuntimeException('descendant');
-                    }
+                $selectedNodes[] = [];
 
-                    $context = $context->item(0);
+                foreach ($context as $contextNode) {
+                    $items = $this->getAllNodesDeep($contextNode);
+                    array_shift($items);
+
+                    $selectedNodes[] = $items;
                 }
 
-                $items = $this->getAllNodesDeep($context);
-                array_shift($items);
-
-                switch ($nodeName) {
-                    case '*':
-                        $items = array_filter($items, function ($value) {
-                            return $value instanceof \DOMElement;
-                        });
-
-                        return new DOMNodeList($items);
-
-                    default:
-                        throw new \RuntimeException('Second parameter of descendant:: not recognised');
-                }
-
+                $selectedNodes = array_merge(...$selectedNodes);
                 break;
 
             default:
-                $msg = 'Pseudoelement ' . $this->getName() . '::' . $nodeName . ' not recognised';
+                $msg = 'Pseudoelement ' . $this->getName() . '::' . $this->getNode()->toString() . ' not recognised';
                 throw new \RuntimeException($msg);
         }
+
+        // Filter
+        try {
+            if ($node instanceof XPathPathNode) {
+                if ($nodeString === '*') {
+                    $selectedNodes = array_filter($selectedNodes, function ($value) {
+                        return $value instanceof \DOMElement;
+                    });
+                } elseif (preg_match('#^[a-z0-9-]+$#i', $nodeString)) {
+                    $selectedNodes = array_filter($selectedNodes, function ($value) use ($nodeString) {
+                        return $value instanceof \DOMElement && $value->nodeName === $nodeString;
+                    });
+                } else {
+                    throw new \RuntimeException('');
+                }
+            } elseif ($node instanceof XPathFunction) {
+                if ($nodeString === 'fn:comment()') {
+                    $selectedNodes = array_filter($selectedNodes, function ($value) {
+                        return $value instanceof \DOMComment;
+                    });
+                } elseif ($nodeString === 'fn:processing-instruction()') {
+                    $selectedNodes = array_filter($selectedNodes, function ($value) {
+                        return $value instanceof \DOMProcessingInstruction;
+                    });
+                } elseif ($nodeString === 'fn:text()') {
+                    $selectedNodes = array_filter($selectedNodes, function ($value) {
+                        return $value instanceof \DOMCharacterData && !$value instanceof \DOMComment;
+                    });
+                } else {
+                    throw new \RuntimeException('');
+                }
+            } else {
+                throw new \RuntimeException('');
+            }
+        } catch (\RuntimeException $e) {
+            throw new \RuntimeException('Axis right part "' . $nodeString . '" not implemented');
+        }
+
+        $selectedNodes = new DOMNodeList($selectedNodes);
+        return $selectedNodes;
     }
 
     /**
