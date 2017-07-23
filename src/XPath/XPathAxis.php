@@ -91,7 +91,6 @@ class XPathAxis extends AbstractXPath
         $nodeString = $node->toString();
 
         // Select the nodes in each axis
-
         switch ($this->getName()) {
             case 'child':
                 $selectedNodes[] = [];
@@ -242,7 +241,7 @@ class XPathAxis extends AbstractXPath
                 break;
 
             default:
-                $msg = 'Pseudoelement ' . $this->getName() . '::' . $this->getNode()->toString() . ' not recognised';
+                $msg = 'Axis ' . $this->getName() . '::' . $this->getNode()->toString() . ' not implemented';
                 throw new \RuntimeException($msg);
         }
 
