@@ -73,9 +73,10 @@ class XPathSelector extends AbstractXPath
         if (
             $resultArray
             && $this->getSelector() instanceof XPathNumber
-            && isset($resultArray[($index = $this->getSelector()->toString() - 1)])
         ) {
-            $newResult[] = $resultArray[$index];
+            if (isset($resultArray[($index = $this->getSelector()->toString() - 1)])) {
+                $newResult[] = $resultArray[$index];
+            }
         } else {
             foreach ($resultArray as $resultElement) {
                 $evaluation = $this->getSelector()->evaluate($resultElement);
