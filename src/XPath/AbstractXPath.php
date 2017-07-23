@@ -37,6 +37,10 @@ abstract class AbstractXPath implements ExpressionInterface
         return $this->toString();
     }
 
+    /**
+     * @inheritdoc
+     * @throws \RuntimeException
+     */
     public function query($context)
     {
         throw new \RuntimeException('Not implemented yet in ' . get_called_class());
@@ -77,6 +81,9 @@ abstract class AbstractXPath implements ExpressionInterface
      */
     public function getTemplateContext()
     {
+        if (!$this->templateContext) {
+            $this->templateContext = new TemplateContext();
+        }
         return $this->templateContext;
     }
 
