@@ -206,9 +206,15 @@ class XPathAxis extends AbstractXPath
 
                 $result = [[]];
 
-                while ($context->nextSibling !== null) {
-                    $result[] = $this->getAllNodesDeep($context->nextSibling);
-                    $context = $context->nextSibling;
+                while ($context) {
+                    // First, extract all next siblings with descendants
+                    while ($context->nextSibling !== null) {
+                        $result[] = $this->getAllNodesDeep($context->nextSibling);
+                        $context = $context->nextSibling;
+                    }
+
+                    // Now, search for the next sibling of the parent
+                    $context = $context->parentNode;
                 }
 
                 $result = array_merge(...$result);
@@ -242,8 +248,12 @@ class XPathAxis extends AbstractXPath
 
                 $result = [[]];
 
-                while ($context->previousSibling !== null) {
-                    $result[] = $this->getAllNodesDeep($context->previousSibling);
+                while ($context) {
+                    while ($context->previousSibling !== null) {
+                        $result[] = $this->getAllNodesDeep($context->previousSibling);
+                        $context = $context->previousSibling;
+                    }
+
                     $context = $context->previousSibling;
                 }
 
@@ -355,7 +365,7 @@ class XPathAxis extends AbstractXPath
                             $context = $context->parentNode;
                         }
 
-                        $items->sort();
+                        //$items->sort();
 
                         return $items;
 
@@ -378,15 +388,10 @@ class XPathAxis extends AbstractXPath
                         $items = new DOMNodeList();
 
                         while ($context->parentNode instanceof \DOMElement) {
-                            $items[] = $context->parentNode;
-                            $context = $context->parentNode;
+                            $items[] = $context = $context->parentNode;
                         }
 
-                        $items->sort();
-
                         return $items;
-
-
 
                     default:
                         throw new \RuntimeException('Second parameter of ancestor:: not recognised');
@@ -414,19 +419,22 @@ class XPathAxis extends AbstractXPath
                 break;
 
             case 'descendant':
+                if ($context instanceof DOMNodeList) {
+                    if ($context->count() !== 1) {
+                        throw new \RuntimeException('descendant');
+                    }
+
+                    $context = $context->item(0);
+                }
+
+                $items = $this->getAllNodesDeep($context);
+                array_shift($items);
+
                 switch ($nodeName) {
                     case '*':
-                        if ($context instanceof DOMNodeList) {
-                            if ($context->count() !== 1) {
-                                throw new \RuntimeException('descendant');
-                            }
-
-                            $context = $context->item(0);
-                        }
-
-                        $items = $this->getAllNodesDeep($context);
-                        array_shift($items);
-                        $items = array_values($items);
+                        $items = array_filter($items, function ($value) {
+                            return $value instanceof \DOMElement;
+                        });
 
                         return new DOMNodeList($items);
 

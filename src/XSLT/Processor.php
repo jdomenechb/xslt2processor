@@ -692,6 +692,8 @@ class Processor
             if (!$isMatch) {
                 // Execute the default behaviour
                 if ($nodeMatched instanceof \DOMCharacterData && !$nodeMatched instanceof DOMComment) {
+                    $this->debug->printText('Template: default behaviour TEXT');
+
                     $domElementUtils = new DOMElementUtils();
                     $domElementUtils->appendTextTo(
                         $newContext,
@@ -699,11 +701,15 @@ class Processor
                         $this->getGlobalContext()->getOutputs()['']->getCdataSectionElements()
                     );
                 } elseif ($nodeMatched instanceof DOMElement || $nodeMatched instanceof DOMDocument) {
+                    $this->debug->printText('Template: default behaviour NODE');
+
                     // Create a temporal apply-templates node
                     $tmpApplyTemplates = $this->stylesheet->createElement('apply-templates');
-                    //TODO: Add parameters
+                    // TODO: Add parameters
 
+                    $this->debug->startNodeLevel($this->newXml, $tmpApplyTemplates);
                     $this->xslApplyTemplates($tmpApplyTemplates, $nodeMatched, $newContext, false);
+                    $this->debug->endNodeLevel($this->newXml);
                 }
             }
         }
