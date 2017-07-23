@@ -66,6 +66,9 @@ class XPathAxis extends AbstractXPath
         $this->node = $node;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function query($context)
     {
         if (!$context instanceof DOMNodeList) {
@@ -282,30 +285,22 @@ class XPathAxis extends AbstractXPath
                     );
                 }
 
-                if ($context instanceof DOMNodeList) {
-                    $count = $context->count();
+                $result = [];
 
-                    if ($count > 1 || $count < 1) {
-                        throw new \RuntimeException('following-sibling only needs 1 context node');
+                foreach ($context as $contextNode) {
+                    while ($contextNode->nextSibling !== null) {
+                        if (
+                            $contextNode->nextSibling instanceof \DOMElement
+                            && ($nodeName === '*' || $nodeName === $contextNode->nextSibling->nodeName)
+                        ) {
+                            $result[] = $contextNode->nextSibling;
+                        }
+
+                        $contextNode = $contextNode->nextSibling;
                     }
-
-                    $context = $context->item(0);
                 }
 
-                $result = new DOMNodeList();
-
-                while ($context->nextSibling !== null) {
-                    if (
-                        $context->nextSibling instanceof \DOMElement
-                        && ($nodeName === '*' || $nodeName === $context->nextSibling->nodeName)
-                    ) {
-                        $result[] = $context->nextSibling;
-                    }
-
-                    $context = $context->nextSibling;
-                }
-
-                return $result;
+                return new DOMNodeList($result);
 
             case 'preceding-sibling':
                 if (strpos($nodeName, '(') !== false) {
