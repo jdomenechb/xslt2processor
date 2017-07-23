@@ -1610,6 +1610,10 @@ class Processor
                     $dataType = $childNode->getAttribute('data-type');
                 }
 
+                $templateContext = $this->getTemplateContextStack()->top();
+                $oldContextParent = $templateContext->getContextParent();
+                $templateContext->setContextParent($toSort);
+
                 // TODO: usorts can be optimized precalculating the strings first, or caching the strings.
                 switch ($dataType) {
                     case 'text':
@@ -1637,6 +1641,8 @@ class Processor
                             return $result * $order;
                         });
                 }
+
+                $templateContext->setContextParent($oldContextParent);
 
                 $toSort = new DOMNodeList();
                 $toSort->fromArray($newResults);
