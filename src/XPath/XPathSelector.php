@@ -78,6 +78,11 @@ class XPathSelector extends AbstractXPath
                 $newResult[] = $resultArray[$index];
             }
         } else {
+            $templateContext = $this->getTemplateContext();
+
+            $oldContextParent = $templateContext->getContextParent();
+            $templateContext->setContextParent(new DOMNodeList($resultArray));
+
             foreach ($resultArray as $resultElement) {
                 $evaluation = $this->getSelector()->evaluate($resultElement);
 
@@ -88,6 +93,8 @@ class XPathSelector extends AbstractXPath
                     $newResult[] = $resultElement;
                 }
             }
+
+            $templateContext->setContextParent($oldContextParent);
         }
 
         return new DOMNodeList($newResult);

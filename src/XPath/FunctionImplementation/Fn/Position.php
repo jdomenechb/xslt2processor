@@ -29,7 +29,9 @@ class Position extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
-        if ($func->getTemplateContext()->getContextParent()) {
+        $templateContext = $func->getTemplateContext();
+
+        if ($templateContext->getContextParent()) {
             $parent = $func->getTemplateContext()->getContextParent();
             $i = 0;
 
@@ -45,10 +47,10 @@ class Position extends AbstractFunctionImplementation
         }
 
         // Iterate all siblings
-        $parent = $context->parentNode;
+        $secondParent = $context->parentNode;
         $i = 0;
 
-        foreach ($parent->childNodes as $childNode) {
+        foreach ($secondParent->childNodes as $childNode) {
             if (
                 ($childNode instanceof \DOMElement && $context instanceof \DOMElement)
                 || ($childNode instanceof \DOMText && $context instanceof \DOMText)
