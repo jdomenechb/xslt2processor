@@ -124,7 +124,7 @@ class DOMNodeList implements ArrayAccess, Iterator
      */
     public function fromArray(array $items)
     {
-        $this->items = $items;
+        $this->items = array_values($items);
     }
 
     /**
@@ -237,11 +237,11 @@ class DOMNodeList implements ArrayAccess, Iterator
                 return 0;
             }
 
-            if ($a instanceof DOMDocument) {
+            if ($a instanceof DOMDocument || $a instanceof \DOMComment) {
                 return -1;
             }
 
-            if ($b instanceof DOMDocument) {
+            if ($b instanceof DOMDocument || $b instanceof \DOMComment) {
                 return 1;
             }
 
