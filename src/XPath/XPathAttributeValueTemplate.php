@@ -52,6 +52,9 @@ class XPathAttributeValueTemplate extends AbstractXPath
         return $result;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function evaluateExpression ($context)
     {
         $result = '';
@@ -63,7 +66,7 @@ class XPathAttributeValueTemplate extends AbstractXPath
                 $tmp = $part->evaluate($context);
 
                 if ($tmp instanceof DOMNodeList) {
-                    $tmp = $tmp->item(0)->nodeValue;
+                    $tmp = $tmp->count() ? $tmp->item(0)->nodeValue : '';
                 } elseif ($tmp instanceof DOMResultTree) {
                     $tmp = $tmp->evaluate();
                 }

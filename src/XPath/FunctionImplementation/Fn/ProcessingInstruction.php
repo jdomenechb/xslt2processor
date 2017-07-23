@@ -33,6 +33,10 @@ class ProcessingInstruction extends AbstractFunctionImplementation
      */
     public function evaluate(XPathFunction $func, $context)
     {
+        if (!$context || ($context instanceof DOMNodeList && !$context->count())) {
+            return new DOMNodeList();
+        }
+
         $contextDom = Converter::fromDOMToDOMDocument($context);
         $xPath = new \DOMXPath($contextDom);
 
@@ -41,6 +45,6 @@ class ProcessingInstruction extends AbstractFunctionImplementation
         // We should strip the prefix
         $funcString = substr($funcString, strpos($funcString, ':') + 1);
 
-        return new DOMNodeList($xPath->evaluate($funcString, $context));
+        return new DOMNodeList($xPath->evaluate($funcString, $context->item(0)));
     }
 }

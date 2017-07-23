@@ -92,8 +92,9 @@ abstract class AbstractXPath implements ExpressionInterface
      *
      * @param \DOMNode  $context
      * @returns mixed
+     * @throws \RuntimeException
      */
-    abstract protected function evaluateExpression ($context);
+    abstract protected function evaluateExpression($context);
 
     /**
      * @inheritdoc
