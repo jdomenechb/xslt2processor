@@ -1618,10 +1618,27 @@ class Processor
                 switch ($dataType) {
                     case 'text':
                         usort($newResults, function ($a, $b) use ($xPathParsed, $order) {
-                            return $order * strcmp(
+                            $result = $order * strcmp(
                                 Converter::fromDOMToString($xPathParsed->evaluate($a)),
                                 Converter::fromDOMToString($xPathParsed->evaluate($b))
                             );
+
+                            if (!$result) {
+                                if ($a->isSameNode($b)) {
+                                    return 0;
+                                }
+
+                                $domNodeList = new DOMNodeList([$a, $b]);
+                                $domNodeList->sort();
+
+                                if ($domNodeList->item(0)->isSameNode($a)) {
+                                    return -1;
+                                }
+
+                                return 1;
+                            }
+
+                            return $result;
                         });
 
                         break;
