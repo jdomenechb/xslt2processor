@@ -34,16 +34,20 @@ class Name extends AbstractFunctionImplementation
             $property = new DOMNodeList($context);
         } else {
             $property = $func->getParameters()[0]->evaluate($context);
-        }
 
-        if (!$property instanceof DOMNodeList) {
-            $property = new DOMNodeList($property);
+            if (!$property instanceof DOMNodeList) {
+                $property = new DOMNodeList($property);
+            }
         }
 
         if (!$property->count()) {
             return null;
         }
 
-        return $property->item(0)->nodeName;
+        if ($property->item(0) instanceof \DOMElement) {
+            return $property->item(0)->nodeName;
+        }
+
+        return '';
     }
 }
