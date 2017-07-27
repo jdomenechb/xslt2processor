@@ -65,7 +65,7 @@ class XPathFunction extends AbstractXPath
 
     public static function parseXPath($string)
     {
-        if (!preg_match('#^[a-z-]+(?::[a-z-]+)?\(.*\)$#s', $string)) {
+        if (!preg_match('#^[a-z-]+(?::[a-z-]+)?\s*\(.*\)$#s', $string)) {
             return false;
         }
 
@@ -202,6 +202,9 @@ class XPathFunction extends AbstractXPath
         return class_exists($this->getClassName());
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function evaluateExpression($context)
     {
         if (array_key_exists($this->getName(), static::getCustomFunctions())) {
