@@ -45,6 +45,10 @@ class ProcessingInstruction extends AbstractFunctionImplementation
         // We should strip the prefix
         $funcString = substr($funcString, strpos($funcString, ':') + 1);
 
-        return new DOMNodeList($xPath->evaluate($funcString, $context->item(0)));
+        if ($context instanceof DOMNodeList) {
+            $context = $context->item(0);
+        }
+
+        return new DOMNodeList($xPath->evaluate($funcString, $context));
     }
 }
