@@ -16,7 +16,6 @@ use DOMDocument;
 use DOMNode;
 use DOMNodeList as OriginalDOMNodeList;
 use Iterator;
-use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use RuntimeException;
 
 /**
@@ -32,6 +31,14 @@ class DOMNodeList implements ArrayAccess, Iterator
      * @var array
      */
     protected $items;
+
+    /**
+     * Indicates if the NodeList has already been sorted or not.
+     * @var bool
+     */
+    protected $sorted = false;
+
+    protected static $sortCache;
 
     /**
      * Constructor.
@@ -106,6 +113,8 @@ class DOMNodeList implements ArrayAccess, Iterator
         } else {
             $this->items[] = $value;
         }
+
+        $this->sorted = false;
     }
 
     public function offsetUnset($offset)
@@ -126,6 +135,7 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromArray(array $items)
     {
         $this->items = array_values($items);
+        $this->sorted = false;
     }
 
     /**
@@ -140,6 +150,8 @@ class DOMNodeList implements ArrayAccess, Iterator
         foreach ($items as $item) {
             $this->items[] = $item;
         }
+
+        $this->sorted = false;
     }
 
     /**
@@ -154,6 +166,8 @@ class DOMNodeList implements ArrayAccess, Iterator
         foreach ($items as $item) {
             $this->items[] = $item;
         }
+
+        $this->sorted = false;
     }
 
     /**
@@ -164,6 +178,7 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromDOMNode(DOMNode $item)
     {
         $this->items = [$item];
+        $this->sorted = false;
     }
 
     /**
@@ -174,6 +189,7 @@ class DOMNodeList implements ArrayAccess, Iterator
     public function fromSelf(DOMNodeList $item)
     {
         $this->items = $item->toArray();
+        $this->sorted = false;
     }
 
     public function merge(DOMNodeList ...$list)
@@ -185,6 +201,8 @@ class DOMNodeList implements ArrayAccess, Iterator
         array_unshift($list, $this->items);
 
         $this->items = array_merge(...$list);
+
+        $this->sorted = false;
     }
 
     /**
@@ -229,8 +247,18 @@ class DOMNodeList implements ArrayAccess, Iterator
      */
     public function sort()
     {
+        if ($this->sorted) {
+            return;
+        }
+
+        $this->sorted = true;
+
         if (count($this->items) <= 1) {
             return;
+        }
+
+        if (count($this->items) > 2) {
+            $meh = null;
         }
 
         usort($this->items, function (\DOMNode $a, \DOMNode $b) {
@@ -248,6 +276,16 @@ class DOMNodeList implements ArrayAccess, Iterator
 
             $xPathA = $a->getNodePath();
             $xPathB = $b->getNodePath();
+
+            $docHash = spl_object_hash($a->ownerDocument);
+
+            if (isset(static::$sortCache[$docHash][$xPathA][$xPathB])) {
+                return static::$sortCache[$docHash][$xPathA][$xPathB];
+            }
+
+            if (isset(static::$sortCache[$docHash][$xPathB][$xPathA])) {
+                return - static::$sortCache[$docHash][$xPathB][$xPathA];
+            }
 
             $diffPos = strspn($xPathA ^ $xPathB, "\0");
 
@@ -270,10 +308,12 @@ class DOMNodeList implements ArrayAccess, Iterator
                 $levelA = $levelA->previousSibling;
 
                 if ($levelA->isSameNode($levelB)) {
+                    static::$sortCache[$docHash][$xPathA][$xPathB] = 1;
                     return 1;
                 }
             }
 
+            static::$sortCache[$docHash][$xPathA][$xPathB] = -1;
             return -1;
         });
     }
@@ -292,5 +332,6 @@ class DOMNodeList implements ArrayAccess, Iterator
         }
 
         $this->items = $newItems;
+        $this->sorted = false;
     }
 }
