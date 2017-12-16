@@ -16,6 +16,7 @@ use DOMDocument;
 use DOMNode;
 use DOMNodeList as OriginalDOMNodeList;
 use Iterator;
+use Jdomenechb\XSLT2Processor\XPath\Expression\ExpressionParserHelper;
 use RuntimeException;
 
 /**
@@ -245,56 +246,35 @@ class DOMNodeList implements ArrayAccess, Iterator
                 return 1;
             }
 
-            $levelsA = [$a];
-            $levelsB = [$b];
+            $xPathA = $a->getNodePath();
+            $xPathB = $b->getNodePath();
 
-            // Determine all the levels
-            $topParentA = $a;
+            $diffPos = strspn($xPathA ^ $xPathB, "\0");
 
-            while ($topParentA !== null && !$topParentA->parentNode instanceof \DOMDocument) {
-                $topParentA = $topParentA->parentNode;
-                $levelsA[] = $topParentA;
+            $countA = substr_count(substr($xPathA, $diffPos), '/');
+            $countB = substr_count(substr($xPathB, $diffPos), '/');
+
+            $levelA = $a;
+            $levelB = $b;
+
+            for ($i = 0; $i < $countA; $i++) {
+                $levelA = $levelA->parentNode;
             }
 
-            $topParentB = $b;
-
-            while ($topParentB !== null && !$topParentB->parentNode instanceof \DOMDocument) {
-                $topParentB = $topParentB->parentNode;
-                $levelsB[] = $topParentB;
+            for ($i = 0; $i < $countB; $i++) {
+                $levelB = $levelB->parentNode;
             }
 
-            $levelsA = array_reverse($levelsA);
-            $levelsB = array_reverse($levelsB);
+            // At this point, the nodes differ. Let's see in what order they are.
+            while ($levelA->previousSibling !== null) {
+                $levelA = $levelA->previousSibling;
 
-            // Check where is the difference
-            $min = min(count($levelsA), count($levelsB));
-
-            for ($i = 0; $i < $min; ++$i) {
-                if ($levelsA[$i] === $levelsB[$i]) {
-                    continue;
-                }
-
-                // At this point, the nodes differ. Let's see in what order they are.
-                foreach ($levelsA[$i - 1]->childNodes as $sibling) {
-                    if ($sibling->isSameNode($levelsA[$i])) {
-                        return -1;
-                    }
-
-                    if ($sibling->isSameNode($levelsB[$i])) {
-                        return 1;
-                    }
+                if ($levelA->isSameNode($levelB)) {
+                    return 1;
                 }
             }
 
-            if (count($levelsA) < count($levelsB)) {
-                return -1;
-            }
-
-            if (count($levelsA) > count($levelsB)) {
-                return 1;
-            }
-
-            return 0;
+            return -1;
         });
     }
 
